@@ -86,7 +86,7 @@ def run_make_command(
     process_env = dict(os.environ)
     if env:
         process_env.update(env)
-    
+
     # Ensure uv is in PATH (in case it's in a non-standard location)
     uv_dir = str(Path(uv_path).parent)
     current_path = process_env.get("PATH", "")
@@ -151,6 +151,7 @@ def run_make_command(
         # Import time if timeout is needed
         if timeout:
             import time
+
             start_time = time.time()
 
         while not (stdout_done and stderr_done):
@@ -170,9 +171,7 @@ def run_make_command(
                             stderr_lines.append(line)
                     stdout = "".join(stdout_lines)
                     stderr = "".join(stderr_lines)
-                    raise subprocess.TimeoutExpired(
-                        full_command, timeout, output=stdout, stderr=stderr
-                    )
+                    raise subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)
 
             # Read from stdout queue (non-blocking)
             try:
@@ -205,7 +204,7 @@ def run_make_command(
                 # Process finished, wait for threads to complete and drain queues
                 stdout_thread.join(timeout=1.0)
                 stderr_thread.join(timeout=1.0)
-                
+
                 # Drain any remaining items from queues
                 while not stdout_queue.empty():
                     line = stdout_queue.get()
@@ -226,7 +225,7 @@ def run_make_command(
         returncode = process.returncode
 
         logger.debug(f"Command completed with return code {returncode}")
-        
+
         if returncode == 0:
             console.print(f"[green]✓[/green] Command succeeded: [bold]{command_str}[/bold]")
         else:

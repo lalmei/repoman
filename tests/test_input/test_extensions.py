@@ -322,9 +322,7 @@ class TestExtensionsIntegration:
         SlugifyExtension(env)
         CurrentYearExtension(env)
 
-        template = env.from_string(
-            "User: {{ 'default' | git_user_name | slugify }}, Year: {{ current_year }}"
-        )
+        template = env.from_string("User: {{ 'default' | git_user_name | slugify }}, Year: {{ current_year }}")
         result = template.render()
 
         assert result == f"User: john-doe, Year: {date.today().year}"

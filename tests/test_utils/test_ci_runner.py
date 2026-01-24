@@ -25,12 +25,7 @@ def test_run_make_command_basic(tmp_path):
 def test_run_make_command_captures_output(tmp_path):
     """Test that run_make_command captures stdout and stderr correctly."""
     makefile = tmp_path / "Makefile"
-    makefile.write_text(
-        "test-output:\n"
-        "\t@echo 'stdout message'\n"
-        "\t@echo 'stderr message' >&2\n"
-        "\t@exit 0\n"
-    )
+    makefile.write_text("test-output:\n\t@echo 'stdout message'\n\t@echo 'stderr message' >&2\n\t@exit 0\n")
 
     result = run_make_command(tmp_path, "test-output")
 

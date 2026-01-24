@@ -161,9 +161,7 @@ def debug_info(console: Console = None) -> None:
         Text("Interpreter Path", style="rosewater"),
         Text(env.interpreter_path, style="bold text"),
     )
-    table.add_row(
-        Text("Platform", style="rosewater"), Text(env.platform, style="bold text")
-    )
+    table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold text"))
     table.add_row(
         Text(f"Packages ({len(env.packages)})", style="rosewater"),
         Text.assemble(*[Text(str(pkg), style="bold text") for pkg in env.packages]),

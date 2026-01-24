@@ -61,9 +61,7 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"]
-        + [f"COM{i}" for i in range(1, 10)]
-        + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -80,18 +78,10 @@ def create_project(
         "-t",
         help="Path to custom template (defaults to main template)",
     ),
-    output_dir: Optional[str] = Option(
-        None, "--output", "-o", help="Output directory (defaults to current directory)"
-    ),
-    answers_file: Optional[str] = Option(
-        None, "--answers", "-a", help="Path to answers file"
-    ),
-    force: bool = Option(
-        False, "--force", "-f", help="Force overwrite of existing files"
-    ),
-    dry_run: bool = Option(
-        False, "--dry-run", help="Show what would be created without actually creating"
-    ),
+    output_dir: Optional[str] = Option(None, "--output", "-o", help="Output directory (defaults to current directory)"),
+    answers_file: Optional[str] = Option(None, "--answers", "-a", help="Path to answers file"),
+    force: bool = Option(False, "--force", "-f", help="Force overwrite of existing files"),
+    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
 ) -> None:
     """Create a new Python project using the repoman template."""
 
