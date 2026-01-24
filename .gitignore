@@ -1,6 +1,7 @@
 # editors
 .idea/
 .vscode/
+.cursor/
 
 # python
 *.egg-info/
@@ -12,6 +13,7 @@
 
 # tools
 .coverage*
+coverage.xml
 /.pdm-build/
 /htmlcov/
 /site/

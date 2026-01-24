@@ -91,3 +91,11 @@ docs-serve: ## Serve documentation locally
 
 docs-check: ## Check documentation for issues
 	uv run mkdocs build --config-file=config/mkdocs.yml --strict
+
+#######################
+#      Setup          #
+#######################
+setup-cursor: ## Copy cursor configuration from config/cursor to .cursor
+	@mkdir -p .cursor
+	@cp -r config/cursor/* .cursor/
+	@echo "Cursor configuration synced to .cursor/"
