@@ -136,25 +136,13 @@ python_package_command_line_name:
   help: Your CLI name if any (for use in the shell)
   default: "{{ project_name | slugify }}"
 
-insiders:
-  type: bool
-  help: Does this project have an Insiders version?
-  default: false
-
-insiders_repository_name:
+python_distribution_name:
   type: str
-  help: Your Insiders repository name
-  default: "{{ repository_name }}"
-  when: "{{ insiders }}"
+  help: Python distribution name for container images (used in Azure DevOps)
+  default: "{{ python_package_distribution_name }}"
 
-insiders_email:
+container_registry:
   type: str
-  help: The email to use for Insiders-related questions
-  default: "{{ author_email }}"
-  when: "{{ insiders }}"
+  help: Container registry URL for Docker images (e.g., Azure Container Registry name or Docker Hub)
+  default: "docker.io"
 
-public_release:
-  type: bool
-  help: Is this project already released publicly?
-  default: false
-  when: "{{ insiders }}"
