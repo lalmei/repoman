@@ -2,6 +2,7 @@
 
 import os
 import queue
+import shutil
 import subprocess
 import sys
 import threading
@@ -42,6 +43,9 @@ def run_make_command(
     The output is both captured (for assertions) and streamed to stdout/stderr
     (for visibility in pytest output).
 
+    This function ensures that `uv` is available in the PATH, as the template
+    Makefile commands use `uv run` to execute Python tools.
+
     Args:
         project_dir: Directory where the make command should be executed
         command: Make command to run (e.g., "setup", "test", "lint")
@@ -52,25 +56,46 @@ def run_make_command(
         CommandResult with returncode, stdout, stderr, and command
 
     Raises:
-        FileNotFoundError: If make command is not found
+        FileNotFoundError: If make command is not found or uv is not available
         subprocess.TimeoutExpired: If command times out (only if timeout is set)
     """
     project_dir = Path(project_dir).resolve()
     if not project_dir.exists():
         raise ValueError(f"Project directory does not exist: {project_dir}")
 
+    # Verify uv is available (required for template make commands)
+    uv_path = shutil.which("uv")
+    if uv_path is None:
+        error_msg = (
+            "uv is not available in PATH. "
+            "The template Makefile requires uv to run commands. "
+            "Install uv with: curl -LsSf https://astral.sh/uv/install.sh | sh"
+        )
+        logger.error(error_msg)
+        console.print(f"[red]✗[/red] {error_msg}")
+        raise FileNotFoundError("uv command not found. Is uv installed?")
+
     # Build the full command
     full_command = ["make", command]
     command_str = " ".join(full_command)
 
-    logger.info(f"Running command: {command_str} in {project_dir}")
+    logger.info(f"Running command: {command_str} in {project_dir} (uv found at {uv_path})")
     console.print(f"[blue]→[/blue] Running: [bold]{command_str}[/bold] in {project_dir}")
 
-    # Prepare environment
-    process_env = None
+    # Prepare environment - ensure PATH includes uv if it's in a custom location
+    process_env = dict(os.environ)
     if env:
-        process_env = dict(os.environ)
         process_env.update(env)
+    
+    # Ensure uv is in PATH (in case it's in a non-standard location)
+    uv_dir = str(Path(uv_path).parent)
+    current_path = process_env.get("PATH", "")
+    # Split PATH by platform-specific separator and check for exact match
+    path_entries = current_path.split(os.pathsep) if current_path else []
+    if uv_dir not in path_entries:
+        # Prepend uv_dir to PATH using platform-specific separator
+        path_entries.insert(0, uv_dir)
+        process_env["PATH"] = os.pathsep.join(path_entries)
 
     # Use Popen to stream output while capturing
     try:
