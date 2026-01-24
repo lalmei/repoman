@@ -41,10 +41,12 @@ from repoman.config import Config
 from repoman.utils.logging import get_logger_console
 from repoman.utils.theme.theme import set_theme
 
-cli_app = typer.Typer(add_completion=True, invoke_without_command=True, no_args_is_help=True)
+cli_app = typer.Typer(
+    add_completion=True, invoke_without_command=True, no_args_is_help=True
+)
 
 
-def _register_commands() -> None:
+def _register_commands(path: Path | None = None) -> None:
     """Dynamically discover and register CLI commands from modules in the cli directory.
 
     Scans all Python modules in the cli directory (excluding __init__.py and main_cli.py)
@@ -53,10 +55,15 @@ def _register_commands() -> None:
     logger, _ = get_logger_console()
 
     # Get the cli directory path
-    cli_dir = Path(__file__).parent
+    if path is None:
+        cli_dir = Path(__file__).parent / "commands"
+    else:
+        cli_dir = path
 
     # Find all Python files in the cli directory
-    command_modules = [f.stem for f in cli_dir.glob("*.py") if f.stem not in ("__init__", "main_cli")]
+    command_modules = [
+        f.stem for f in cli_dir.glob("*.py") if f.stem not in ("__init__", "main_cli")
+    ]
 
     registered_commands = set()
 
@@ -64,7 +71,7 @@ def _register_commands() -> None:
     for module_name in command_modules:
         try:
             # Dynamically import the module
-            module = importlib.import_module(f"repoman.cli.{module_name}")
+            module = importlib.import_module(f"repoman.cli.commands.{module_name}")
 
             # Scan for functions with a .command attribute
             for attr_name in dir(module):
@@ -85,7 +92,9 @@ def _register_commands() -> None:
                     # Register the command
                     cli_app.command(name=command_name)(attr)
                     registered_commands.add(command_name)
-                    logger.debug(f"Registered command '{command_name}' from module '{module_name}'")
+                    logger.debug(
+                        f"Registered command '{command_name}' from module '{module_name}'"
+                    )
 
         except ImportError as e:
             logger.warning(f"Failed to import module '{module_name}': {e}. Skipping.")
@@ -130,8 +139,12 @@ def _debug_info_callback(value: bool) -> None:
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
     ctx: typer.Context,
-    dry_run: Optional[bool] = typer.Option(False, "--dry-run", help="Show changes but do not execute them"),
-    verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="verbose mode"),
+    dry_run: Optional[bool] = typer.Option(
+        False, "--dry-run", help="Show changes but do not execute them"
+    ),
+    verbose: Optional[bool] = typer.Option(
+        False, "--verbose", "-v", help="verbose mode"
+    ),
     version: Optional[bool] = typer.Option(
         None,
         "--version",
@@ -146,7 +159,9 @@ def main(
         callback=_debug_info_callback,
         is_eager=True,
     ),
-    theme: Optional[str] = typer.Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
+    theme: Optional[str] = typer.Option(
+        "dark", "--theme", help="Set the theme, 'light' or 'dark' "
+    ),
 ) -> None:
     """Welcome to repoman CLI App
 
@@ -178,7 +193,9 @@ def main(
         logger.debug(Text("Configuration set", style="yellow"))
     except ValidationError as e:
         logger.error("Unable to load configuration: ")
-        logger.error(f"Obtained the following validating Errors loading configuration: {e}\n")
+        logger.error(
+            f"Obtained the following validating Errors loading configuration: {e}\n"
+        )
         ctx.config = None
 
     ctx.obj = {
