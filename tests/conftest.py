@@ -78,9 +78,7 @@ def pytest_configure(config):
     """Configure pytest before test collection."""
     # Register custom markers
     config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line(
-        "markers", "integration: Integration tests that may have dependencies"
-    )
+    config.addinivalue_line("markers", "integration: Integration tests that may have dependencies")
     config.addinivalue_line("markers", "cli: CLI command tests")
     config.addinivalue_line("markers", "utils: Utility function tests")
     config.addinivalue_line("markers", "slow: Slow running tests")
@@ -102,10 +100,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.unit)
 
         # Mark tests that use file system operations as isolated
-        if any(
-            keyword in item.nodeid.lower()
-            for keyword in ["file", "path", "directory", "log"]
-        ):
+        if any(keyword in item.nodeid.lower() for keyword in ["file", "path", "directory", "log"]):
             item.add_marker(pytest.mark.isolated)
 
 
@@ -231,13 +226,9 @@ def mock_template_structure(tmp_path):
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text(
-        "# {{ project_name }}\n\nGenerated project."
-    )
+    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text(
-        "print('Hello {{ project_name }}')"
-    )
+    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
 
     return template_dir
 
@@ -448,12 +439,7 @@ def setup_template(tmp_path_factory):
         # Run make setup
         result = run_make_command(instantiated_path, "setup")
         if result.returncode != 0:
-            pytest.fail(
-                f"Setup failed:\n"
-                f"Command: {result.command}\n"
-                f"stdout:\n{result.stdout}\n"
-                f"stderr:\n{result.stderr}"
-            )
+            pytest.fail(f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
 
         yield instantiated_path
 

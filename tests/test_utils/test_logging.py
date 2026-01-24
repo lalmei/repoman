@@ -164,9 +164,7 @@ class TestAttachRotatingFileHandler:
             assert result_logger is logger
 
             # Should have a rotating file handler
-            rotating_handlers = [
-                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
-            ]
+            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
             assert len(rotating_handlers) == 1
 
             # Clean up handlers to avoid resource warnings
@@ -192,9 +190,7 @@ class TestAttachRotatingFileHandler:
             assert result_logger is logger
 
             # Should have a rotating file handler
-            rotating_handlers = [
-                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
-            ]
+            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
             assert len(rotating_handlers) == 1
 
             handler = rotating_handlers[0]
@@ -219,9 +215,7 @@ class TestAttachRotatingFileHandler:
             _attach_rotating_file_handler(logger, str(log_file2))
 
             # Should have two rotating file handlers
-            rotating_handlers = [
-                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
-            ]
+            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
             assert len(rotating_handlers) == 2
 
             # Clean up handlers to avoid resource warnings
@@ -447,9 +441,7 @@ class TestLoggingErrorHandling:
                 _attach_rotating_file_handler(logger, 123)
         finally:
             # Clean up rotating file handlers to prevent resource warnings
-            for handler in logger.handlers[
-                :
-            ]:  # Copy list to avoid modification during iteration
+            for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
                 if handler.get_name() == "rotating_file_handler":
                     handler.close()
                     logger.removeHandler(handler)
@@ -462,27 +454,19 @@ class TestLoggingErrorHandling:
             log_file = temp_log_dir / "test.log"
 
             # Test with negative file size - Python logging handles this gracefully
-            logger = _attach_rotating_file_handler(
-                logger, str(log_file), maximum_log_file_size_mb=-1
-            )
+            logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_size_mb=-1)
             assert isinstance(logger, Logger)
 
             # Test with negative backup count - Python logging handles this gracefully
-            logger = _attach_rotating_file_handler(
-                logger, str(log_file), maximum_log_file_time_days=-1
-            )
+            logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_time_days=-1)
             assert isinstance(logger, Logger)
 
             # Test with zero file size - Python logging handles this gracefully
-            logger = _attach_rotating_file_handler(
-                logger, str(log_file), maximum_log_file_size_mb=0
-            )
+            logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_size_mb=0)
             assert isinstance(logger, Logger)
         finally:
             # Clean up rotating file handlers to prevent resource warnings
-            for handler in logger.handlers[
-                :
-            ]:  # Copy list to avoid modification during iteration
+            for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
                 if handler.get_name() == "rotating_file_handler":
                     handler.close()
                     logger.removeHandler(handler)
@@ -571,9 +555,7 @@ class TestLoggingErrorHandling:
                 # Clean up large file
                 large_file.unlink(missing_ok=True)
                 # Clean up rotating file handlers to prevent resource warnings
-                for handler in logger.handlers[
-                    :
-                ]:  # Copy list to avoid modification during iteration
+                for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
                     if handler.get_name() == "rotating_file_handler":
                         handler.close()
                         logger.removeHandler(handler)

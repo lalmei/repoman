@@ -79,31 +79,23 @@ def test_create_command_argument_order(cli_runner, cli_app) -> None:
     project_name = "test-project"
 
     # Test normal order: create project_name --options
-    result1 = cli_runner.invoke(
-        cli_app, ["create", project_name, "--dry-run", "--force"], input=""
-    )
+    result1 = cli_runner.invoke(cli_app, ["create", project_name, "--dry-run", "--force"], input="")
     console.print(f"Result 1: {result1.output}")
     assert result1.exit_code == 0
     assert "Would create project" in result1.output
 
     # Test with options before project name (should still work)
-    result2 = cli_runner.invoke(
-        cli_app, ["create", "--dry-run", "--force", project_name], input=""
-    )
+    result2 = cli_runner.invoke(cli_app, ["create", "--dry-run", "--force", project_name], input="")
     console.print(f"Result 2: {result2.output}")
     assert result2.exit_code == 0
     assert "Would create project" in result2.output
 
 
-def test_create_command_dry_run(
-    tmp_path: Path, sample_project_names, cli_runner, cli_app
-) -> None:
+def test_create_command_dry_run(tmp_path: Path, sample_project_names, cli_runner, cli_app) -> None:
     """Test create command with dry-run flag."""
     project_name = sample_project_names[0]
 
-    result = cli_runner.invoke(
-        cli_app, ["create", project_name, "--dry-run", "--force"], input=""
-    )
+    result = cli_runner.invoke(cli_app, ["create", project_name, "--dry-run", "--force"], input="")
     console.print(result.output)
 
     assert result.exit_code == 0
@@ -114,9 +106,7 @@ def test_create_command_dry_run(
     assert "Copier options:" in result.output
 
 
-def test_create_command_force_overwrite(
-    tmp_path: Path, mock_project_structure, cli_runner, cli_app
-) -> None:
+def test_create_command_force_overwrite(tmp_path: Path, mock_project_structure, cli_runner, cli_app) -> None:
     """Test create command with force overwrite."""
     project_name = "test-project"
     project_dir = tmp_path / project_name
@@ -142,9 +132,7 @@ def test_create_command_force_overwrite(
     assert "Copier options:" in result.output
 
 
-def test_create_command_template_not_found(
-    tmp_path: Path, mock_template_structure, cli_runner, cli_app
-) -> None:
+def test_create_command_template_not_found(tmp_path: Path, mock_template_structure, cli_runner, cli_app) -> None:
     """Test create command with non-existent template using mock template structure."""
     project_name = "test-project"
     # Use the mock template structure to test with a real template
@@ -189,16 +177,10 @@ def test_create_command_invalid_template_path(cli_runner, cli_app) -> None:
 
     # Enhanced error handling for invalid template path
     assert result.exit_code == 1
-    assert (
-        "not found" in result.output
-        or "must be a directory" in result.output
-        or "template" in result.output
-    )
+    assert "not found" in result.output or "must be a directory" in result.output or "template" in result.output
 
 
-def test_create_command_output_directory(
-    tmp_path: Path, test_workspace, cli_runner, cli_app
-) -> None:
+def test_create_command_output_directory(tmp_path: Path, test_workspace, cli_runner, cli_app) -> None:
     """Test create command with custom output directory using test workspace."""
     project_name = "test-project"
     # Use the structured workspace instead of a simple custom output
@@ -288,9 +270,7 @@ def test_create_command_invalid_project_names(cli_runner, cli_app) -> None:
 
         # Test project name that's very long - this should work but let's verify with dry-run
         long_name = "a" * 100  # Use 100 instead of 256 to avoid potential issues
-        result3 = cli_runner.invoke(
-            cli_app, ["create", long_name, "--dry-run", "--force"], input=""
-        )
+        result3 = cli_runner.invoke(cli_app, ["create", long_name, "--dry-run", "--force"], input="")
         console.print(f"Long name result: {result3.output}")
         # This should work since Typer doesn't enforce length limits
         assert result3.exit_code == 0
@@ -301,9 +281,7 @@ def test_create_command_invalid_project_names(cli_runner, cli_app) -> None:
 
         # Test project name with special characters - this should work but let's verify with dry-run
         special_name = "test-project-123"
-        result4 = cli_runner.invoke(
-            cli_app, ["create", special_name, "--dry-run", "--force"], input=""
-        )
+        result4 = cli_runner.invoke(cli_app, ["create", special_name, "--dry-run", "--force"], input="")
         console.print(f"Special chars result: {result4.output}")
         # This should work since Typer accepts alphanumeric and hyphens
         assert result4.exit_code == 0
@@ -318,9 +296,7 @@ class TestCLIErrorHandling:
         """Test create command with extremely long project names."""
         # Test with very long name (1000 characters)
         long_name = "a" * 1000
-        result = cli_runner.invoke(
-            cli_app, ["create", long_name, "--dry-run", "--force"], input=""
-        )
+        result = cli_runner.invoke(cli_app, ["create", long_name, "--dry-run", "--force"], input="")
         console.print(f"Very long name result: {result.output}")
 
         # Should handle gracefully (either succeed or fail with clear error)
@@ -347,9 +323,7 @@ class TestCLIErrorHandling:
         ]
 
         for name in special_names:
-            result = cli_runner.invoke(
-                cli_app, ["create", name, "--dry-run", "--force"], input=""
-            )
+            result = cli_runner.invoke(cli_app, ["create", name, "--dry-run", "--force"], input="")
             console.print(f"Special name '{name}' result: {result.output}")
 
             # Should handle gracefully
@@ -357,10 +331,7 @@ class TestCLIErrorHandling:
             if result.exit_code == 0:
                 assert "Would create project" in result.output
             else:
-                assert any(
-                    error_msg in result.output
-                    for error_msg in ["Error", "invalid", "name", "character"]
-                )
+                assert any(error_msg in result.output for error_msg in ["Error", "invalid", "name", "character"])
 
     def test_create_command_with_unicode_characters(self, cli_runner, cli_app):
         """Test create command with unicode characters."""
@@ -375,9 +346,7 @@ class TestCLIErrorHandling:
         ]
 
         for name in unicode_names:
-            result = cli_runner.invoke(
-                cli_app, ["create", name, "--dry-run", "--force"], input=""
-            )
+            result = cli_runner.invoke(cli_app, ["create", name, "--dry-run", "--force"], input="")
             console.print(f"Unicode name '{name}' result: {result.output}")
 
             # Should handle gracefully
@@ -385,10 +354,7 @@ class TestCLIErrorHandling:
             if result.exit_code == 0:
                 assert "Would create project" in result.output
             else:
-                assert any(
-                    error_msg in result.output
-                    for error_msg in ["Error", "invalid", "name", "character"]
-                )
+                assert any(error_msg in result.output for error_msg in ["Error", "invalid", "name", "character"])
 
     def test_create_command_with_path_traversal_attempts(self, cli_runner, cli_app):
         """Test create command with potential path traversal attempts."""
@@ -418,16 +384,13 @@ class TestCLIErrorHandling:
         ]
 
         for name in malicious_names:
-            result = cli_runner.invoke(
-                cli_app, ["create", name, "--dry-run", "--force"], input=""
-            )
+            result = cli_runner.invoke(cli_app, ["create", name, "--dry-run", "--force"], input="")
             console.print(f"Malicious name '{name}' result: {result.output}")
 
             # Should reject path traversal attempts
             assert result.exit_code == 1
             assert any(
-                error_msg in result.output
-                for error_msg in ["Error", "invalid", "path", "security", "forbidden"]
+                error_msg in result.output for error_msg in ["Error", "invalid", "path", "security", "forbidden"]
             )
 
     def test_create_command_with_invalid_template_paths(self, cli_runner, cli_app):
@@ -456,10 +419,7 @@ class TestCLIErrorHandling:
 
             # Should fail with clear error message
             assert result.exit_code == 1
-            assert any(
-                error_msg in result.output
-                for error_msg in ["Error", "not found", "invalid", "template"]
-            )
+            assert any(error_msg in result.output for error_msg in ["Error", "not found", "invalid", "template"])
 
     def test_create_command_with_invalid_output_paths(self, cli_runner, cli_app):
         """Test create command with various invalid output paths."""
@@ -499,36 +459,25 @@ class TestCLIErrorHandling:
     def test_create_command_with_conflicting_flags(self, cli_runner, cli_app):
         """Test create command with conflicting or invalid flag combinations."""
         # Test --dry-run with --force (should work together)
-        result = cli_runner.invoke(
-            cli_app, ["create", "test-project", "--dry-run", "--force"], input=""
-        )
+        result = cli_runner.invoke(cli_app, ["create", "test-project", "--dry-run", "--force"], input="")
         assert result.exit_code == 0
         assert "Would create project" in result.output
 
         # Test --help with other flags (should show help)
-        result = cli_runner.invoke(
-            cli_app, ["create", "--help", "--dry-run", "--force"], input=""
-        )
+        result = cli_runner.invoke(cli_app, ["create", "--help", "--dry-run", "--force"], input="")
         assert result.exit_code == 0
         assert "Usage:" in result.output
 
         # Test invalid flag combinations
-        result = cli_runner.invoke(
-            cli_app, ["create", "test-project", "--invalid-flag"], input=""
-        )
+        result = cli_runner.invoke(cli_app, ["create", "test-project", "--invalid-flag"], input="")
         assert result.exit_code == 2
-        assert (
-            "no such option" in result.output.lower()
-            or "unrecognized arguments" in result.output.lower()
-        )
+        assert "no such option" in result.output.lower() or "unrecognized arguments" in result.output.lower()
 
     def test_create_command_with_malformed_input(self, cli_runner, cli_app):
         """Test create command with malformed or unexpected input."""
         # Test with very large input
         large_input = "a" * 10000
-        result = cli_runner.invoke(
-            cli_app, ["create", large_input, "--dry-run", "--force"], input=""
-        )
+        result = cli_runner.invoke(cli_app, ["create", large_input, "--dry-run", "--force"], input="")
         console.print(f"Large input result: {result.output}")
 
         # Should handle gracefully
@@ -581,30 +530,20 @@ class TestCLIErrorHandling:
         with patch("pathlib.Path.mkdir") as mock_mkdir:
             mock_mkdir.side_effect = PermissionError("Permission denied")
 
-            result = cli_runner.invoke(
-                cli_app, ["create", "test-project", "--force"], input=""
-            )
+            result = cli_runner.invoke(cli_app, ["create", "test-project", "--force"], input="")
             console.print(f"Permission denied result: {result.output}")
 
             # Should fail gracefully
             assert result.exit_code == 1
-            assert any(
-                error_msg in result.output
-                for error_msg in ["Error", "permission", "denied", "access"]
-            )
+            assert any(error_msg in result.output for error_msg in ["Error", "permission", "denied", "access"])
 
         # Test with disk full scenario
         with patch("pathlib.Path.mkdir") as mock_mkdir:
             mock_mkdir.side_effect = OSError("No space left on device")
 
-            result = cli_runner.invoke(
-                cli_app, ["create", "test-project", "--force"], input=""
-            )
+            result = cli_runner.invoke(cli_app, ["create", "test-project", "--force"], input="")
             console.print(f"Disk full result: {result.output}")
 
             # Should fail gracefully
             assert result.exit_code == 1
-            assert any(
-                error_msg in result.output
-                for error_msg in ["Error", "space", "disk", "full"]
-            )
+            assert any(error_msg in result.output for error_msg in ["Error", "space", "disk", "full"])
