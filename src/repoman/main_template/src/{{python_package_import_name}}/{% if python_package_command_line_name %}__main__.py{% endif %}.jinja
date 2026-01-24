@@ -1,0 +1,12 @@
+"""Entry-point module, in case you use `python -m {{python_package_import_name}}`.
+
+Why does this file exist, and why `__main__`? For more info, read:
+
+- https://www.python.org/dev/peps/pep-0338/
+- https://docs.python.org/3/using/cmdline.html#cmdoption-m
+"""
+
+from {{python_package_import_name}}.cli import cli
+
+if __name__ == "__main__":
+    cli()

@@ -1,0 +1,21 @@
+/* Custom styles for the repoman documentation */
+
+/* Custom admonition styles */
+.admonition.custom {
+    border-left-color: var(--md-primary-fg-color);
+}
+
+/* Custom code block styles */
+.highlight {
+    border-radius: 4px;
+}
+
+/* Custom navigation styles */
+.md-nav__link {
+    transition: color 0.2s ease;
+}
+
+/* Custom footer styles */
+.md-footer {
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+}

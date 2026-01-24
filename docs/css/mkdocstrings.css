@@ -1,0 +1,19 @@
+/* Custom styles for mkdocstrings */
+
+/* API documentation styles */
+.doc-contents {
+    margin-top: 1rem;
+}
+
+.doc-function {
+    border-left: 3px solid var(--md-primary-fg-color);
+    padding-left: 1rem;
+    margin: 1rem 0;
+}
+
+.doc-class {
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+}

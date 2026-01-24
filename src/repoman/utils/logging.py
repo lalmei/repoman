@@ -1,0 +1,135 @@
+import os
+from datetime import datetime
+from logging import DEBUG, INFO, Formatter, Logger, getLogger
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import cast
+
+from rich.console import Console
+from rich.logging import RichHandler
+
+from repoman.config import Config
+from repoman.utils.theme.theme import set_theme
+
+
+def _set_up_logger(
+    name: str = "repoman",
+    console: Console | None = None,
+    log_level: int | None = None,
+    use_rotating_file_handler: bool = False,
+    log_file_base_path: Path | None = None,
+) -> Logger:
+    """Setting up the logger"""
+    os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
+    if log_level is None:
+        log_level = int(os.getenv("_REPOMAN_LOG_LEVEL", DEBUG))
+    else:
+        # Handle string log levels and invalid values gracefully
+        try:
+            if isinstance(log_level, str):
+                log_level = int(log_level)
+        except (ValueError, TypeError):
+            # Fall back to default if conversion fails
+            log_level = DEBUG
+
+    module_logger = getLogger(name)
+
+    if len(module_logger.handlers) > 0:
+        for handler in module_logger.handlers:
+            if handler.get_name() == "rich":
+                # Set the log level even for existing loggers
+                module_logger.setLevel(level=log_level)
+                return module_logger
+
+    if not console:
+        console = Console(theme=set_theme("dark"))
+
+    rich_handler = RichHandler(rich_tracebacks=True, console=console)
+
+    rich_handler.set_name("rich")
+    module_logger.addHandler(rich_handler)
+
+    if use_rotating_file_handler:
+        if log_file_base_path is not None:
+            current_date = datetime.now().strftime("%Y_m_%d")
+            log_file_path = log_file_base_path / f"log_{current_date}.log"
+            os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+    module_logger.setLevel(level=log_level)
+
+    # get any
+    module_logger.propagate = False
+    # external Logger levels
+
+    getLogger("PIL").setLevel(level=log_level)
+
+    return module_logger
+
+
+def _attach_rotating_file_handler(
+    logger: Logger,
+    log_file: str,
+    maximum_log_file_size_mb: int = 10,
+    maximum_log_file_time_days: int = 3,
+) -> Logger:
+    """Attach a rotating file handler to the logger."""
+    handler = RotatingFileHandler(
+        log_file,
+        maxBytes=maximum_log_file_size_mb * 1024 * 1024,
+        backupCount=maximum_log_file_time_days,
+    )
+    handler.setFormatter(Formatter(Config().log_format))
+    handler.set_name("rotating_file_handler")
+    logger.addHandler(handler)
+    return logger
+
+
+def get_logger_console(
+    name: str = "repoman",
+    console: Console | None = None,
+    log_level: int | None = None,
+) -> tuple[Logger, Console]:
+    """Args:
+        name (str, optional): _description_. Defaults to "repoman".
+        console (Console | None, optional): _description_. Defaults to None.
+        log_level (int, optional): _description_. Defaults to INFO.
+
+    Returns:
+        tuple[Logger, Console]: _description_
+    """
+    if log_level is None:
+        log_level = int(os.getenv("_REPOMAN_LOG_LEVEL", INFO))
+    else:
+        # Handle string log levels and invalid values gracefully
+        try:
+            if isinstance(log_level, str):
+                log_level = int(log_level)
+        except (ValueError, TypeError):
+            # Fall back to default if conversion fails
+            log_level = INFO
+    root_logger = _set_up_logger(
+        use_rotating_file_handler=True,
+        log_level=log_level,
+    )
+
+    if name != "repoman":
+        logger = getLogger(name)
+        logger.handlers = root_logger.handlers
+        logger.setLevel(level=root_logger.level)
+        logger.propagate = False
+    else:
+        logger = root_logger
+        if log_level != root_logger.level:
+            logger.warning(f"Log level changed from {root_logger.level} to {log_level}")
+            logger.setLevel(level=log_level)
+
+    if len(root_logger.handlers) > 0:
+        # Find the rich handler in the handlers list
+        for handler in root_logger.handlers:
+            if handler.get_name() == "rich":
+                rich_handler: RichHandler = cast("RichHandler", handler)
+                # use console from handler
+                console = rich_handler.console
+                return logger, console
+
+    return logger, console
