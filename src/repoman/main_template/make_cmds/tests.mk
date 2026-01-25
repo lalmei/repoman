@@ -1,0 +1,23 @@
+#######################
+#     Testing         #
+#######################
+
+.PHONY: test
+test: clean ## Run all tests
+	@$(call i, Running tests)
+	uv run pytest -c=config/pytest.ini tests/
+
+.PHONY: test-unit
+test-unit: clean ## Run unit tests only
+	@$(call i, Running unit tests)
+	uv run pytest -c=config/pytest.ini -m "unit" tests/
+
+.PHONY: test-coverage
+test-coverage: clean ## Run tests with coverage report
+	@$(call i, Running tests with coverage)
+	uv run pytest -c=config/pytest.ini --cov=src/{{python_package_import_name}} --cov-report=term-missing --cov-report=html tests/
+
+.PHONY: test-fast
+test-fast: clean ## Run fast tests (skip slow ones)
+	@$(call i, Running fast tests)
+	uv run pytest -c=config/pytest.ini -m "not slow" tests/
