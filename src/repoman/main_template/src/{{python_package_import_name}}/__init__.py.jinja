@@ -8,10 +8,10 @@ from __future__ import annotations
 from {{python_package_import_name}}._version import debug_info, get_version
 
 {%- if python_package_command_line_name %}
-
 from {{ python_package_import_name }}.cli import cli
+from {{ python_package_import_name }}.cli.main_cli import main
 
-__all__: list[str] = ["cli","debug_info","get_version"]
+__all__: list[str] = ["cli", "debug_info", "get_version", "main"]
 {%- else %}
-__all__: list[str] = ["debug_info","get_version"]
+__all__: list[str] = ["debug_info", "get_version"]
 {%- endif %}

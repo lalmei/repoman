@@ -1,9 +1,11 @@
+"""Theme configuration for Rich terminal output."""
+
 from catppuccin import PALETTE
 from rich.style import Style
 from rich.theme import Theme
 
 
-def _create_theme(colors) -> Theme:
+def _create_theme(colors: object) -> Theme:
     styles: dict[str, Style | str] = {
         "rosewater": colors.rosewater.hex,
         "flamingo": colors.flamingo.hex,

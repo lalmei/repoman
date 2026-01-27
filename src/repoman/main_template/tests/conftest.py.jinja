@@ -1,6 +1,7 @@
 """Configuration for the pytest test suite."""
 
 import pytest
+import typer
 from typer.testing import CliRunner
 
 {% if python_package_command_line_name %}
@@ -24,7 +25,7 @@ def cli_runner() -> CliRunner:
 
 
 @pytest.fixture(scope="session")
-def cli_app():
+def cli_app() -> typer.Typer:
     """Provide the CLI application for testing.
 
     **Scope**: session - shared across all tests for maximum performance
