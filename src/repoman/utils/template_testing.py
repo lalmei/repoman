@@ -1,6 +1,8 @@
 """Utilities for instantiating templates in tests."""
 
+import re
 import shutil
+import unicodedata
 from pathlib import Path
 from typing import Optional
 
@@ -10,6 +12,21 @@ from copier.errors import CopierError
 from repoman.utils.logging import get_logger_console
 
 logger, console = get_logger_console(__name__)
+
+
+def _slugify(value: str, separator: str = "-") -> str:
+    """Slugify a string (convert to URL-friendly format).
+    
+    Args:
+        value: String to slugify
+        separator: Separator character (default: "-")
+        
+    Returns:
+        Slugified string
+    """
+    value = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    return re.sub(r"[-_\s]+", separator, value).strip("-_")
 
 
 def instantiate_template(
@@ -49,14 +66,29 @@ def instantiate_template(
     project_dir = Path(output_dir) / project_name
     project_dir = project_dir.resolve()
 
+    # Compute derived package names (matching copier.yml defaults)
+    python_package_distribution_name = _slugify(project_name, separator="-")
+    python_package_import_name = _slugify(project_name, separator="_")
+    python_package_command_line_name = _slugify(project_name, separator="-")
+    
     # Prepare default copier data
     default_data = {
         "project_name": project_name,
-        "repository_provider": "github",
+        "python_package_distribution_name": python_package_distribution_name,
+        "python_package_import_name": python_package_import_name,
+        "python_package_command_line_name": python_package_command_line_name,
+        "repository_provider": "github.com",
+        "repository_namespace": "testuser",
+        "repository_name": python_package_distribution_name,
         "ci": "github",
         "author_username": "testuser",
+        "author_fullname": "Test User",
+        "author_email": "test@example.com",
         "project_description": f"Test project {project_name}",
         "copyright_license": "MIT",
+        "copyright_holder": "Test User",
+        "copyright_holder_email": "test@example.com",
+        "copyright_date": "2025",
         "insiders": False,
         "public_release": False,
     }

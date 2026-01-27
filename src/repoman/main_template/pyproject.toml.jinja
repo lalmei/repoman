@@ -14,7 +14,7 @@ license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = []
-dynamic = ["version"]
+version = "0.1.0"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -31,7 +31,15 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed",
 ]
-dependencies = []
+dependencies = [
+    "catppuccin>=2.3.4",
+    "fastapi>=0.115.6",
+    "pydantic-settings>=2.7.1",
+    "rich>=13.9.4",
+    "mlflow>=2.21.0",
+    "pydantic>=2.10.5",
+    "typer>=0.12.5",
+]
 
 [project.urls]
 Homepage = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
@@ -44,26 +52,15 @@ Discussions = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ r
 Funding = "https://{{ repository_provider }}/sponsors/{{ author_username }}"
 {%- endif %}
 
-[tool.uv.build-backend]
-module-name = "repoman"
-module-root = "src/repoman"
-
 {% if python_package_command_line_name -%}
 [project.scripts]
 {{ python_package_command_line_name }} = "{{ python_package_import_name }}.cli:main"
 
 {% endif -%}
 
-
-dependencies = [
-    "catppuccin>=2.3.4",
-    "fastapi>=0.115.6",
-    "pydantic-settings>=2.7.1",
-    "rich>=13.9.4",
-    "mlflow>=2.21.0",
-    "pydantic>=2.10.5",
-    "typer==0.12.5",
-    ]
+[tool.uv.build-backend]
+module-root = "src"
+module-name = "{{python_package_import_name}}"
 
 [tool.uv]
 default-groups = ["maintain", "ci", "docs"]
