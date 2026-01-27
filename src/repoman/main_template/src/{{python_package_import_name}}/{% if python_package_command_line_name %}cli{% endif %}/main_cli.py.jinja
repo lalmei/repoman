@@ -42,44 +42,42 @@ from {{python_package_import_name}}.utils.logging import get_logger_console
 from {{python_package_import_name}}.utils.theme.theme import set_theme
 
 cli_app = typer.Typer(
-    add_completion=True, invoke_without_command=True, no_args_is_help=True
+    add_completion=True,
+    invoke_without_command=True,
+    no_args_is_help=True,
 )
 
 
 def _register_commands() -> None:
     """Dynamically discover and register CLI commands from modules in the cli directory.
-    
+
     Scans all Python modules in the cli directory (excluding __init__.py and main_cli.py)
     and registers any functions that have a `.command` attribute.
     """
     logger, _ = get_logger_console()
-    
+
     # Get the cli directory path
     cli_dir = Path(__file__).parent
-    
+
     # Find all Python files in the cli directory
-    command_modules = [
-        f.stem
-        for f in cli_dir.glob("*.py")
-        if f.stem not in ("__init__", "main_cli")
-    ]
-    
+    command_modules = [f.stem for f in cli_dir.glob("*.py") if f.stem not in ("__init__", "main_cli")]
+
     registered_commands = set()
-    
+
     # Import and register commands from each module
     for module_name in command_modules:
         try:
             # Dynamically import the module
             module = importlib.import_module(f"{{python_package_import_name}}.cli.{module_name}")
-            
+
             # Scan for functions with a .command attribute
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
-                
+
                 # Check if it's a function and has a .command attribute
                 if callable(attr) and hasattr(attr, "command"):
                     command_name = attr.command
-                    
+
                     # Check for duplicate command names
                     if command_name in registered_commands:
                         logger.warning(
@@ -87,22 +85,16 @@ def _register_commands() -> None:
                             f"module '{module_name}'. Skipping registration."
                         )
                         continue
-                    
+
                     # Register the command
                     cli_app.command(name=command_name)(attr)
                     registered_commands.add(command_name)
-                    logger.debug(
-                        f"Registered command '{command_name}' from module '{module_name}'"
-                    )
-        
+                    logger.debug(f"Registered command '{command_name}' from module '{module_name}'")
+
         except ImportError as e:
-            logger.warning(
-                f"Failed to import module '{module_name}': {e}. Skipping."
-            )
+            logger.warning(f"Failed to import module '{module_name}': {e}. Skipping.")
         except Exception as e:
-            logger.warning(
-                f"Error processing module '{module_name}': {e}. Skipping."
-            )
+            logger.warning(f"Error processing module '{module_name}': {e}. Skipping.")
 
 
 # Register all commands dynamically
@@ -142,12 +134,8 @@ def _debug_info_callback(value: bool) -> None:
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
     ctx: typer.Context,
-    dry_run: Optional[bool] = typer.Option(
-        False, "--dry-run", help="Show changes but do not execute them"
-    ),
-    verbose: Optional[bool] = typer.Option(
-        False, "--verbose", "-v", help="verbose mode"
-    ),
+    dry_run: Optional[bool] = typer.Option(False, "--dry-run", help="Show changes but do not execute them"),
+    verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="verbose mode"),
     version: Optional[bool] = typer.Option(
         None,
         "--version",
@@ -163,7 +151,9 @@ def main(
         is_eager=True,
     ),
     theme: Optional[str] = typer.Option(
-        "dark", "--theme", help="Set the theme, 'light' or 'dark' "
+        "dark",
+        "--theme",
+        help="Set the theme, 'light' or 'dark' ",
     ),
 ) -> None:
     """Welcome to {{project_name}} CLI App
@@ -196,9 +186,7 @@ def main(
         logger.debug(Text("Configuration set", style="yellow"))
     except ValidationError as e:
         logger.error("Unable to load configuration: ")
-        logger.error(
-            f"Obtained the following validating Errors loading configuration: {e}\n"
-        )
+        logger.error(f"Obtained the following validating Errors loading configuration: {e}\n")
         ctx.config = None
 
     ctx.obj = {

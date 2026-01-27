@@ -1,8 +1,9 @@
-"""{{project_name}} CLI Application Module
+"""{{project_name}} CLI Application Module.
+
 ----------------
 
 This module initializes the CLI for the `{{python_package_import_name}}` package using the Typer library.
-It serves as the entry point for {{project_description}} 
+It serves as the entry point for {{project_description}}
 
 Each command is defined in its respective module and registered via Typer to allow
 for a modular and extendable CLI application.
@@ -70,8 +71,9 @@ For example, in the dataset command, the @app.callback() handles dataset loading
 If we want to add sub-subcommands (such as list), we define them using the @app.command() decorator. In this case, the callback is still invoked before the sub-subcommand is executed unless invoke_without_command=True is used, allowing for flexible pre-processing or shared setup logic.
 
 Commands:
-    - Commands are automatically discovered from modules in the cli directory 
+    - Commands are automatically discovered from modules in the cli directory
 """
+
 from {{python_package_import_name}}.cli.main_cli import cli_app as cli
 
 __all__: list[str] = ["cli", "debug_info", "get_version"]
