@@ -1,3 +1,6 @@
+"""Terminal color utilities for Rich visualization."""
+
+
 def get_rich_color(label: str) -> str:
     """Map class labels to Catppuccin colors for Rich visualization."""
     color_map = {

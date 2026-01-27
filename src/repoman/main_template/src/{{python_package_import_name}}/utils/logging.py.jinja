@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from logging import DEBUG, INFO, Formatter, Logger, getLogger
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -22,7 +22,7 @@ def _set_up_logger(
     """Setting up the logger"""
     os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
     if log_level is None:
-        log_level = int(os.getenv("_{{project_name}}_LOG_LEVEL", DEBUG))
+        log_level = int(os.getenv("_{{project_name.upper()}}_LOG_LEVEL", DEBUG))
     else:
         # Handle string log levels and invalid values gracefully
         try:
@@ -51,7 +51,7 @@ def _set_up_logger(
 
     if use_rotating_file_handler:
         if log_file_base_path is not None:
-            current_date = datetime.now().strftime("%Y_%m_%d")
+            current_date = datetime.now(tz=timezone.utc).strftime("%Y_%m_%d")
             log_file_path = log_file_base_path / f"log_{current_date}.log"
             os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
@@ -89,7 +89,9 @@ def get_logger_console(
     console: Console | None = None,
     log_level: int | None = None,
 ) -> tuple[Logger, Console]:
-    """Args:
+    """Get logger and console.
+
+    Args:
         name (str, optional): _description_. Defaults to "{{python_package_import_name}}".
         console (Console | None, optional): _description_. Defaults to None.
         log_level (int, optional): _description_. Defaults to INFO.

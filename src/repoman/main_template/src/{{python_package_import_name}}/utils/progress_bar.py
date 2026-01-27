@@ -1,3 +1,5 @@
+"""Progress bar utilities for training visualization."""
+
 import time
 
 from rich.progress import BarColumn, Progress, TextColumn, TimeRemainingColumn
@@ -38,7 +40,12 @@ class ProgressBar:
         """Allows `with ProgressBar(...)` usage."""
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: object | None,
+    ) -> None:
         """Ensures `.stop()` is automatically called in `with` blocks."""
         self.stop()
 
@@ -62,8 +69,9 @@ class ProgressBar:
             self.progress.start()
 
     def update(self, current_batch: int, loss: float, acc: float, epoch: int, batch_time: float) -> None:
-        """Updates the progress bar with current metrics and dynamically adjusts
-        the update interval based on batch time (for time-based updates).
+        """Update the progress bar with current metrics.
+
+        Dynamically adjusts the update interval based on batch time (for time-based updates).
 
         Args:
             current_batch (int): Current batch number.
@@ -79,13 +87,13 @@ class ProgressBar:
             self.update_interval = max(1, int(self.target_update_interval / batch_time))
 
         # 🔥 Adaptive Progress Bar Logic
-        if self.use_progress_bar:
-            if (self.update_mode == "step" and current_batch % self.update_interval == 0) or (
-                self.update_mode == "time" and now - self.last_update_time >= self.target_update_interval
-            ):
-                self.progress.update(self.task, completed=current_batch, loss=loss, acc=acc, epoch=epoch)
-                self.progress.refresh()
-                self.last_update_time = now
+        if self.use_progress_bar and (
+            (self.update_mode == "step" and current_batch % self.update_interval == 0)
+            or (self.update_mode == "time" and now - self.last_update_time >= self.target_update_interval)
+        ):
+            self.progress.update(self.task, completed=current_batch, loss=loss, acc=acc, epoch=epoch)
+            self.progress.refresh()
+            self.last_update_time = now
 
     def stop(self) -> None:
         """Stops the progress bar and finalizes its output."""

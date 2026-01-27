@@ -1,7 +1,9 @@
-"""{{project_name}} CLI Application Main Entry Point
+"""{{project_name}} CLI Application Main Entry Point.
+
 ------------------------
+
 This module defines the main Typer-based CLI application for {{project_name}}. It serves as the entry point
-for various subcommands related to building and managing repositories
+for various subcommands related to building and managing repositories.
 
 Features:
 - Uses `Typer` for CLI structure and command dispatch.
@@ -114,7 +116,7 @@ def _version_callback(value: bool) -> None:
         console.print(
             version_info(),
         )
-        raise typer.Exit()
+        raise typer.Exit
 
 
 def _debug_info_callback(value: bool) -> None:
@@ -128,7 +130,7 @@ def _debug_info_callback(value: bool) -> None:
     if value:
         console = Console(theme=set_theme("dark"))
         debug_info(console)
-        raise typer.Exit()
+        raise typer.Exit
 
 
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
@@ -185,7 +187,7 @@ def main(
         logger.debug(ctx.config.model_dump())
         logger.debug(Text("Configuration set", style="yellow"))
     except ValidationError as e:
-        logger.error("Unable to load configuration: ")
+        logger.exception("Unable to load configuration: ")
         logger.error(f"Obtained the following validating Errors loading configuration: {e}\n")
         ctx.config = None
 
