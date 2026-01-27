@@ -56,7 +56,7 @@ strict rules to protect maintainers.
 
 ## AI is Welcome Here
 
-repoman is written with plenty of AI assistance, and many maintainers embrace
+repoman is written with plenty of AI assistance, and we embrace
 AI tools as a productive tool in their workflow. As a project, we welcome
 AI as a tool!
 
