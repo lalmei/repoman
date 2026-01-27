@@ -1,9 +1,9 @@
 import os
 from datetime import datetime
-from logging import INFO, Formatter, Logger, getLogger
+from logging import DEBUG, INFO, Formatter, Logger, getLogger
 from logging.handlers import RotatingFileHandler
-from typing import cast
 from pathlib import Path
+from typing import cast
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -15,21 +15,30 @@ from {{python_package_import_name}}.utils.theme.theme import set_theme
 def _set_up_logger(
     name: str = "{{python_package_import_name}}",
     console: Console | None = None,
-    log_file: str | None = None,
     log_level: int | None = None,
     use_rotating_file_handler: bool = False,
-    log_file_path: Path | None = None,
+    log_file_base_path: Path | None = None,
 ) -> Logger:
-    
-    
+    """Setting up the logger"""
+    os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
     if log_level is None:
         log_level = int(os.getenv("_{{project_name}}_LOG_LEVEL", DEBUG))
+    else:
+        # Handle string log levels and invalid values gracefully
+        try:
+            if isinstance(log_level, str):
+                log_level = int(log_level)
+        except (ValueError, TypeError):
+            # Fall back to default if conversion fails
+            log_level = DEBUG
 
     module_logger = getLogger(name)
 
     if len(module_logger.handlers) > 0:
         for handler in module_logger.handlers:
             if handler.get_name() == "rich":
+                # Set the log level even for existing loggers
+                module_logger.setLevel(level=log_level)
                 return module_logger
 
     if not console:
@@ -41,16 +50,18 @@ def _set_up_logger(
     module_logger.addHandler(rich_handler)
 
     if use_rotating_file_handler:
-        if log_file is None:
+        if log_file_base_path is not None:
             current_date = datetime.now().strftime("%Y_%m_%d")
+            log_file_path = log_file_base_path / f"log_{current_date}.log"
             os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-        module_logger = _attach_rotating_file_handler(
-            module_logger,
-            log_file=log_file_path,
-        )
-
     module_logger.setLevel(level=log_level)
+
+    # get any
+    module_logger.propagate = False
+    # external Logger levels
+
+    getLogger("PIL").setLevel(level=log_level)
 
     return module_logger
 
@@ -86,9 +97,16 @@ def get_logger_console(
     Returns:
         tuple[Logger, Console]: _description_
     """
-
     if log_level is None:
         log_level = int(os.getenv("_{{project_name}}_LOG_LEVEL", INFO))
+    else:
+        # Handle string log levels and invalid values gracefully
+        try:
+            if isinstance(log_level, str):
+                log_level = int(log_level)
+        except (ValueError, TypeError):
+            # Fall back to default if conversion fails
+            log_level = INFO
     root_logger = _set_up_logger(
         use_rotating_file_handler=True,
         log_level=log_level,
@@ -102,14 +120,16 @@ def get_logger_console(
     else:
         logger = root_logger
         if log_level != root_logger.level:
-            logger.warning(f"Changing log level to {log_level}")
+            logger.warning(f"Log level changed from {root_logger.level} to {log_level}")
             logger.setLevel(level=log_level)
 
     if len(root_logger.handlers) > 0:
-        if root_logger.handlers[0].get_name() == "rich":
-            handler: RichHandler = cast("RichHandler", logger.handlers[0])
-            # use console from handler
-            console = handler.console
-            return logger, console
+        # Find the rich handler in the handlers list
+        for handler in root_logger.handlers:
+            if handler.get_name() == "rich":
+                rich_handler: RichHandler = cast("RichHandler", handler)
+                # use console from handler
+                console = rich_handler.console
+                return logger, console
 
     return logger, console
