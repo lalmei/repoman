@@ -8,7 +8,6 @@ import sys
 import threading
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from repoman.utils.logging import get_logger_console
 
@@ -35,8 +34,8 @@ class CommandResult:
 def run_make_command(
     project_dir: Path,
     command: str,
-    env: Optional[dict] = None,
-    timeout: Optional[int] = None,
+    env: dict | None = None,
+    timeout: int | None = None,
 ) -> CommandResult:
     """Run a make command in the specified project directory.
 

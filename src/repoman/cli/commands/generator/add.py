@@ -2,7 +2,6 @@
 
 import re
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
@@ -116,13 +115,13 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 def add(
     ctx: Context,
     command_name: str = Argument(..., help="Name of the command to create"),
-    project_dir: Optional[str] = Option(
+    project_dir: str | None = Option(
         None,
         "--project-dir",
         "-d",
         help="Project directory (defaults to current directory)",
     ),
-    answers_file: Optional[str] = Option(None, "--answers", "-a", help="Path to .copier-answers.yml file"),
+    answers_file: str | None = Option(None, "--answers", "-a", help="Path to .copier-answers.yml file"),
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:

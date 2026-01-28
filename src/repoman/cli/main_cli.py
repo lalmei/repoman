@@ -27,7 +27,6 @@ Dependencies:
 """
 
 import logging
-from typing import Optional
 
 from pydantic import ValidationError
 from rich.console import Console
@@ -80,23 +79,23 @@ def _debug_info_callback(value: bool) -> None:
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
     ctx: Context,
-    dry_run: Optional[bool] = Option(False, "--dry-run", help="Show changes but do not execute them"),
-    verbose: Optional[bool] = Option(False, "--verbose", "-v", help="verbose mode"),
-    version: Optional[bool] = Option(
+    dry_run: bool | None = Option(False, "--dry-run", help="Show changes but do not execute them"),
+    verbose: bool | None = Option(False, "--verbose", "-v", help="verbose mode"),
+    version: bool | None = Option(
         None,
         "--version",
         help="check model version",
         callback=_version_callback,
         is_eager=True,
     ),
-    debug_info: Optional[bool] = Option(
+    debug_info: bool | None = Option(
         None,
         "--debug-info",
         help="Print debug information",
         callback=_debug_info_callback,
         is_eager=True,
     ),
-    theme: Optional[str] = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
+    theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
 ) -> None:
     """Welcome to repoman CLI App
 
@@ -106,10 +105,10 @@ def main(
     ----------
     ctx : typer.Context
         typer context that lives throughout model command
-    verbose : Optional[bool]
+    verbose : bool | None
         set logging to DEBUG , by default typer.Option(False, "--verbose", help="verbose mode")
         it is also saved in the ctx obj so it can be referred for other noisy output
-    version : Optional[bool]
+    version : bool | None
         outputs version information, by default typer.Option(None, "--version",
         help="check model version", callback=_version_callback)
 

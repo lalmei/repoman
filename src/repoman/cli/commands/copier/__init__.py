@@ -2,7 +2,6 @@
 
 import re
 from pathlib import Path
-from typing import Optional
 
 from copier import run_copy
 from copier.errors import CopierError
@@ -76,7 +75,7 @@ app = Typer(add_completion=True, no_args_is_help=True)
 def create_project(
     ctx: Context,
     project_name: str = Argument(..., help="Name of the project to create"),
-    template_path: Optional[str] = Option(
+    template_path: str | None = Option(
         None,
         "--template",
         "-t",
