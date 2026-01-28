@@ -4,7 +4,6 @@ import re
 import shutil
 import unicodedata
 from pathlib import Path
-from typing import Optional
 
 from copier import run_copy
 from copier.errors import CopierError
@@ -31,9 +30,9 @@ def _slugify(value: str, separator: str = "-") -> str:
 
 def instantiate_template(
     output_dir: Path,
-    template_path: Optional[Path] = None,
+    template_path: Path | None = None,
     project_name: str = "test-project",
-    copier_data: Optional[dict] = None,
+    copier_data: dict | None = None,
     force: bool = True,
 ) -> Path:
     """Instantiate a template in the specified directory.
