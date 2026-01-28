@@ -36,7 +36,6 @@ dependencies = [
     "fastapi>=0.115.6",
     "pydantic-settings>=2.7.1",
     "rich>=13.9.4",
-    "mlflow>=2.21.0",
     "pydantic>=2.10.5",
     "typer>=0.12.5",
 ]
@@ -73,13 +72,17 @@ dev = [
     "ipywidgets>=8.1.5",
 ]
 
+ml = [
+    "mlflow>=2.21.0",
+]
+
 maintain = [
     "bump2version>=1.0.1",
     "nb-clean>=4.0.1",
     "monkeytype>=23.3.0",
 ]
 ci = [
-     "coverage>=7.6.1",
+    "coverage>=7.6.1",
     "interrogate>=1.7.0",
     "ruff>=0.7.4",
     "mypy>=1.13.0",

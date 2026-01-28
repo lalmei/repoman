@@ -26,84 +26,25 @@ Dependencies:
 - rich
 """
 
-import importlib
 import logging
-from pathlib import Path
 from typing import Optional
 
-import typer
 from pydantic import ValidationError
 from rich.console import Console
 from rich.text import Text
+from typer import Context, Exit, Option, Typer
 
 from repoman._version import debug_info, version_info
+from repoman.cli.register_commands import _register_commands
 from repoman.config import Config
 from repoman.utils.logging import get_logger_console
 from repoman.utils.theme.theme import set_theme
 
-cli_app = typer.Typer(
-    add_completion=True, invoke_without_command=True, no_args_is_help=True
-)
-
-
-def _register_commands(path: Path | None = None) -> None:
-    """Dynamically discover and register CLI commands from modules in the cli directory.
-
-    Scans all Python modules in the cli directory (excluding __init__.py and main_cli.py)
-    and registers any functions that have a `.command` attribute.
-    """
-    logger, _ = get_logger_console()
-
-    # Get the cli directory path
-    if path is None:
-        cli_dir = Path(__file__).parent / "commands"
-    else:
-        cli_dir = path
-
-    # Find all Python files in the cli directory
-    command_modules = [
-        f.stem for f in cli_dir.glob("*.py") if f.stem not in ("__init__", "main_cli")
-    ]
-
-    registered_commands = set()
-
-    # Import and register commands from each module
-    for module_name in command_modules:
-        try:
-            # Dynamically import the module
-            module = importlib.import_module(f"repoman.cli.commands.{module_name}")
-
-            # Scan for functions with a .command attribute
-            for attr_name in dir(module):
-                attr = getattr(module, attr_name)
-
-                # Check if it's a function and has a .command attribute
-                if callable(attr) and hasattr(attr, "command"):
-                    command_name = attr.command
-
-                    # Check for duplicate command names
-                    if command_name in registered_commands:
-                        logger.warning(
-                            f"Duplicate command name '{command_name}' found in "
-                            f"module '{module_name}'. Skipping registration."
-                        )
-                        continue
-
-                    # Register the command
-                    cli_app.command(name=command_name)(attr)
-                    registered_commands.add(command_name)
-                    logger.debug(
-                        f"Registered command '{command_name}' from module '{module_name}'"
-                    )
-
-        except ImportError as e:
-            logger.warning(f"Failed to import module '{module_name}': {e}. Skipping.")
-        except Exception as e:
-            logger.warning(f"Error processing module '{module_name}': {e}. Skipping.")
+cli_app = Typer(add_completion=True, invoke_without_command=True, no_args_is_help=True)
 
 
 # Register all commands dynamically
-_register_commands()
+_register_commands(cli_app)
 
 
 def _version_callback(value: bool) -> None:
@@ -119,7 +60,7 @@ def _version_callback(value: bool) -> None:
         console.print(
             version_info(),
         )
-        raise typer.Exit()
+        raise Exit(1)
 
 
 def _debug_info_callback(value: bool) -> None:
@@ -133,33 +74,31 @@ def _debug_info_callback(value: bool) -> None:
     if value:
         console = Console(theme=set_theme("dark"))
         debug_info(console)
-        raise typer.Exit()
+        raise Exit(1)
 
 
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
-    ctx: typer.Context,
-    dry_run: Optional[bool] = typer.Option(
+    ctx: Context,
+    dry_run: Optional[bool] = Option(
         False, "--dry-run", help="Show changes but do not execute them"
     ),
-    verbose: Optional[bool] = typer.Option(
-        False, "--verbose", "-v", help="verbose mode"
-    ),
-    version: Optional[bool] = typer.Option(
+    verbose: Optional[bool] = Option(False, "--verbose", "-v", help="verbose mode"),
+    version: Optional[bool] = Option(
         None,
         "--version",
         help="check model version",
         callback=_version_callback,
         is_eager=True,
     ),
-    debug_info: Optional[bool] = typer.Option(
+    debug_info: Optional[bool] = Option(
         None,
         "--debug-info",
         help="Print debug information",
         callback=_debug_info_callback,
         is_eager=True,
     ),
-    theme: Optional[str] = typer.Option(
+    theme: Optional[str] = Option(
         "dark", "--theme", help="Set the theme, 'light' or 'dark' "
     ),
 ) -> None:

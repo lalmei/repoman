@@ -22,13 +22,6 @@ lock: ## Update lock file
 lock-upgrade: ## Upgrade lock file
 	uv lock --upgrade
 
-.PHONY: add
-add: ## Add a dependency (usage: make add PACKAGE=package-name)
-	@if [ -z "$(PACKAGE)" ]; then \
-		echo "Usage: make add PACKAGE=package-name"; \
-		exit 1; \
-	fi
-	uv add $(PACKAGE)
 
 .PHONY: add-dev
 add-dev: ## Add a development dependency (usage: make add-dev PACKAGE=package-name)
@@ -36,15 +29,7 @@ add-dev: ## Add a development dependency (usage: make add-dev PACKAGE=package-na
 		echo "Usage: make add-dev PACKAGE=package-name"; \
 		exit 1; \
 	fi
-	uv add --dev $(PACKAGE)
-
-.PHONY: remove
-remove: ## Remove a dependency (usage: make remove PACKAGE=package-name)
-	@if [ -z "$(PACKAGE)" ]; then \
-		echo "Usage: make remove PACKAGE=package-name"; \
-		exit 1; \
-	fi
-	uv remove $(PACKAGE)
+	uv add group dev $(PACKAGE)
 
 .PHONY: tree
 tree: ## Show dependency tree

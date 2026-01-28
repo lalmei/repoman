@@ -16,11 +16,11 @@ logger, console = get_logger_console(__name__)
 
 def _slugify(value: str, separator: str = "-") -> str:
     """Slugify a string (convert to URL-friendly format).
-    
+
     Args:
         value: String to slugify
         separator: Separator character (default: "-")
-        
+
     Returns:
         Slugified string
     """
@@ -70,7 +70,7 @@ def instantiate_template(
     python_package_distribution_name = _slugify(project_name, separator="-")
     python_package_import_name = _slugify(project_name, separator="_")
     python_package_command_line_name = _slugify(project_name, separator="-")
-    
+
     # Prepare default copier data
     default_data = {
         "project_name": project_name,

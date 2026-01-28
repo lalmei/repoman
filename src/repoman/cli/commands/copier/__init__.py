@@ -9,7 +9,7 @@ from copier.errors import CopierError
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Context, Exit, Option
+from typer import Argument, Context, Exit, Option, Typer
 
 from repoman.utils.logging import get_logger_console
 
@@ -61,9 +61,7 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"]
-        + [f"COM{i}" for i in range(1, 10)]
-        + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -71,6 +69,10 @@ def validate_project_name(project_name: str) -> bool:
     return True
 
 
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+@app.callback(invoke_without_command=True, no_args_is_help=True)
 def create_project(
     ctx: Context,
     project_name: str = Argument(..., help="Name of the project to create"),
@@ -80,18 +82,10 @@ def create_project(
         "-t",
         help="Path to custom template (defaults to main template)",
     ),
-    output_dir: str | None = Option(
-        None, "--output", "-o", help="Output directory (defaults to current directory)"
-    ),
-    answers_file: str | None = Option(
-        None, "--answers", "-a", help="Path to answers file"
-    ),
-    force: bool = Option(
-        False, "--force", "-f", help="Force overwrite of existing files"
-    ),
-    dry_run: bool = Option(
-        False, "--dry-run", help="Show what would be created without actually creating"
-    ),
+    output_dir: str | None = Option(None, "--output", "-o", help="Output directory (defaults to current directory)"),
+    answers_file: str | None = Option(None, "--answers", "-a", help="Path to answers file"),
+    force: bool = Option(False, "--force", "-f", help="Force overwrite of existing files"),
+    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
 ) -> None:
     """Create a new Python project using the repoman template."""
 
@@ -220,7 +214,3 @@ def create_project(
             )
         )
         raise Exit(1)
-
-
-# Mark this function as a CLI command
-create_project.command = "create"
