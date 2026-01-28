@@ -354,6 +354,7 @@ def test_generator_add_missing_answers_file(
     - Without it, the command cannot determine package structure
     - A clear error message should guide the user
 
+
     Setup:
     - Creates mock project directory structure
     - Intentionally does NOT create .copier-answers.yml file
