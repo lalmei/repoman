@@ -29,9 +29,7 @@ Dependencies:
 """
 
 import importlib
-import logging
 from pathlib import Path
-from typing import Optional
 
 import typer
 from pydantic import ValidationError
@@ -42,6 +40,8 @@ from {{python_package_import_name}}._version import debug_info, version_info
 from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.utils.logging import get_logger_console
 from {{python_package_import_name}}.utils.theme.theme import set_theme
+from {{python_package_import_name}}.cli.register import _register_commands() 
+
 
 cli_app = typer.Typer(
     add_completion=True,
@@ -50,57 +50,8 @@ cli_app = typer.Typer(
 )
 
 
-def _register_commands() -> None:
-    """Dynamically discover and register CLI commands from modules in the cli directory.
-
-    Scans all Python modules in the cli directory (excluding __init__.py and main_cli.py)
-    and registers any functions that have a `.command` attribute.
-    """
-    logger, _ = get_logger_console()
-
-    # Get the cli directory path
-    cli_dir = Path(__file__).parent
-
-    # Find all Python files in the cli directory
-    command_modules = [f.stem for f in cli_dir.glob("*.py") if f.stem not in ("__init__", "main_cli")]
-
-    registered_commands = set()
-
-    # Import and register commands from each module
-    for module_name in command_modules:
-        try:
-            # Dynamically import the module
-            module = importlib.import_module(f"{{python_package_import_name}}.cli.{module_name}")
-
-            # Scan for functions with a .command attribute
-            for attr_name in dir(module):
-                attr = getattr(module, attr_name)
-
-                # Check if it's a function and has a .command attribute
-                if callable(attr) and hasattr(attr, "command"):
-                    command_name = attr.command
-
-                    # Check for duplicate command names
-                    if command_name in registered_commands:
-                        logger.warning(
-                            f"Duplicate command name '{command_name}' found in "
-                            f"module '{module_name}'. Skipping registration."
-                        )
-                        continue
-
-                    # Register the command
-                    cli_app.command(name=command_name)(attr)
-                    registered_commands.add(command_name)
-                    logger.debug(f"Registered command '{command_name}' from module '{module_name}'")
-
-        except ImportError as e:
-            logger.warning(f"Failed to import module '{module_name}': {e}. Skipping.")
-        except Exception as e:
-            logger.warning(f"Error processing module '{module_name}': {e}. Skipping.")
-
-
 # Register all commands dynamically
-_register_commands()
+_register_commands(cli_app)
 
 
 def _version_callback(value: bool) -> None:
@@ -136,23 +87,23 @@ def _debug_info_callback(value: bool) -> None:
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
     ctx: typer.Context,
-    dry_run: Optional[bool] = typer.Option(False, "--dry-run", help="Show changes but do not execute them"),
-    verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="verbose mode"),
-    version: Optional[bool] = typer.Option(
+    dry_run: bool | None = typer.Option(False, "--dry-run", help="Show changes but do not execute them"),
+    verbose: bool | None = typer.Option(False, "--verbose", "-v", help="verbose mode"),
+    version: bool | None = typer.Option(
         None,
         "--version",
         help="check model version",
         callback=_version_callback,
         is_eager=True,
     ),
-    debug_info: Optional[bool] = typer.Option(
+    debug_info: bool | None = typer.Option(
         None,
         "--debug-info",
         help="Print debug information",
         callback=_debug_info_callback,
         is_eager=True,
     ),
-    theme: Optional[str] = typer.Option(
+    theme: str | None = typer.Option(
         "dark",
         "--theme",
         help="Set the theme, 'light' or 'dark' ",
@@ -166,10 +117,10 @@ def main(
     ----------
     ctx : typer.Context
         typer context that lives throughout model command
-    verbose : Optional[bool]
+    verbose : bool | None
         set logging to DEBUG , by default typer.Option(False, "--verbose", help="verbose mode")
         it is also saved in the ctx obj so it can be referred for other noisy output
-    version : Optional[bool]
+    version : bool | None
         outputs version information, by default typer.Option(None, "--version",
         help="check model version", callback=_version_callback)
 

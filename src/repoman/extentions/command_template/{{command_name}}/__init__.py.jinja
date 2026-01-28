@@ -1,0 +1,27 @@
+from typer import Context, Option, Typer
+
+from {{python_package_import_name}}.utils.logging import get_logger_console
+
+logger, console = get_logger_console()
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+@app.callback(invoke_without_command=True, no_args_is_help=True)
+def {{command_name}}(
+    ctx: Context,
+    project_id: str | None = Option(
+        None,
+        "-p",
+        "--project_id",
+        help="project id",
+    ),
+) -> None:
+    """{{command_description}}"""
+    logger, console = get_logger_console()
+
+    dry_run = ctx.obj.get("dry_run", True)
+
+    console.print("test")
+
+
+## <-------- import subcommands --------> 

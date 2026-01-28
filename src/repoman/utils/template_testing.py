@@ -4,7 +4,6 @@ import re
 import shutil
 import unicodedata
 from pathlib import Path
-from typing import Optional
 
 from copier import run_copy
 from copier.errors import CopierError
@@ -16,11 +15,11 @@ logger, console = get_logger_console(__name__)
 
 def _slugify(value: str, separator: str = "-") -> str:
     """Slugify a string (convert to URL-friendly format).
-    
+
     Args:
         value: String to slugify
         separator: Separator character (default: "-")
-        
+
     Returns:
         Slugified string
     """
@@ -31,9 +30,9 @@ def _slugify(value: str, separator: str = "-") -> str:
 
 def instantiate_template(
     output_dir: Path,
-    template_path: Optional[Path] = None,
+    template_path: Path | None = None,
     project_name: str = "test-project",
-    copier_data: Optional[dict] = None,
+    copier_data: dict | None = None,
     force: bool = True,
 ) -> Path:
     """Instantiate a template in the specified directory.
@@ -70,7 +69,7 @@ def instantiate_template(
     python_package_distribution_name = _slugify(project_name, separator="-")
     python_package_import_name = _slugify(project_name, separator="_")
     python_package_command_line_name = _slugify(project_name, separator="-")
-    
+
     # Prepare default copier data
     default_data = {
         "project_name": project_name,
