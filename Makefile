@@ -62,6 +62,13 @@ test-single: clean ## Run a single test file (usage: make test-single FILE=tests
 	fi
 	uv run pytest -c=config/pytest.ini $(FILE)
 
+test-function: clean ## Run a specific test function (usage: make test-function TEST=tests/test_cli/test_cli.py::test_version)
+	@if [ -z "$(TEST)" ]; then \
+		echo "Usage: make test-function TEST=tests/test_cli/test_cli.py::test_version"; \
+		exit 1; \
+	fi
+	uv run pytest -c=config/pytest.ini $(TEST) -xvs --no-cov
+
 test-coverage: clean ## Run tests with coverage report
 	uv run pytest -c=config/pytest.ini --cov=src/repoman --cov-report=term-missing --cov-report=html $(test.python)
 
