@@ -88,9 +88,7 @@ def pytest_configure(config: Any) -> None:
     """Configure pytest before test collection."""
     # Register custom markers
     config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line(
-        "markers", "integration: Integration tests that may have dependencies"
-    )
+    config.addinivalue_line("markers", "integration: Integration tests that may have dependencies")
     config.addinivalue_line("markers", "cli: CLI command tests")
     config.addinivalue_line("markers", "utils: Utility function tests")
     config.addinivalue_line("markers", "slow: Slow running tests")
@@ -112,10 +110,7 @@ def pytest_collection_modifyitems(_config: Any, items: Any) -> None:
             item.add_marker(pytest.mark.unit)
 
         # Mark tests that use file system operations as isolated
-        if any(
-            keyword in item.nodeid.lower()
-            for keyword in ["file", "path", "directory", "log"]
-        ):
+        if any(keyword in item.nodeid.lower() for keyword in ["file", "path", "directory", "log"]):
             item.add_marker(pytest.mark.isolated)
 
 
@@ -240,13 +235,9 @@ def mock_template_structure(tmp_path: Path) -> Any:
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text(
-        "# {{ project_name }}\n\nGenerated project."
-    )
+    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text(
-        "print('Hello {{ project_name }}')"
-    )
+    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
 
     return template_dir
 
@@ -353,9 +344,7 @@ def cleanup_loggers() -> None:
         logging.root.addHandler(handler)
 
 
-def _create_template_instance(
-    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
-) -> Path:
+def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -437,9 +426,7 @@ def _create_template_instance(tmp_path_base, project_name, run_setup=False):
         raise
 
 
-def _create_template_instance(
-    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
-) -> Path:
+def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -536,18 +523,10 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=True
-        )
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=True
-        )
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=True
-        )
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=True
-        )
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
 
         yield instantiated_path
 

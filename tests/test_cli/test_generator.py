@@ -301,7 +301,10 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
 
         def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
-            if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            if (
+                "extentions/command_template" in path_str
+                or "{{command_name}}" in path_str
+            ):
                 return True
             return (
                 path == answers_file
