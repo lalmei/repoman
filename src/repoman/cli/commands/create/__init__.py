@@ -165,6 +165,16 @@ def create(
         },
     }
 
+    # Prepare next steps (used in both dry-run and success messages)
+    next_steps = [
+        f"cd {output_dir_obj}",
+        "Review and customize the generated project",
+        "Initialize git repository",
+        "Start developing!",
+    ]
+
+    steps_text = "\n".join(f"  {i + 1}. {step}" for i, step in enumerate(next_steps))
+
     if dry_run or ctx.obj.get("dry_run", True):
         # Convert Path objects to strings for JSON serialization
         copier_options_serializable = {
@@ -181,6 +191,7 @@ def create(
                     ),
                     Text("Copier options:", style="blue"),
                     JSON.from_data(copier_options_serializable, indent=2),
+                    Text(f"\nNext steps:\n{steps_text}", style="blue"),
                 ),
                 title="Dry Run",
                 border_style="blue",
@@ -203,17 +214,6 @@ def create(
             progress.update(task, description="Project created successfully!")
 
         # Success message
-        next_steps = [
-            f"cd {output_dir_obj}",
-            "Review and customize the generated project",
-            "Initialize git repository",
-            "Start developing!",
-        ]
-
-        steps_text = "\n".join(
-            f"  {i + 1}. {step}" for i, step in enumerate(next_steps)
-        )
-
         # Convert Path objects to strings for JSON serialization
         copier_options_serializable = {
             k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
