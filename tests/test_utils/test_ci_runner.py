@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from repoman.utils.ci_runner import CommandResult, run_make_command
+from tests.ci_runner import CommandResult, run_make_command
 
 
 def test_run_make_command_basic(tmp_path):

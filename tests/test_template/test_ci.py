@@ -56,7 +56,7 @@ def test_instantiated_template_test(setup_template):
 
 def test_cleanup_removes_artifacts(instantiated_template):
     """Test that cleanup removes all artifacts after CI tests."""
-    from repoman.utils.template_testing import cleanup_project_artifacts
+    from tests.template_testing import cleanup_project_artifacts
 
     # Create some artifacts
     (instantiated_template / ".venv").mkdir()

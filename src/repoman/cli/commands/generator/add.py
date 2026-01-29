@@ -79,7 +79,7 @@ def load_copier_answers(answers_file: Path) -> dict:
     if not answers_file.exists():
         raise FileNotFoundError(f"Answers file not found: {answers_file}")
 
-    with open(answers_file, "r") as f:
+    with open(answers_file) as f:
         return yaml.safe_load(f) or {}
 
 

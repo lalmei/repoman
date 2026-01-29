@@ -54,7 +54,7 @@ def instantiate_template(
     # Resolve template path (default to main template)
     if template_path is None:
         current_file = Path(__file__)
-        template_path = current_file.parent.parent / "main_template"
+        template_path = current_file.parent.parent / "src" / "repoman" / "main_template"
         logger.info(f"Using main template at {template_path}")
 
     template_path = Path(template_path).resolve()

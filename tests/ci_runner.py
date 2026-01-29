@@ -238,11 +238,11 @@ def run_make_command(
         )
 
     except FileNotFoundError:
-        error_msg = f"make command not found. Is make installed?"
+        error_msg = "make command not found. Is make installed?"
         logger.error(error_msg)
         console.print(f"[red]✗[/red] {error_msg}")
         raise FileNotFoundError(error_msg)
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
         error_msg = f"Command timed out after {timeout} seconds: {command_str}"
         logger.error(error_msg)
         console.print(f"[red]✗[/red] {error_msg}")
