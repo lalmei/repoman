@@ -1,9 +1,58 @@
 """Unit tests for template_testing utility functions."""
 
+from pathlib import Path
+
 import pytest
 from copier.errors import CopierError
 
-from repoman.utils.template_testing import cleanup_project_artifacts, instantiate_template
+from tests.template_testing import cleanup_project_artifacts, instantiate_template
+
+
+def _create_test_artifacts(project_dir: Path, artifact_types: list[str] | None = None) -> dict[str, Path]:
+    """Create test artifacts for cleanup testing.
+
+    Args:
+        project_dir: Base project directory
+        artifact_types: List of artifact types to create. If None, creates all.
+                       Options: 'venv', 'build', 'cache', 'egg_info', 'site'
+
+    Returns:
+        Dictionary mapping artifact names to their paths
+    """
+    artifacts = {}
+    project_dir.mkdir(exist_ok=True)
+
+    if artifact_types is None or "venv" in artifact_types:
+        venv_dir = project_dir / ".venv"
+        venv_dir.mkdir()
+        (venv_dir / "bin").mkdir()
+        artifacts["venv"] = venv_dir
+
+    if artifact_types is None or "build" in artifact_types:
+        for name in ["dist", "build", "site"]:
+            path = project_dir / name
+            path.mkdir()
+            artifacts[name] = path
+
+    if artifact_types is None or "cache" in artifact_types:
+        for name in ["__pycache__", ".pytest_cache", ".mypy_cache", ".ipynb_checkpoints"]:
+            path = project_dir / name
+            path.mkdir()
+            artifacts[name] = path
+        # Create cache in subdirectories
+        for subdir in ["src", "tests"]:
+            subdir_path = project_dir / subdir
+            subdir_path.mkdir(exist_ok=True)
+            cache_path = subdir_path / "__pycache__"
+            cache_path.mkdir()
+            artifacts[f"{subdir}/__pycache__"] = cache_path
+
+    if artifact_types is None or "egg_info" in artifact_types:
+        egg_info = project_dir / "test_project.egg-info"
+        egg_info.mkdir()
+        artifacts["egg_info"] = egg_info
+
+    return artifacts
 
 
 def test_instantiate_template_basic(tmp_path, mock_template_structure):
