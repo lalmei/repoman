@@ -1,5 +1,7 @@
 """Tests for theme utilities."""
 
+from typing import Any
+
 import pytest
 from rich.theme import Theme
 

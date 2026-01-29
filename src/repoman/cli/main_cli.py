@@ -1,7 +1,7 @@
-"""Repoman CLI Application Main Entry Point
-------------------------
+"""Repoman CLI Application Main Entry Point.
+
 This module defines the main Typer-based CLI application for repoman. It serves as the entry point
-for various subcommands related to building and managing repositories
+for various subcommands related to building and managing repositories.
 
 Features:
 - Uses `Typer` for CLI structure and command dispatch.

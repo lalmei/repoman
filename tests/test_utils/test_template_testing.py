@@ -1,6 +1,7 @@
 """Unit tests for template_testing utility functions."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from copier.errors import CopierError
