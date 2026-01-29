@@ -1,3 +1,7 @@
+"""Theme configuration for the repoman CLI application."""
+
+from typing import Any
+
 from catppuccin import PALETTE
 from rich.style import Style
 from rich.theme import Theme

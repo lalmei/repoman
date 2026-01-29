@@ -1,3 +1,5 @@
+"""Logging utilities for repoman CLI application."""
+
 import os
 from datetime import datetime, timezone
 from logging import DEBUG, INFO, Formatter, Logger, getLogger

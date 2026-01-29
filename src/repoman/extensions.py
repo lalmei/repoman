@@ -1,3 +1,5 @@
+"""Jinja2 extensions for repoman template rendering."""
+
 from __future__ import annotations
 
 import re

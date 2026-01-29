@@ -1,3 +1,5 @@
+"""Command registration module for dynamically discovering and registering CLI commands."""
+
 import importlib
 from pathlib import Path
 

@@ -1,3 +1,5 @@
+"""Tests for the main CLI application."""
+
 import re
 
 from rich.console import Console
