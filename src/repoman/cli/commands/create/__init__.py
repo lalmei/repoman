@@ -1,15 +1,17 @@
-"""Copier command for generating repositories from templates."""
+"""Create command for generating repositories from templates."""
 
 import re
 from pathlib import Path
 
+from copier import run_copy
+from copier.errors import CopierError
+from rich.console import Group
+from rich.json import JSON
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Exit, Option, Typer
+from typer import Argument, Context, Exit, Option, Typer
 
-from copier import run_copy
-from copier.errors import CopierError
 from repoman.utils.logging import get_logger_console
 
 
@@ -69,11 +71,12 @@ def validate_project_name(project_name: str) -> bool:
     return True
 
 
-app = Typer(add_completion=True, no_args_is_help=True)
+app = Typer(add_completion=True)
 
 
-@app.callback(invoke_without_command=True, no_args_is_help=True)
-def create_project(
+@app.callback(invoke_without_command=True)
+def create(
+    ctx: Context,
     project_name: str = Argument(..., help="Name of the project to create"),
     template_path: str | None = Option(
         None,
@@ -107,7 +110,7 @@ def create_project(
     if template_path is None:
         # Use the main template included with repoman
         current_file = Path(__file__)
-        template_path_obj = current_file.parent.parent / "main_template"
+        template_path_obj = current_file.parent.parent.parent.parent / "main_template"
         logger.info(f"Using main template at {template_path_obj}")
     else:
         template_path_obj = Path(template_path)
@@ -148,14 +151,31 @@ def create_project(
         },
     }
 
-    if dry_run:
+    # Prepare next steps (used in both dry-run and success messages)
+    next_steps = [
+        f"cd {output_dir_obj}",
+        "Review and customize the generated project",
+        "Initialize git repository",
+        "Start developing!",
+    ]
+
+    steps_text = "\n".join(f"  {i + 1}. {step}" for i, step in enumerate(next_steps))
+
+    if dry_run or ctx.obj.get("dry_run", True):
+        # Convert Path objects to strings for JSON serialization
+        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
+
         console.print(
             Panel(
-                Text(
-                    f"Would create project '{project_name}' in {output_dir_obj}\n"
-                    f"Using template: {template_path_obj}\n"
-                    f"Copier options: {copier_options}",
-                    style="blue",
+                Group(
+                    Text(
+                        f"Would create project '{project_name}' in {output_dir_obj}\n"
+                        f"Using template: {template_path_obj}\n",
+                        style="blue",
+                    ),
+                    Text("Copier options:", style="blue"),
+                    JSON.from_data(copier_options_serializable, indent=2),
+                    Text(f"\nNext steps:\n{steps_text}", style="blue"),
                 ),
                 title="Dry Run",
                 border_style="blue",
@@ -178,16 +198,19 @@ def create_project(
             progress.update(task, description="Project created successfully!")
 
         # Success message
+        # Convert Path objects to strings for JSON serialization
+        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
+
         console.print(
             Panel(
-                Text(
-                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\n"
-                    f"Next steps:\n"
-                    f"  cd {output_dir_obj}\n"
-                    f"  # Review and customize the generated project\n"
-                    f"  # Initialize git repository\n"
-                    f"  # Start developing!",
-                    style="green",
+                Group(
+                    Text(
+                        f"Project '{project_name}' created successfully in {output_dir_obj}\n",
+                        style="green",
+                    ),
+                    Text("Copier options used:", style="green"),
+                    JSON.from_data(copier_options_serializable, indent=2),
+                    Text(f"\nNext steps:\n{steps_text}", style="green"),
                 ),
                 title="Success",
                 border_style="green",

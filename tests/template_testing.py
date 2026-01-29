@@ -5,6 +5,7 @@ import shutil
 import unicodedata
 from pathlib import Path
 
+import yaml
 from copier import run_copy
 from copier.errors import CopierError
 
@@ -33,6 +34,7 @@ def instantiate_template(
     template_path: Path | None = None,
     project_name: str = "test-project",
     copier_data: dict | None = None,
+    answers_file: Path | None = None,
     *,
     force: bool = True,
 ) -> Path:
@@ -42,7 +44,8 @@ def instantiate_template(
         output_dir: Directory where the template should be instantiated
         template_path: Path to the template. If None, uses the main template
         project_name: Name of the project to create
-        copier_data: Additional copier data to pass. Merged with defaults
+        copier_data: Additional copier data to pass. Merged with defaults and answers file
+        answers_file: Path to a .copier-answers.yml file. If provided, loads answers from file
         force: Whether to overwrite existing files
 
     Returns:
@@ -51,6 +54,7 @@ def instantiate_template(
     Raises:
         CopierError: If template instantiation fails
         ValueError: If template_path doesn't exist
+        FileNotFoundError: If answers_file is provided but doesn't exist
     """
     # Resolve template path (default to main template)
     if template_path is None:
@@ -65,6 +69,18 @@ def instantiate_template(
     # Prepare output directory
     project_dir = Path(output_dir) / project_name
     project_dir = project_dir.resolve()
+
+    # Load answers from file if provided
+    answers_data = {}
+    if answers_file is not None:
+        answers_file_path = Path(answers_file).resolve()
+        if not answers_file_path.exists():
+            raise FileNotFoundError(f"Answers file not found: {answers_file_path}")
+        logger.info(f"Loading answers from {answers_file_path}")
+        with open(answers_file_path) as f:
+            answers_data = yaml.safe_load(f) or {}
+        # Always override project_name with function parameter (function parameter takes precedence)
+        answers_data["project_name"] = project_name
 
     # Compute derived package names (matching copier.yml defaults)
     python_package_distribution_name = _slugify(project_name, separator="-")
@@ -93,18 +109,24 @@ def instantiate_template(
         "public_release": False,
     }
 
-    # Merge with provided data
+    # Merge answers file data first (if provided), then provided copier_data (highest priority)
+    if answers_data:
+        default_data.update(answers_data)
     if copier_data:
         default_data.update(copier_data)
 
     # Prepare copier options
-    copier_options = {
+    copier_options: dict[str, str | dict | bool] = {
         "src_path": str(template_path),
         "dst_path": str(project_dir),
         "overwrite": force,
         "quiet": True,
         "data": default_data,
     }
+
+    # Add answers_file to copier options if provided
+    if answers_file is not None:
+        copier_options["answers_file"] = str(Path(answers_file).resolve())
 
     try:
         logger.info(f"Instantiating template from {template_path} to {project_dir}")

@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -12,10 +13,22 @@ from repoman import cli
 from tests.template_testing import cleanup_project_artifacts, instantiate_template
 
 
+def strip_ansi_codes(text: str) -> str:
+    """Strip ANSI escape codes from text for easier pattern matching in tests.
+
+    Args:
+        text: Text that may contain ANSI escape codes
+
+    Returns:
+        Plain text without ANSI codes
+    """
+    # Remove ANSI escape sequences (including Rich's hyperlinks)
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|]8;[^;]*;[^\\]*\\|]8;;)")
+    return ansi_escape.sub("", text)
+
+
 @pytest.fixture(autouse=True)
 def setup_test_environment() -> None:
-    """Set up test environment variables, paths, and working directory isolation."""
-    """Set up test environment variables, paths, and working directory isolation."""
     """Set up test environment variables, paths, and working directory isolation."""
     # Store original environment variables
     original_env = {}
@@ -82,41 +95,6 @@ def cli_app() -> Any:
             assert result.exit_code == 0
     """
     return cli
-
-
-def pytest_configure(config: Any) -> None:
-    """Configure pytest before test collection."""
-    # Register custom markers
-    config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line("markers", "integration: Integration tests that may have dependencies")
-    config.addinivalue_line("markers", "cli: CLI command tests")
-    config.addinivalue_line("markers", "utils: Utility function tests")
-    config.addinivalue_line("markers", "slow: Slow running tests")
-    config.addinivalue_line("markers", "isolated: Tests that must run in isolation")
-
-
-def pytest_collection_modifyitems(_config: Any, items: Any) -> None:
-    """Modify test collection to add default markers based on test location."""
-    for item in items:
-        # Add default markers based on test file/class names and locations
-        if "test_utils" in item.nodeid:
-            item.add_marker(pytest.mark.utils)
-            item.add_marker(pytest.mark.unit)
-        elif "test_cli" in item.nodeid:
-            item.add_marker(pytest.mark.cli)
-            item.add_marker(pytest.mark.integration)
-        else:
-            # Default to unit tests for other test files
-            item.add_marker(pytest.mark.unit)
-
-        # Mark tests that use file system operations as isolated
-        if any(keyword in item.nodeid.lower() for keyword in ["file", "path", "directory", "log"]):
-            item.add_marker(pytest.mark.isolated)
-
-
-def pytest_unconfigure(config: Any) -> None:
-    """Clean up after all tests are complete."""
-    # Clean up any global resources here
 
 
 @pytest.fixture(scope="session")
@@ -261,7 +239,7 @@ def test_workspace(tmp_path: Path) -> None:
 
 @pytest.fixture
 def mock_copier_available(monkeypatch: pytest.MonkeyPatch) -> Any:
-    """Mock copier availability for testing."""
+    """Mock copier library availability for testing."""
 
     # Mock the copier import to always be available
     def mock_import_copier() -> Any:
@@ -271,7 +249,8 @@ def mock_copier_available(monkeypatch: pytest.MonkeyPatch) -> Any:
 
         return MockCopier()
 
-    monkeypatch.setattr("repoman.cli.copier.copier", mock_import_copier())
+    # Mock the copier library itself, not the command module
+    monkeypatch.setattr("copier.copier", mock_import_copier())
 
 
 @pytest.fixture
@@ -344,6 +323,19 @@ def cleanup_loggers() -> None:
         logging.root.addHandler(handler)
 
 
+def _get_default_answers_file() -> Path | None:
+    """Get the default answers file path if it exists.
+
+    Returns:
+        Path to default answers file, or None if it doesn't exist
+    """
+    current_file = Path(__file__)
+    default_answers = current_file.parent / "fixtures" / "default_copier_answers.yml"
+    if default_answers.exists():
+        return default_answers
+    return None
+
+
 def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
     """Helper to create template instance with optional setup.
 
@@ -360,10 +352,14 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
     """
     instantiated_path = None
     try:
+        # Get default answers file if available
+        default_answers = _get_default_answers_file()
+
         # Instantiate template
         instantiated_path = instantiate_template(
             output_dir=tmp_path_base,
             project_name=project_name,
+            answers_file=default_answers,
             force=True,
         )
 
@@ -439,9 +435,6 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
         instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
 
         yield instantiated_path

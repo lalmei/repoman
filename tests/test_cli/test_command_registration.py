@@ -13,7 +13,7 @@ def test_create_command_registered(cli_runner: CliRunner, cli_app: Typer) -> Non
     # Should succeed and show help for the create command
     assert result.exit_code == 0, "The 'create' command should be registered and accessible"
     assert "Usage:" in result.output, "Help output should be shown"
-    assert "create" in result.output, "Command name should appear in help"
+    assert "create" in result.output.lower(), "Command name should appear in help"
     assert "PROJECT_NAME" in result.output or "project_name" in result.output, "Command arguments should be shown"
 
 
