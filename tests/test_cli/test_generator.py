@@ -11,9 +11,7 @@ from typer.testing import CliRunner
 console = Console()
 
 
-def _create_test_project_structure(
-    tmp_path: Path, package_name: str = "test_package"
-) -> tuple[Path, Path]:
+def _create_test_project_structure(tmp_path: Path, package_name: str = "test_package") -> tuple[Path, Path]:
     """Create standard test project directory structure.
 
     Args:

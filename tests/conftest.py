@@ -395,7 +395,7 @@ def _create_template_instance(
             cleanup_project_artifacts(instantiated_path)
         raise
     else:
-        return instantiated_path  # noqa: TRY300 - Linter prefers return in else block after try/except
+        return instantiated_path
 
 
 @pytest.fixture
