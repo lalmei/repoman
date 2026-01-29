@@ -294,7 +294,7 @@ class TestCurrentYearExtension:
         template = env.from_string("Next year: {{ current_year + 1 }}")
         result = template.render()
 
-        assert result == f"Next year: {date.fromtimestamp(time.time()).year + 1}"
+        assert result == f"Next year: {datetime.now(timezone.utc).date().year + 1}"
 
 
 class TestExtensionsIntegration:
@@ -326,7 +326,7 @@ class TestExtensionsIntegration:
         template = env.from_string("User: {{ 'default' | git_user_name | slugify }}, Year: {{ current_year }}")
         result = template.render()
 
-        assert result == f"User: john-doe, Year: {date.fromtimestamp(time.time()).year}"
+        assert result == f"User: john-doe, Year: {datetime.now(timezone.utc).date().year}"
         mock_git_name.assert_called_once_with("default")
 
 

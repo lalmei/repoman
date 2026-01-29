@@ -2,6 +2,7 @@
 
 import os
 import sys
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -31,7 +32,7 @@ class TestVersionFunctions:
     @patch("repoman._version.metadata.version")
     def test_get_version_package_not_found(self, mock_version: Any) -> None:
         """Test get_version when package is not found."""
-        from importlib.metadata import PackageNotFoundError
+        from importlib.metadata import PackageNotFoundError  # noqa: PLC0415
 
         mock_version.side_effect = PackageNotFoundError("nonexistent-package")
         result = get_version("nonexistent-package")

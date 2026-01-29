@@ -15,10 +15,7 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
     logger, console = get_logger_console()
 
     # Get the cli directory path
-    if path is None:
-        cli_dir = Path(__file__).parent / "commands"
-    else:
-        cli_dir = path
+    cli_dir = Path(__file__).parent / "commands" if path is None else path
 
     # Find all subdirectories in the commands directory that have __init__.py
     command_modules = [

@@ -78,8 +78,12 @@ def run_make_command(
     full_command = ["make", command]
     command_str = " ".join(full_command)
 
-    logger.info(f"Running command: {command_str} in {project_dir} (uv found at {uv_path})")
-    console.print(f"[blue]→[/blue] Running: [bold]{command_str}[/bold] in {project_dir}")
+    logger.info(
+        f"Running command: {command_str} in {project_dir} (uv found at {uv_path})"
+    )
+    console.print(
+        f"[blue]→[/blue] Running: [bold]{command_str}[/bold] in {project_dir}"
+    )
 
     # Prepare environment - ensure PATH includes uv if it's in a custom location
     process_env = dict(os.environ)
@@ -98,7 +102,7 @@ def run_make_command(
 
     # Use Popen to stream output while capturing
     try:
-        process = subprocess.Popen(
+        process = subprocess.Popen(  # noqa: S603 - Safe: command is from test configuration, not user input
             full_command,
             cwd=str(project_dir),
             stdout=subprocess.PIPE,
@@ -113,7 +117,7 @@ def run_make_command(
         stdout_queue = queue.Queue()
         stderr_queue = queue.Queue()
 
-        def read_stdout() -> Any:
+        def read_stdout() -> None:
             """Read from stdout in a separate thread to avoid deadlock."""
             if process.stdout is None:
                 stdout_queue.put(None)
@@ -122,10 +126,10 @@ def run_make_command(
                 for line in iter(process.stdout.readline, ""):
                     stdout_queue.put(line)
                 stdout_queue.put(None)  # Sentinel to indicate EOF
-            except Exception:
+            except Exception:  # noqa: BLE001 - Thread safety: catch all exceptions to prevent thread crash
                 stdout_queue.put(None)
 
-        def read_stderr() -> Any:
+        def read_stderr() -> None:
             """Read from stderr in a separate thread to avoid deadlock."""
             if process.stderr is None:
                 stderr_queue.put(None)
@@ -134,7 +138,7 @@ def run_make_command(
                 for line in iter(process.stderr.readline, ""):
                     stderr_queue.put(line)
                 stderr_queue.put(None)  # Sentinel to indicate EOF
-            except Exception:
+            except Exception:  # noqa: BLE001 - Thread safety: catch all exceptions to prevent thread crash
                 stderr_queue.put(None)
 
         # Start reader threads to read from both pipes concurrently
@@ -149,7 +153,7 @@ def run_make_command(
 
         # Import time if timeout is needed
         if timeout:
-            import time
+            import time  # noqa: PLC0415 - Conditional import for timeout functionality
 
             start_time = time.time()
 
@@ -170,7 +174,9 @@ def run_make_command(
                             stderr_lines.append(line)
                     stdout = "".join(stdout_lines)
                     stderr = "".join(stderr_lines)
-                    raise subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)
+                    raise subprocess.TimeoutExpired(
+                        full_command, timeout, output=stdout, stderr=stderr
+                    )  # noqa: TRY301 - Re-raising with context
 
             # Read from stdout queue (non-blocking)
             try:
@@ -226,9 +232,13 @@ def run_make_command(
         logger.debug(f"Command completed with return code {returncode}")
 
         if returncode == 0:
-            console.print(f"[green]✓[/green] Command succeeded: [bold]{command_str}[/bold]")
+            console.print(
+                f"[green]✓[/green] Command succeeded: [bold]{command_str}[/bold]"
+            )
         else:
-            console.print(f"[red]✗[/red] Command failed (exit {returncode}): [bold]{command_str}[/bold]")
+            console.print(
+                f"[red]✗[/red] Command failed (exit {returncode}): [bold]{command_str}[/bold]"
+            )
 
         return CommandResult(
             returncode=returncode,
@@ -237,18 +247,18 @@ def run_make_command(
             command=command_str,
         )
 
-    except FileNotFoundError:
+    except FileNotFoundError as err:
         error_msg = "make command not found. Is make installed?"
-        logger.error(error_msg)
+        logger.exception(error_msg)
         console.print(f"[red]✗[/red] {error_msg}")
-        raise FileNotFoundError(error_msg)
+        raise FileNotFoundError(error_msg) from err
     except subprocess.TimeoutExpired:
         error_msg = f"Command timed out after {timeout} seconds: {command_str}"
-        logger.error(error_msg)
+        logger.exception(error_msg)
         console.print(f"[red]✗[/red] {error_msg}")
         raise
     except Exception as e:
         error_msg = f"Unexpected error running command {command_str}: {e}"
-        logger.error(error_msg)
+        logger.exception(error_msg)
         console.print(f"[red]✗[/red] {error_msg}")
         raise

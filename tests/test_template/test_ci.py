@@ -56,7 +56,7 @@ def test_instantiated_template_test(setup_template: Any) -> None:
 
 def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     """Test that cleanup removes all artifacts after CI tests."""
-    from tests.template_testing import cleanup_project_artifacts
+    from tests.template_testing import cleanup_project_artifacts  # noqa: PLC0415
 
     # Create some artifacts
     (instantiated_template / ".venv").mkdir()
@@ -71,6 +71,10 @@ def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     # Verify artifacts are removed
     assert not (instantiated_template / ".venv").exists(), ".venv should be removed"
     assert not (instantiated_template / "dist").exists(), "dist should be removed"
-    assert not (instantiated_template / "__pycache__").exists(), "__pycache__ should be removed"
-    assert not (instantiated_template / ".pytest_cache").exists(), ".pytest_cache should be removed"
+    assert not (instantiated_template / "__pycache__").exists(), (
+        "__pycache__ should be removed"
+    )
+    assert not (instantiated_template / ".pytest_cache").exists(), (
+        ".pytest_cache should be removed"
+    )
     assert not (instantiated_template / "site").exists(), "site should be removed"

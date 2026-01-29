@@ -23,7 +23,11 @@ def _slugify(value: str, separator: str = "-") -> str:
     Returns:
         Slugified string
     """
-    value = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
+    value = (
+        unicodedata.normalize("NFKD", str(value))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
     value = re.sub(r"[^\w\s-]", "", value.lower())
     return re.sub(r"[-_\s]+", separator, value).strip("-_")
 
@@ -33,6 +37,7 @@ def instantiate_template(
     template_path: Path | None = None,
     project_name: str = "test-project",
     copier_data: dict | None = None,
+    *,
     force: bool = True,
 ) -> Path:
     """Instantiate a template in the specified directory.
@@ -110,12 +115,13 @@ def instantiate_template(
         run_copy(**copier_options)
         logger.info(f"Template instantiated successfully at {project_dir}")
         console.print(f"[green]✓[/green] Template instantiated at {project_dir}")
-        return project_dir
     except CopierError as e:
         error_msg = f"Failed to instantiate template: {e}"
-        logger.error(error_msg)
+        logger.exception(error_msg)
         console.print(f"[red]✗[/red] {error_msg}")
         raise
+    else:
+        return project_dir
 
 
 def cleanup_project_artifacts(project_dir: Path) -> None:

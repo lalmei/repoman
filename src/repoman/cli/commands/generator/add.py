@@ -9,7 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Context, Exit, Option, Typer
+from typer import Argument, Exit, Option, Typer
 
 from repoman.extensions import CurrentYearExtension, GitExtension, SlugifyExtension
 from repoman.utils.logging import get_logger_console
@@ -114,7 +114,6 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 
 @app.callback(no_args_is_help=True)
 def add(
-    ctx: Context,
     command_name: str = Argument(..., help="Name of the command to create"),
     project_dir: str | None = Option(
         None,
@@ -148,10 +147,7 @@ def add(
         raise Exit(1) from None
 
     # Determine project directory
-    if project_dir is None:
-        project_dir = Path.cwd()
-    else:
-        project_dir = Path(project_dir).resolve()
+    project_dir = Path.cwd() if project_dir is None else Path(project_dir).resolve()
 
     if not project_dir.exists():
         console.print(
@@ -164,10 +160,7 @@ def add(
         raise Exit(1) from None
 
     # Determine answers file path
-    if answers_file is None:
-        answers_file = project_dir / ".copier-answers.yml"
-    else:
-        answers_file = Path(answers_file).resolve()
+    answers_file = project_dir / ".copier-answers.yml" if answers_file is None else Path(answers_file).resolve()
 
     # Load copier answers
     try:
@@ -302,8 +295,9 @@ def add(
         # The test template filename is literally "test_{{command_name}}.py.jinja"
         # We need to load it by its actual filename
         test_template_filename = "test_{{command_name}}.py.jinja"
-        if not (template_dir / test_template_filename).exists():
-            raise FileNotFoundError(f"Test template not found: {template_dir / test_template_filename}")
+        template_path = template_dir / test_template_filename
+        if not template_path.exists():
+            raise FileNotFoundError(f"Test template not found: {template_path}")  # noqa: TRY301 - Simple error, no need to abstract
         test_template = env.get_template(test_template_filename)
 
         rendered_command = command_template.render(**template_context)

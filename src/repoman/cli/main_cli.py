@@ -125,9 +125,9 @@ def main(
 
         logger.debug(ctx.config.model_dump())
         logger.debug(Text("Configuration set", style="yellow"))
-    except ValidationError as e:
-        logger.error("Unable to load configuration: ")
-        logger.error(f"Obtained the following validating Errors loading configuration: {e}\n")
+    except ValidationError:
+        logger.exception("Unable to load configuration: ")
+        logger.exception("Obtained the following validating Errors loading configuration")
         ctx.config = None
 
     ctx.obj = {

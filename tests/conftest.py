@@ -3,19 +3,17 @@
 import logging
 import os
 from pathlib import Path
+from typing import Any
 
 import pytest
-from repoman.utils.template_testing import (
-    cleanup_project_artifacts,
-    instantiate_template,
-)
 from typer.testing import CliRunner
 
 from repoman import cli
+from tests.template_testing import cleanup_project_artifacts, instantiate_template
 
 
 @pytest.fixture(autouse=True)
-def setup_test_environment():
+def setup_test_environment() -> None:
     """Set up test environment variables, paths, and working directory isolation."""
     # Store original environment variables
     original_env = {}
@@ -97,7 +95,7 @@ def pytest_configure(config: Any) -> None:
     config.addinivalue_line("markers", "isolated: Tests that must run in isolation")
 
 
-def pytest_collection_modifyitems(config: Any, items: Any) -> None:
+def pytest_collection_modifyitems(_config: Any, items: Any) -> None:
     """Modify test collection to add default markers based on test location."""
     for item in items:
         # Add default markers based on test file/class names and locations
@@ -209,7 +207,7 @@ def sample_project_data() -> Any:
             "https://github.com/user/template",
         ],
         "output_paths": [
-            "/tmp/test_output",
+            "/tmp/test_output",  # noqa: S108 - Test fixture: safe temp path for testing
             "./output",
             "relative/output/path",
         ],
@@ -275,7 +273,7 @@ def mock_copier_available(monkeypatch: pytest.MonkeyPatch) -> Any:
     # Mock the copier import to always be available
     def mock_import_copier() -> Any:
         class MockCopier:
-            def run_copy(self, *args: Any, **kwargs: Any) -> bool:
+            def run_copy(self, *_args: Any, **_kwargs: Any) -> bool:
                 return True
 
         return MockCopier()
@@ -290,7 +288,7 @@ def mock_file_system(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Any:
     mock_fs = tmp_path / "mock_fs"
     mock_fs.mkdir()
 
-    def mock_makedirs(path: Path, exist_ok: bool = False) -> Any:
+    def mock_makedirs(path: Path, *, exist_ok: bool = False) -> Any:
         Path(path).mkdir(parents=True, exist_ok=exist_ok)
 
     def mock_path_exists(path: Path) -> Path:
@@ -314,6 +312,18 @@ def mock_rich_console(monkeypatch: pytest.MonkeyPatch) -> Path:
             return lambda *args, **kwargs: None
 
     monkeypatch.setattr("rich.console.Console", MockConsole)
+
+
+@pytest.fixture(autouse=True)
+def isolate_test_environment():
+    """Ensure each test runs in an isolated environment."""
+    # Store original working directory
+    original_cwd = os.getcwd()
+
+    yield
+
+    # Restore working directory
+    os.chdir(original_cwd)
 
 
 @pytest.fixture(autouse=True)
@@ -353,7 +363,9 @@ def cleanup_loggers():
         logging.root.addHandler(handler)
 
 
-def _create_template_instance(tmp_path_base, project_name, run_setup=False):
+def _create_template_instance(
+    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
+) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -378,15 +390,17 @@ def _create_template_instance(tmp_path_base, project_name, run_setup=False):
 
         # Optionally run make setup
         if run_setup:
-            from tests.ci_runner import run_make_command
+            from tests.ci_runner import (  # noqa: PLC0415 - Conditional import to avoid circular dependency
+                run_make_command,
+            )
 
             result = run_make_command(instantiated_path, "setup")
             if result.returncode != 0:
                 pytest.fail(
                     f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
                 )
-
-        return instantiated_path
+        else:
+            return instantiated_path
     except Exception:
         # Cleanup on error
         if instantiated_path is not None:
@@ -448,19 +462,9 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        # Instantiate template
-        instantiated_path = instantiate_template(
-            output_dir=tmp_path,
-            project_name="test-project",
-            force=True,
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=True
         )
-
-        # Run make setup
-        result = run_make_command(instantiated_path, "setup")
-        if result.returncode != 0:
-            pytest.fail(
-                f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-            )
 
         yield instantiated_path
 

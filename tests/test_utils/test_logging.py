@@ -492,7 +492,7 @@ class TestLoggingErrorHandling:
         try:
             # Test with non-numeric string - should raise ValueError
             os.environ["_REPOMAN_LOG_LEVEL"] = "not_a_number"
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid literal|invalid|could not convert"):
                 _set_up_logger("test_logger")
 
             # Test with very large number - should work
@@ -502,7 +502,7 @@ class TestLoggingErrorHandling:
 
             # Test with special characters - should raise ValueError
             os.environ["_REPOMAN_LOG_LEVEL"] = "!@#$%"
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="invalid literal|invalid|could not convert"):
                 _set_up_logger("test_logger")
 
         finally:
@@ -562,7 +562,7 @@ class TestLoggingErrorHandling:
 
     def test_logging_with_concurrent_access(self) -> None:
         """Test logging behavior with concurrent access scenarios."""
-        import threading
+        import threading  # noqa: PLC0415
 
         logger = Logger("test_logger")
         results = []
@@ -571,7 +571,7 @@ class TestLoggingErrorHandling:
             try:
                 logger_instance = _set_up_logger(f"thread_{thread_id}")
                 results.append((thread_id, "success", logger_instance))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - Test: catch all exceptions to verify error handling
                 results.append((thread_id, "error", str(e)))
 
         # Start multiple threads

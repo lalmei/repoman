@@ -50,11 +50,10 @@ def _set_up_logger(
     rich_handler.set_name("rich")
     module_logger.addHandler(rich_handler)
 
-    if use_rotating_file_handler:
-        if log_file_base_path is not None:
-            current_date = datetime.now().strftime("%Y_m_%d")
-            log_file_path = log_file_base_path / f"log_{current_date}.log"
-            os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+    if use_rotating_file_handler and log_file_base_path is not None:
+        current_date = datetime.now(timezone.utc).strftime("%Y_m_%d")
+        log_file_path = log_file_base_path / f"log_{current_date}.log"
+        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
     module_logger.setLevel(level=log_level)
 

@@ -247,7 +247,7 @@ class TestThemeErrorHandling:
 
         # Should raise StyleSyntaxError for malformed colors
         colors = MalformedColors()
-        with pytest.raises(Exception):  # Rich will raise StyleSyntaxError
+        with pytest.raises(Exception, match=".*"):  # Rich will raise StyleSyntaxError
             _create_theme(colors)
 
     def test_create_theme_with_missing_color_attributes(self) -> None:
@@ -290,46 +290,46 @@ class TestThemeErrorHandling:
     def test_set_theme_with_invalid_names(self) -> None:
         """Test set_theme with invalid theme names."""
         # Test with None
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme(None)
 
         # Test with empty string
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("")
 
         # Test with invalid theme name
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("invalid_theme")
 
         # Test with non-string types
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme(123)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme(["dark", "light"])
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme({"theme": "dark"})
 
     def test_set_theme_with_edge_case_names(self) -> None:
         """Test set_theme with edge case theme names."""
         # Test with whitespace-only names
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("   ")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("\t\n")
 
         # Test with very long names
         long_name = "a" * 1000
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme(long_name)
 
         # Test with unicode names
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("dark-🚀")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("light-中文")
 
     def test_get_rich_color_with_edge_cases(self) -> None:
@@ -396,7 +396,7 @@ class TestThemeErrorHandling:
 
         # Should raise Exception for corrupted color data
         colors = CorruptedColors()
-        with pytest.raises(Exception):  # Rich will raise various errors
+        with pytest.raises(Exception, match=".*"):  # Rich will raise various errors
             _create_theme(colors)
 
     def test_theme_creation_under_memory_pressure(self) -> None:
@@ -407,7 +407,7 @@ class TestThemeErrorHandling:
             for i in range(100):  # Reduced from 1000 to avoid test timeouts
 
                 class MockColors:
-                    def __init__(self, index: Any):
+                    def __init__(self, _index: Any):
                         self.rosewater = type("Color", (), {"hex": "#f5e0dc"})()
                         self.flamingo = type("Color", (), {"hex": "#f2cdcd"})()
                         self.pink = type("Color", (), {"hex": "#f5c2e7"})()

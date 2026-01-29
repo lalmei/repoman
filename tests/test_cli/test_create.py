@@ -93,9 +93,8 @@ def test_create_command_argument_order(cli_runner: CliRunner, cli_app: Typer) ->
     assert "Would create project" in result2.output
 
 
-def test_create_command_dry_run(
-    tmp_path: Path, sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer
-) -> None:
+@pytest.mark.usefixtures("tmp_path")
+def test_create_command_dry_run(sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with dry-run flag."""
     project_name = sample_project_names[0]
 
@@ -138,9 +137,8 @@ def test_create_command_force_overwrite(
     assert "Copier options:" in result.output
 
 
-def test_create_command_template_not_found(
-    tmp_path: Path, mock_template_structure: Any, cli_runner: CliRunner, cli_app: Typer
-) -> None:
+@pytest.mark.usefixtures("tmp_path")
+def test_create_command_template_not_found(mock_template_structure: Any, cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with non-existent template using mock template structure."""
     project_name = "test-project"
     # Use the mock template structure to test with a real template
@@ -188,9 +186,8 @@ def test_create_command_invalid_template_path(cli_runner: CliRunner, cli_app: Ty
     assert "not found" in result.output or "must be a directory" in result.output or "template" in result.output
 
 
-def test_create_command_output_directory(
-    tmp_path: Path, test_workspace: Path, cli_runner: CliRunner, cli_app: Typer
-) -> None:
+@pytest.mark.usefixtures("tmp_path")
+def test_create_command_output_directory(test_workspace: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with custom output directory using test workspace."""
     project_name = "test-project"
     # Use the structured workspace instead of a simple custom output

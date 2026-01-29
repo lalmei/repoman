@@ -11,6 +11,25 @@ from typer.testing import CliRunner
 console = Console()
 
 
+def _create_test_project_structure(
+    tmp_path: Path, package_name: str = "test_package"
+) -> tuple[Path, Path]:
+    """Create standard test project directory structure.
+
+    Args:
+        tmp_path: Base temporary directory
+        package_name: Python package name
+
+    Returns:
+        Tuple of (commands_dir, tests_dir)
+    """
+    commands_dir = tmp_path / "src" / package_name / "cli" / "commands"
+    tests_dir = tmp_path / "tests" / "test_cli"
+    commands_dir.mkdir(parents=True)
+    tests_dir.mkdir(parents=True)
+    return commands_dir, tests_dir
+
+
 def test_generator_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the generator command displays help information correctly.
 
@@ -220,13 +239,11 @@ def test_generator_add_valid_command_name_validation(
                 path
             ):
                 return True
-            if path == answers_file:
-                return True
-            if "src/test_package/cli/commands" in str(path):
-                return True
-            if "tests/test_cli" in str(path):
-                return True
-            return False
+            return (
+                path == answers_file
+                or "src/test_package/cli/commands" in str(path)
+                or "tests/test_cli" in str(path)
+            )
 
         mock_exists.side_effect = exists_side_effect
 
@@ -302,18 +319,12 @@ def test_generator_add_dry_run(
 
         def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
-            if (
-                "extentions/command_template" in path_str
-                or "{{command_name}}" in path_str
-            ):
                 return True
-            if path == answers_file:
-                return True
-            if "src/test_package/cli/commands" in path_str:
-                return True
-            if "tests/test_cli" in path_str:
-                return True
-            return False
+            return (
+                path == answers_file
+                or "src/test_package/cli/commands" in path_str
+                or "tests/test_cli" in path_str
+            )
 
         mock_exists.side_effect = exists_side_effect
 
@@ -470,13 +481,11 @@ def test_generator_add_file_already_exists(
                 or "{{command_name}}" in path_str
             ):
                 return True
-            if path == answers_file:
-                return True
-            if path == command_dir / "__init__.py":
-                return True
-            if "src/test_package/cli/commands" in path_str:
-                return True
-            return False
+            return (
+                path == answers_file
+                or path == command_dir / "__init__.py"
+                or "src/test_package/cli/commands" in path_str
+            )
 
         mock_exists.side_effect = exists_side_effect
 

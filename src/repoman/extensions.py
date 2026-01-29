@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import re
 import subprocess
-import time
 import unicodedata
-from datetime import date
+from datetime import datetime, timezone
 
 from jinja2 import Environment
 from jinja2.ext import Extension
@@ -40,4 +39,4 @@ class SlugifyExtension(Extension):
 class CurrentYearExtension(Extension):
     def __init__(self, environment: Environment) -> None:
         super().__init__(environment)
-        environment.globals["current_year"] = date.fromtimestamp(time.time()).year
+        environment.globals["current_year"] = datetime.now(timezone.utc).date().year
