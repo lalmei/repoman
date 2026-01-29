@@ -5,28 +5,13 @@ from unittest.mock import Mock, patch
 
 import yaml
 from rich.console import Console
+from typer import Typer
+from typer.testing import CliRunner
 
 console = Console()
 
 
-def _create_test_project_structure(tmp_path: Path, package_name: str = "test_package") -> tuple[Path, Path]:
-    """Create standard test project directory structure.
-
-    Args:
-        tmp_path: Base temporary directory
-        package_name: Python package name
-
-    Returns:
-        Tuple of (commands_dir, tests_dir)
-    """
-    commands_dir = tmp_path / "src" / package_name / "cli" / "commands"
-    tests_dir = tmp_path / "tests" / "test_cli"
-    commands_dir.mkdir(parents=True)
-    tests_dir.mkdir(parents=True)
-    return commands_dir, tests_dir
-
-
-def test_generator_command_help(cli_runner, cli_app) -> None:
+def test_generator_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the generator command displays help information correctly.
 
     This test verifies that:
@@ -50,7 +35,7 @@ def test_generator_command_help(cli_runner, cli_app) -> None:
     assert "Generate new CLI commands" in result.output or "Generate" in result.output
 
 
-def test_generator_command_registered(cli_runner, cli_app) -> None:
+def test_generator_command_registered(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the generator command is dynamically registered in the CLI.
 
     This test verifies the dynamic command registration system works correctly:
@@ -70,12 +55,14 @@ def test_generator_command_registered(cli_runner, cli_app) -> None:
     result = cli_runner.invoke(cli_app, ["generator", "--help"], input="")
 
     # Should succeed and show help for the generator command
-    assert result.exit_code == 0, "The 'generator' command should be registered and accessible"
+    assert result.exit_code == 0, (
+        "The 'generator' command should be registered and accessible"
+    )
     assert "Usage:" in result.output, "Help output should be shown"
     assert "generator" in result.output.lower(), "Command name should appear in help"
 
 
-def test_generator_add_command_help(cli_runner, cli_app) -> None:
+def test_generator_add_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the generator add subcommand displays comprehensive help information.
 
     This test verifies that:
@@ -108,7 +95,9 @@ def test_generator_add_command_help(cli_runner, cli_app) -> None:
     assert "--dry-run" in result.output or "--dry_run" in result.output
 
 
-def test_generator_add_missing_required_args(cli_runner, cli_app) -> None:
+def test_generator_add_missing_required_args(
+    cli_runner: CliRunner, cli_app: Typer
+) -> None:
     """Test that generator add command properly validates required arguments.
 
     This test verifies argument validation:
@@ -130,7 +119,9 @@ def test_generator_add_missing_required_args(cli_runner, cli_app) -> None:
     assert "COMMAND_NAME" in result.output or "command_name" in result.output
 
 
-def test_generator_add_invalid_command_name(cli_runner, cli_app, tmp_path: Path) -> None:
+def test_generator_add_invalid_command_name(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command rejects invalid command names with proper validation.
 
     This test verifies the command name validation logic:
@@ -179,11 +170,15 @@ def test_generator_add_invalid_command_name(cli_runner, cli_app, tmp_path: Path)
         )
         console.print(f"Testing '{invalid_name}': {result.output}")
         # Should fail with validation error
-        assert result.exit_code == 1, f"Command name '{invalid_name}' should be rejected"
+        assert result.exit_code == 1, (
+            f"Command name '{invalid_name}' should be rejected"
+        )
         assert "Invalid command name" in result.output or "Error" in result.output
 
 
-def test_generator_add_valid_command_name_validation(cli_runner, cli_app, tmp_path: Path) -> None:
+def test_generator_add_valid_command_name_validation(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command accepts valid command names.
 
     This test verifies that valid Python identifiers pass validation:
@@ -220,8 +215,10 @@ def test_generator_add_valid_command_name_validation(cli_runner, cli_app, tmp_pa
     # Mock the template directory and file operations
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
         # Make template directory exist
-        def exists_side_effect(path):
-            if "extentions/command_template" in str(path) or "{{command_name}}" in str(path):
+        def exists_side_effect(path: Path) -> bool:
+            if "extentions/command_template" in str(path) or "{{command_name}}" in str(
+                path
+            ):
                 return True
             if path == answers_file:
                 return True
@@ -264,7 +261,9 @@ def test_generator_add_valid_command_name_validation(cli_runner, cli_app, tmp_pa
                 )
 
 
-def test_generator_add_dry_run(cli_runner, cli_app, tmp_path: Path) -> None:
+def test_generator_add_dry_run(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command supports dry-run mode for previewing changes.
 
     This test verifies the --dry-run functionality:
@@ -301,9 +300,12 @@ def test_generator_add_dry_run(cli_runner, cli_app, tmp_path: Path) -> None:
     # Mock template directory existence
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
 
-        def exists_side_effect(path):
+        def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
-            if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            if (
+                "extentions/command_template" in path_str
+                or "{{command_name}}" in path_str
+            ):
                 return True
             if path == answers_file:
                 return True
@@ -339,10 +341,16 @@ def test_generator_add_dry_run(cli_runner, cli_app, tmp_path: Path) -> None:
 
             # Should show dry-run output
             assert result.exit_code == 0
-            assert "Dry Run" in result.output or "dry-run" in result.output.lower() or "Would create" in result.output
+            assert (
+                "Dry Run" in result.output
+                or "dry-run" in result.output.lower()
+                or "Would create" in result.output
+            )
 
 
-def test_generator_add_missing_answers_file(cli_runner, cli_app, tmp_path: Path) -> None:
+def test_generator_add_missing_answers_file(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles missing .copier-answers.yml file gracefully.
 
     This test verifies error handling when the copier answers file is missing:
@@ -373,10 +381,15 @@ def test_generator_add_missing_answers_file(cli_runner, cli_app, tmp_path: Path)
 
     # Should fail with error about missing answers file
     assert result.exit_code == 1
-    assert "answers file" in result.output.lower() or ".copier-answers.yml" in result.output
+    assert (
+        "answers file" in result.output.lower()
+        or ".copier-answers.yml" in result.output
+    )
 
 
-def test_generator_add_missing_python_package_import_name(cli_runner, cli_app, tmp_path: Path) -> None:
+def test_generator_add_missing_python_package_import_name(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command validates required fields in .copier-answers.yml.
 
     This test verifies field validation:
@@ -409,7 +422,9 @@ def test_generator_add_missing_python_package_import_name(cli_runner, cli_app, t
     assert "python_package_import_name" in result.output.lower()
 
 
-def test_generator_add_file_already_exists(cli_runner, cli_app, tmp_path: Path) -> None:
+def test_generator_add_file_already_exists(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command prevents accidental overwrites without --force flag.
 
     This test verifies file existence checking:
@@ -448,9 +463,12 @@ def test_generator_add_file_already_exists(cli_runner, cli_app, tmp_path: Path) 
     # Mock template directory existence
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
 
-        def exists_side_effect(path):
+        def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
-            if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            if (
+                "extentions/command_template" in path_str
+                or "{{command_name}}" in path_str
+            ):
                 return True
             if path == answers_file:
                 return True

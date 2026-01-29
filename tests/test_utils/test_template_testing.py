@@ -55,7 +55,7 @@ def _create_test_artifacts(project_dir: Path, artifact_types: list[str] | None =
     return artifacts
 
 
-def test_instantiate_template_basic(tmp_path, mock_template_structure):
+def test_instantiate_template_basic(tmp_path: Path, mock_template_structure: Any) -> None:
     """Test that instantiate_template creates template files correctly."""
     project_dir = tmp_path / "test-project"
 
@@ -72,7 +72,7 @@ def test_instantiate_template_basic(tmp_path, mock_template_structure):
     assert (project_dir / "README.md").exists()
 
 
-def test_instantiate_template_default_path(tmp_path):
+def test_instantiate_template_default_path(tmp_path: Path) -> None:
     """Test that instantiate_template uses default template path when None."""
     # This test requires the actual main template to exist
     try:
@@ -87,7 +87,7 @@ def test_instantiate_template_default_path(tmp_path):
         pytest.skip(f"Template instantiation failed: {e}")
 
 
-def test_instantiate_template_custom_data(tmp_path, mock_template_structure):
+def test_instantiate_template_custom_data(tmp_path: Path, mock_template_structure: Any) -> None:
     """Test that instantiate_template accepts custom copier data."""
     custom_data = {
         "project_name": "custom-project",
@@ -105,7 +105,7 @@ def test_instantiate_template_custom_data(tmp_path, mock_template_structure):
     assert result.exists()
 
 
-def test_instantiate_template_invalid_path(tmp_path):
+def test_instantiate_template_invalid_path(tmp_path: Path) -> None:
     """Test that instantiate_template raises error for invalid template path."""
     invalid_path = tmp_path / "nonexistent-template"
 
@@ -117,7 +117,7 @@ def test_instantiate_template_invalid_path(tmp_path):
         )
 
 
-def test_cleanup_project_artifacts_venv(tmp_path):
+def test_cleanup_project_artifacts_venv(tmp_path: Path) -> None:
     """Test that cleanup_project_artifacts removes .venv directory."""
     project_dir = tmp_path / "test-project"
     artifacts = _create_test_artifacts(project_dir, ["venv"])
@@ -127,7 +127,7 @@ def test_cleanup_project_artifacts_venv(tmp_path):
     assert not artifacts["venv"].exists()
 
 
-def test_cleanup_project_artifacts_build_dirs(tmp_path):
+def test_cleanup_project_artifacts_build_dirs(tmp_path: Path) -> None:
     """Test that cleanup_project_artifacts removes build directories."""
     project_dir = tmp_path / "test-project"
     artifacts = _create_test_artifacts(project_dir, ["build", "egg_info"])
@@ -140,7 +140,7 @@ def test_cleanup_project_artifacts_build_dirs(tmp_path):
     assert not artifacts["egg_info"].exists()
 
 
-def test_cleanup_project_artifacts_cache_dirs(tmp_path):
+def test_cleanup_project_artifacts_cache_dirs(tmp_path: Path) -> None:
     """Test that cleanup_project_artifacts removes cache directories recursively."""
     project_dir = tmp_path / "test-project"
     artifacts = _create_test_artifacts(project_dir, ["cache"])
@@ -154,7 +154,7 @@ def test_cleanup_project_artifacts_cache_dirs(tmp_path):
     assert not artifacts["tests/__pycache__"].exists()
 
 
-def test_cleanup_project_artifacts_nonexistent_dir(tmp_path):
+def test_cleanup_project_artifacts_nonexistent_dir(tmp_path: Path) -> None:
     """Test that cleanup_project_artifacts handles nonexistent directory gracefully."""
     nonexistent_dir = tmp_path / "nonexistent"
 
@@ -162,7 +162,7 @@ def test_cleanup_project_artifacts_nonexistent_dir(tmp_path):
     cleanup_project_artifacts(nonexistent_dir)
 
 
-def test_cleanup_project_artifacts_comprehensive(tmp_path):
+def test_cleanup_project_artifacts_comprehensive(tmp_path: Path) -> None:
     """Test comprehensive cleanup of all artifact types."""
     project_dir = tmp_path / "test-project"
     artifacts = _create_test_artifacts(project_dir)

@@ -1,4 +1,5 @@
-"""Repoman CLI Application Module
+"""Repoman CLI Application Module.
+
 ----------------
 
 This module initializes the CLI for the `repoman` package using the Typer library.

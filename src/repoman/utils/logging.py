@@ -16,6 +16,7 @@ def _set_up_logger(
     name: str = "repoman",
     console: Console | None = None,
     log_level: int | None = None,
+    *,
     use_rotating_file_handler: bool = False,
     log_file_base_path: Path | None = None,
 ) -> Logger:

@@ -113,7 +113,7 @@ def run_make_command(
         stdout_queue = queue.Queue()
         stderr_queue = queue.Queue()
 
-        def read_stdout():
+        def read_stdout() -> Any:
             """Read from stdout in a separate thread to avoid deadlock."""
             if process.stdout is None:
                 stdout_queue.put(None)
@@ -125,7 +125,7 @@ def run_make_command(
             except Exception:
                 stdout_queue.put(None)
 
-        def read_stderr():
+        def read_stderr() -> Any:
             """Read from stderr in a separate thread to avoid deadlock."""
             if process.stderr is None:
                 stderr_queue.put(None)

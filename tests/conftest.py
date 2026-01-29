@@ -5,10 +5,13 @@ import os
 from pathlib import Path
 
 import pytest
+from repoman.utils.template_testing import (
+    cleanup_project_artifacts,
+    instantiate_template,
+)
 from typer.testing import CliRunner
 
 from repoman import cli
-from tests.template_testing import cleanup_project_artifacts, instantiate_template
 
 
 @pytest.fixture(autouse=True)
@@ -58,7 +61,7 @@ def cli_runner() -> CliRunner:
     **Usage**: Use in CLI tests that need to invoke commands
 
     Example:
-        def test_cli_command(cli_runner, cli_app):
+        def test_cli_command(cli_runner: CliRunner, cli_app: Typer) -> None:
             result = cli_runner.invoke(cli_app, ["command", "arg"])
             assert result.exit_code == 0
     """
@@ -66,7 +69,7 @@ def cli_runner() -> CliRunner:
 
 
 @pytest.fixture(scope="session")
-def cli_app():
+def cli_app() -> Any:
     """Provide the CLI application for testing.
 
     **Scope**: session - shared across all tests for maximum performance
@@ -74,25 +77,27 @@ def cli_app():
     **Usage**: Use in CLI tests that need to invoke commands
 
     Example:
-        def test_cli_command(cli_runner, cli_app):
+        def test_cli_command(cli_runner: CliRunner, cli_app: Typer) -> None:
             result = cli_runner.invoke(cli_app, ["command", "arg"])
             assert result.exit_code == 0
     """
     return cli
 
 
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     """Configure pytest before test collection."""
     # Register custom markers
     config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line("markers", "integration: Integration tests that may have dependencies")
+    config.addinivalue_line(
+        "markers", "integration: Integration tests that may have dependencies"
+    )
     config.addinivalue_line("markers", "cli: CLI command tests")
     config.addinivalue_line("markers", "utils: Utility function tests")
     config.addinivalue_line("markers", "slow: Slow running tests")
     config.addinivalue_line("markers", "isolated: Tests that must run in isolation")
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config: Any, items: Any) -> None:
     """Modify test collection to add default markers based on test location."""
     for item in items:
         # Add default markers based on test file/class names and locations
@@ -107,17 +112,20 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.unit)
 
         # Mark tests that use file system operations as isolated
-        if any(keyword in item.nodeid.lower() for keyword in ["file", "path", "directory", "log"]):
+        if any(
+            keyword in item.nodeid.lower()
+            for keyword in ["file", "path", "directory", "log"]
+        ):
             item.add_marker(pytest.mark.isolated)
 
 
-def pytest_unconfigure(config):
+def pytest_unconfigure(config: Any) -> None:
     """Clean up after all tests are complete."""
     # Clean up any global resources here
 
 
 @pytest.fixture(scope="session")
-def sample_project_names():
+def sample_project_names() -> Any:
     """Provide sample project names for testing.
 
     **Scope**: session - shared across all tests for maximum performance
@@ -125,7 +133,7 @@ def sample_project_names():
     **Usage**: Use in tests that need sample project names
 
     Example:
-        def test_project_creation(sample_project_names):
+        def test_project_creation(sample_project_names: Any) -> None:
             for name in sample_project_names:
                 # Test logic here
                 pass
@@ -141,7 +149,7 @@ def sample_project_names():
 
 
 @pytest.fixture(scope="session")
-def sample_templates():
+def sample_templates() -> Any:
     """Provide sample template paths for testing.
 
     **Scope**: session - shared across all tests for maximum performance
@@ -149,7 +157,7 @@ def sample_templates():
     **Usage**: Use in tests that need template paths
 
     Example:
-        def test_template_handling(sample_templates):
+        def test_template_handling(sample_templates: Any) -> None:
             for template in sample_templates:
                 # Test logic here
                 pass
@@ -163,7 +171,7 @@ def sample_templates():
 
 
 @pytest.fixture(scope="session")
-def sample_project_data():
+def sample_project_data() -> Any:
     """Provide comprehensive sample project data for testing.
 
     **Scope**: session - shared across all tests for maximum performance
@@ -171,7 +179,7 @@ def sample_project_data():
     **Usage**: Use in tests that need different types of test data
 
     Example:
-        def test_various_scenarios(sample_project_data):
+        def test_various_scenarios(sample_project_data: Any) -> None:
             for name in sample_project_data["valid_names"]:
                 # Test valid names
                 pass
@@ -209,7 +217,7 @@ def sample_project_data():
 
 
 @pytest.fixture
-def mock_project_structure(tmp_path):
+def mock_project_structure(tmp_path: Path) -> Any:
     """Create a mock project structure for testing."""
     project_dir = tmp_path / "mock-project"
     project_dir.mkdir()
@@ -225,22 +233,26 @@ def mock_project_structure(tmp_path):
 
 
 @pytest.fixture
-def mock_template_structure(tmp_path):
+def mock_template_structure(tmp_path: Path) -> Any:
     """Create a mock template structure for testing."""
     template_dir = tmp_path / "mock-template"
     template_dir.mkdir()
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
+    (template_dir / "README.md.jinja").write_text(
+        "# {{ project_name }}\n\nGenerated project."
+    )
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
+    (template_dir / "src" / "main.py.jinja").write_text(
+        "print('Hello {{ project_name }}')"
+    )
 
     return template_dir
 
 
 @pytest.fixture
-def test_workspace(tmp_path):
+def test_workspace(tmp_path: Path) -> None:
     """Provide a clean workspace for each test with proper isolation."""
     # Create a unique workspace directory for this test
     workspace = tmp_path / f"test_workspace_{os.getpid()}_{id(tmp_path)}"
@@ -257,13 +269,13 @@ def test_workspace(tmp_path):
 
 
 @pytest.fixture
-def mock_copier_available(monkeypatch):
+def mock_copier_available(monkeypatch: pytest.MonkeyPatch) -> Any:
     """Mock copier availability for testing."""
 
     # Mock the copier import to always be available
-    def mock_import_copier():
+    def mock_import_copier() -> Any:
         class MockCopier:
-            def run_copy(self, *args, **kwargs):
+            def run_copy(self, *args: Any, **kwargs: Any) -> bool:
                 return True
 
         return MockCopier()
@@ -272,16 +284,16 @@ def mock_copier_available(monkeypatch):
 
 
 @pytest.fixture
-def mock_file_system(monkeypatch, tmp_path):
+def mock_file_system(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Any:
     """Mock file system operations for testing."""
     # Create a mock file system in tmp_path
     mock_fs = tmp_path / "mock_fs"
     mock_fs.mkdir()
 
-    def mock_makedirs(path, exist_ok=False):
+    def mock_makedirs(path: Path, exist_ok: bool = False) -> Any:
         Path(path).mkdir(parents=True, exist_ok=exist_ok)
 
-    def mock_path_exists(path):
+    def mock_path_exists(path: Path) -> Path:
         return Path(path).exists()
 
     monkeypatch.setattr("os.makedirs", mock_makedirs)
@@ -291,14 +303,14 @@ def mock_file_system(monkeypatch, tmp_path):
 
 
 @pytest.fixture
-def mock_rich_console(monkeypatch):
+def mock_rich_console(monkeypatch: pytest.MonkeyPatch) -> Path:
     """Mock rich console for testing to avoid actual console output."""
 
     class MockConsole:
-        def print(self, *args, **kwargs):
+        def print(self, *args: Any, **kwargs: Any) -> Path:
             pass
 
-        def __getattr__(self, name):
+        def __getattr__(self, name: str):
             return lambda *args, **kwargs: None
 
     monkeypatch.setattr("rich.console.Console", MockConsole)
@@ -383,7 +395,7 @@ def _create_template_instance(tmp_path_base, project_name, run_setup=False):
 
 
 @pytest.fixture
-def instantiated_template(tmp_path):
+def instantiated_template(tmp_path: Path) -> Path:
     """Instantiate the main template in a temporary directory.
 
     This fixture creates a fresh template instantiation for each test.
@@ -394,14 +406,16 @@ def instantiated_template(tmp_path):
     **Usage**: Use in tests that need an instantiated template
 
     Example:
-        def test_something(instantiated_template):
+        def test_something(instantiated_template: Any) -> None:
             # instantiated_template is a Path to the project directory
             assert (instantiated_template / "pyproject.toml").exists()
     """
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=False
+        )
         yield instantiated_path
 
     finally:
@@ -412,7 +426,7 @@ def instantiated_template(tmp_path):
 
 
 @pytest.fixture(scope="module")
-def setup_template(tmp_path_factory):
+def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Setup fixture that runs make setup once for all CI tests in a module.
 
     This fixture uses module scope to run setup once and share it across
@@ -424,7 +438,7 @@ def setup_template(tmp_path_factory):
     **Usage**: Use in CI tests that need a set up template
 
     Example:
-        def test_ci_command(setup_template):
+        def test_ci_command(setup_template: Any) -> None:
             # setup_template has already run 'make setup'
             # Now run other CI commands
             pass
@@ -434,7 +448,20 @@ def setup_template(tmp_path_factory):
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        # Instantiate template
+        instantiated_path = instantiate_template(
+            output_dir=tmp_path,
+            project_name="test-project",
+            force=True,
+        )
+
+        # Run make setup
+        result = run_make_command(instantiated_path, "setup")
+        if result.returncode != 0:
+            pytest.fail(
+                f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+            )
+
         yield instantiated_path
 
     finally:

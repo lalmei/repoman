@@ -8,7 +8,7 @@ import pytest
 from tests.ci_runner import CommandResult, run_make_command
 
 
-def test_run_make_command_basic(tmp_path):
+def test_run_make_command_basic(tmp_path: Path) -> None:
     """Test that run_make_command executes a make command and returns exit code."""
     # Create a simple Makefile for testing
     makefile = tmp_path / "Makefile"
@@ -22,7 +22,7 @@ def test_run_make_command_basic(tmp_path):
     assert result.command == "make test-target"
 
 
-def test_run_make_command_captures_output(tmp_path):
+def test_run_make_command_captures_output(tmp_path: Path) -> None:
     """Test that run_make_command captures stdout and stderr correctly."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("test-output:\n\t@echo 'stdout message'\n\t@echo 'stderr message' >&2\n\t@exit 0\n")
@@ -34,7 +34,7 @@ def test_run_make_command_captures_output(tmp_path):
     assert result.returncode == 0
 
 
-def test_run_make_command_nonzero_exit(tmp_path):
+def test_run_make_command_nonzero_exit(tmp_path: Path) -> None:
     """Test that run_make_command handles non-zero exit codes."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("test-fail:\n\t@exit 1\n")
@@ -45,7 +45,7 @@ def test_run_make_command_nonzero_exit(tmp_path):
     assert result.command == "make test-fail"
 
 
-def test_run_make_command_missing_command(tmp_path):
+def test_run_make_command_missing_command(tmp_path: Path) -> None:
     """Test that run_make_command handles missing make commands gracefully."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("existing-target:\n\t@echo 'exists'\n")
@@ -57,7 +57,7 @@ def test_run_make_command_missing_command(tmp_path):
     assert "nonexistent-target" in result.stderr or "No rule" in result.stderr
 
 
-def test_run_make_command_env_variables(tmp_path):
+def test_run_make_command_env_variables(tmp_path: Path) -> None:
     """Test that run_make_command accepts and sets environment variables."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("test-env:\n\t@echo $$TEST_VAR\n")
@@ -68,7 +68,7 @@ def test_run_make_command_env_variables(tmp_path):
     assert "test_value" in result.stdout
 
 
-def test_run_make_command_timeout(tmp_path):
+def test_run_make_command_timeout(tmp_path: Path) -> None:
     """Test that run_make_command enforces timeout correctly."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("test-sleep:\n\t@sleep 10\n")
@@ -77,7 +77,7 @@ def test_run_make_command_timeout(tmp_path):
         run_make_command(tmp_path, "test-sleep", timeout=1)
 
 
-def test_run_make_command_nonexistent_directory():
+def test_run_make_command_nonexistent_directory() -> None:
     """Test that run_make_command raises error for nonexistent directory."""
     nonexistent_dir = Path("/nonexistent/directory")
 
@@ -85,7 +85,7 @@ def test_run_make_command_nonexistent_directory():
         run_make_command(nonexistent_dir, "test")
 
 
-def test_command_result_structure(tmp_path):
+def test_command_result_structure(tmp_path: Path) -> None:
     """Test that CommandResult has correct structure."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("test:\n\t@echo 'output'\n")
@@ -102,7 +102,7 @@ def test_command_result_structure(tmp_path):
     assert isinstance(result.command, str)
 
 
-def test_run_make_command_streams_output(tmp_path, capsys):
+def test_run_make_command_streams_output(tmp_path: Path, capsys: Any) -> None:
     """Test that run_make_command streams output to pytest output."""
     makefile = tmp_path / "Makefile"
     makefile.write_text("test-stream:\n\t@echo 'streamed output'\n")

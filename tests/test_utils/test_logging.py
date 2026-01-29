@@ -17,7 +17,7 @@ from repoman.utils.logging import (
 
 
 @pytest.fixture
-def temp_log_dir(tmp_path):
+def temp_log_dir(tmp_path: Path) -> Any:
     """Provide a temporary directory for log files with automatic cleanup.
 
     This fixture creates a temporary directory specifically for log files
@@ -44,7 +44,7 @@ def temp_log_dir(tmp_path):
 class TestSetUpLogger:
     """Test logger setup functionality."""
 
-    def test_set_up_logger_basic(self):
+    def test_set_up_logger_basic(self) -> None:
         """Test basic logger setup without console."""
         # Temporarily clear environment variable to test default behavior
         original_level = os.environ.get("_REPOMAN_LOG_LEVEL")
@@ -67,7 +67,7 @@ class TestSetUpLogger:
             if original_level is not None:
                 os.environ["_REPOMAN_LOG_LEVEL"] = original_level
 
-    def test_set_up_logger_with_custom_console(self):
+    def test_set_up_logger_with_custom_console(self) -> None:
         """Test logger setup with custom console."""
         custom_console = Console()
         logger = _set_up_logger("test_logger", console=custom_console)
@@ -79,7 +79,7 @@ class TestSetUpLogger:
         rich_handlers = [h for h in logger.handlers if h.get_name() == "rich"]
         assert len(rich_handlers) == 1
 
-    def test_set_up_logger_with_custom_log_level(self):
+    def test_set_up_logger_with_custom_log_level(self) -> None:
         """Test logger setup with custom log level."""
         # Clear environment variable to test custom log level
         original_level = os.environ.get("_REPOMAN_LOG_LEVEL")
@@ -95,7 +95,7 @@ class TestSetUpLogger:
             if original_level is not None:
                 os.environ["_REPOMAN_LOG_LEVEL"] = original_level
 
-    def test_set_up_logger_existing_rich_handler(self):
+    def test_set_up_logger_existing_rich_handler(self) -> None:
         """Test that existing rich handler is reused."""
         # First setup
         logger1 = _set_up_logger("test_logger")
@@ -108,7 +108,7 @@ class TestSetUpLogger:
         # (pytest adds additional handlers for test capture)
         assert any(h.get_name() == "rich" for h in logger1.handlers)
 
-    def test_set_up_logger_environment_log_level(self):
+    def test_set_up_logger_environment_log_level(self) -> None:
         """Test that environment variable affects log level."""
         original_level = os.environ.get("_REPOMAN_LOG_LEVEL")
 
@@ -122,7 +122,7 @@ class TestSetUpLogger:
             else:
                 os.environ.pop("_REPOMAN_LOG_LEVEL", None)
 
-    def test_set_up_logger_rotating_file_handler_flag(self):
+    def test_set_up_logger_rotating_file_handler_flag(self) -> None:
         """Test that rotating file handler flag is respected."""
         logger = _set_up_logger("test_logger", use_rotating_file_handler=True)
 
@@ -130,7 +130,7 @@ class TestSetUpLogger:
         rich_handlers = [h for h in logger.handlers if h.get_name() == "rich"]
         assert len(rich_handlers) == 1
 
-    def test_set_up_logger_log_file_path_creation(self):
+    def test_set_up_logger_log_file_path_creation(self) -> None:
         """Test that log file path creation is handled."""
         with tempfile.TemporaryDirectory() as temp_dir:
             log_path = Path(temp_dir) / "logs"
@@ -151,7 +151,7 @@ class TestSetUpLogger:
 class TestAttachRotatingFileHandler:
     """Test rotating file handler attachment."""
 
-    def test_attach_rotating_file_handler_basic(self):
+    def test_attach_rotating_file_handler_basic(self) -> None:
         """Test basic rotating file handler attachment."""
         logger = Logger("test_logger")
 
@@ -172,7 +172,7 @@ class TestAttachRotatingFileHandler:
                 handler.close()
                 logger.removeHandler(handler)
 
-    def test_attach_rotating_file_handler_custom_settings(self):
+    def test_attach_rotating_file_handler_custom_settings(self) -> None:
         """Test rotating file handler with custom settings."""
         logger = Logger("test_logger")
 
@@ -202,7 +202,7 @@ class TestAttachRotatingFileHandler:
                 handler.close()
                 logger.removeHandler(handler)
 
-    def test_attach_rotating_file_handler_multiple_calls(self):
+    def test_attach_rotating_file_handler_multiple_calls(self) -> None:
         """Test that multiple calls add multiple handlers."""
         logger = Logger("test_logger")
 
@@ -227,7 +227,7 @@ class TestAttachRotatingFileHandler:
 class TestGetLoggerConsole:
     """Test get_logger_console functionality."""
 
-    def test_get_logger_console_basic(self):
+    def test_get_logger_console_basic(self) -> None:
         """Test basic get_logger_console functionality."""
         logger, console = get_logger_console("test_logger")
 
@@ -235,7 +235,7 @@ class TestGetLoggerConsole:
         assert isinstance(console, Console)
         assert logger.name == "test_logger"
 
-    def test_get_logger_console_default_name(self):
+    def test_get_logger_console_default_name(self) -> None:
         """Test get_logger_console with default name."""
         logger, console = get_logger_console()
 
@@ -243,7 +243,7 @@ class TestGetLoggerConsole:
         assert isinstance(console, Console)
         assert logger.name == "repoman"
 
-    def test_get_logger_console_custom_log_level(self):
+    def test_get_logger_console_custom_log_level(self) -> None:
         """Test get_logger_console with custom log level."""
         # Clear environment variable to test custom log level
         original_level = os.environ.get("_REPOMAN_LOG_LEVEL")
@@ -262,7 +262,7 @@ class TestGetLoggerConsole:
             if original_level is not None:
                 os.environ["_REPOMAN_LOG_LEVEL"] = original_level
 
-    def test_get_logger_console_non_root_logger(self):
+    def test_get_logger_console_non_root_logger(self) -> None:
         """Test get_logger_console with non-root logger name."""
         logger, console = get_logger_console("custom_logger")
 
@@ -273,7 +273,7 @@ class TestGetLoggerConsole:
         # Should have handlers (from root logger setup)
         assert len(logger.handlers) > 0
 
-    def test_get_logger_console_log_level_warning(self):
+    def test_get_logger_console_log_level_warning(self) -> None:
         """Test that log level change triggers warning."""
         with patch("logging.Logger.warning") as mock_warning:
             logger, console = get_logger_console("test_logger", log_level=INFO)
@@ -283,7 +283,7 @@ class TestGetLoggerConsole:
             assert isinstance(logger, Logger)
             assert isinstance(console, Console)
 
-    def test_get_logger_console_rich_handler_console(self):
+    def test_get_logger_console_rich_handler_console(self) -> None:
         """Test that console from rich handler is used."""
         logger, console = get_logger_console("test_logger")
 
@@ -297,7 +297,7 @@ class TestGetLoggerConsole:
         handler = rich_handlers[0]
         assert hasattr(handler, "console")
 
-    def test_get_logger_console_fallback_return(self):
+    def test_get_logger_console_fallback_return(self) -> None:
         """Test that get_logger_console falls back to default return when no rich handler."""
         # Create a logger without rich handler to test fallback
         logger, console = get_logger_console("fallback_test_logger")
@@ -306,7 +306,7 @@ class TestGetLoggerConsole:
         # Console might be None in fallback case
         assert console is None or isinstance(console, Console)
 
-    def test_get_logger_console_root_logger_warning(self):
+    def test_get_logger_console_root_logger_warning(self) -> None:
         """Test that get_logger_console shows warning when log level changes for root logger."""
         with patch("logging.Logger.warning") as mock_warning:
             # Force a different log level for root logger
@@ -316,7 +316,7 @@ class TestGetLoggerConsole:
             assert isinstance(logger, Logger)
             assert isinstance(console, Console)
 
-    def test_get_logger_console_fallback_return_mocked(self):
+    def test_get_logger_console_fallback_return_mocked(self) -> None:
         """Test that get_logger_console reaches the fallback return statement (line 115)."""
         # Mock the scenario where there are no handlers or first handler is not rich
         with patch("repoman.utils.logging._set_up_logger") as mock_setup:
@@ -333,7 +333,7 @@ class TestGetLoggerConsole:
             # Console should be None in this mocked scenario
             assert console is None
 
-    def test_get_logger_console_fallback_return_non_rich_handler(self):
+    def test_get_logger_console_fallback_return_non_rich_handler(self) -> None:
         """Test that get_logger_console reaches fallback when first handler is not rich."""
         # Mock the scenario where first handler is not a rich handler
         with patch("repoman.utils.logging._set_up_logger") as mock_setup:
@@ -356,7 +356,7 @@ class TestGetLoggerConsole:
 class TestLoggingIntegration:
     """Test logging integration scenarios."""
 
-    def test_logging_with_theme_integration(self):
+    def test_logging_with_theme_integration(self) -> None:
         """Test that logging works with theme integration."""
         logger, console = get_logger_console("test_logger")
 
@@ -367,7 +367,7 @@ class TestLoggingIntegration:
         assert isinstance(logger, Logger)
         assert isinstance(console, Console)
 
-    def test_logging_environment_variables(self):
+    def test_logging_environment_variables(self) -> None:
         """Test that environment variables are properly set."""
         original_env = os.environ.get("NO_ALBUMENTATIONS_UPDATE")
 
@@ -383,7 +383,7 @@ class TestLoggingIntegration:
             else:
                 os.environ.pop("NO_ALBUMENTATIONS_UPDATE", None)
 
-    def test_logging_external_logger_levels(self):
+    def test_logging_external_logger_levels(self) -> None:
         """Test that external logger levels are set."""
         logger = _set_up_logger("test_logger")
 
@@ -396,7 +396,7 @@ class TestLoggingIntegration:
 class TestLoggingErrorHandling:
     """Test error handling and edge cases in logging utilities."""
 
-    def test_set_up_logger_with_invalid_log_level(self):
+    def test_set_up_logger_with_invalid_log_level(self) -> None:
         """Test logger setup with invalid log level values."""
         # Test with None log level
         logger = _set_up_logger("test_logger", log_level=None)
@@ -410,7 +410,7 @@ class TestLoggingErrorHandling:
         logger = _set_up_logger("test_logger", log_level="INVALID_LEVEL")
         assert isinstance(logger, Logger)
 
-    def test_set_up_logger_with_empty_name(self):
+    def test_set_up_logger_with_empty_name(self) -> None:
         """Test logger setup with empty or invalid names."""
         # Test with empty string - should use root logger
         logger = _set_up_logger("")
@@ -421,7 +421,7 @@ class TestLoggingErrorHandling:
         logger = _set_up_logger(None)
         assert isinstance(logger, Logger)
 
-    def test_attach_rotating_file_handler_with_invalid_path(self):
+    def test_attach_rotating_file_handler_with_invalid_path(self) -> None:
         """Test rotating file handler with invalid file paths."""
         logger = Logger("test_logger")
 
@@ -446,7 +446,7 @@ class TestLoggingErrorHandling:
                     handler.close()
                     logger.removeHandler(handler)
 
-    def test_attach_rotating_file_handler_with_invalid_settings(self, temp_log_dir):
+    def test_attach_rotating_file_handler_with_invalid_settings(self, temp_log_dir: Any) -> None:
         """Test rotating file handler with invalid settings."""
         logger = Logger("test_logger")
 
@@ -471,7 +471,7 @@ class TestLoggingErrorHandling:
                     handler.close()
                     logger.removeHandler(handler)
 
-    def test_get_logger_console_with_invalid_parameters(self):
+    def test_get_logger_console_with_invalid_parameters(self) -> None:
         """Test get_logger_console with invalid parameters."""
         # Test with None name - should work (None is converted to string)
         logger, console = get_logger_console(None)
@@ -485,7 +485,7 @@ class TestLoggingErrorHandling:
         logger, console = get_logger_console("test_logger", log_level="invalid_level")
         assert isinstance(logger, Logger)
 
-    def test_logging_with_malformed_environment_variables(self):
+    def test_logging_with_malformed_environment_variables(self) -> None:
         """Test logging behavior with malformed environment variables."""
         original_level = os.environ.get("_REPOMAN_LOG_LEVEL")
 
@@ -511,7 +511,7 @@ class TestLoggingErrorHandling:
             else:
                 os.environ.pop("_REPOMAN_LOG_LEVEL", None)
 
-    def test_logging_with_file_permission_issues(self):
+    def test_logging_with_file_permission_issues(self) -> None:
         """Test logging behavior when file permissions are insufficient."""
         logger = Logger("test_logger")
 
@@ -532,7 +532,7 @@ class TestLoggingErrorHandling:
                 # Restore permissions for cleanup
                 os.chmod(temp_dir, 0o755)
 
-    def test_logging_with_disk_space_issues(self):
+    def test_logging_with_disk_space_issues(self) -> None:
         """Test logging behavior when disk space is limited."""
         logger = Logger("test_logger")
 
@@ -560,14 +560,14 @@ class TestLoggingErrorHandling:
                         handler.close()
                         logger.removeHandler(handler)
 
-    def test_logging_with_concurrent_access(self):
+    def test_logging_with_concurrent_access(self) -> None:
         """Test logging behavior with concurrent access scenarios."""
         import threading
 
         logger = Logger("test_logger")
         results = []
 
-        def setup_logger(thread_id):
+        def setup_logger(thread_id: Any) -> None:
             try:
                 logger_instance = _set_up_logger(f"thread_{thread_id}")
                 results.append((thread_id, "success", logger_instance))
@@ -590,7 +590,7 @@ class TestLoggingErrorHandling:
             assert status == "success", f"Thread {thread_id} failed: {result}"
             assert isinstance(result, Logger)
 
-    def test_logging_with_memory_pressure(self):
+    def test_logging_with_memory_pressure(self) -> None:
         """Test logging behavior under memory pressure."""
         logger = Logger("test_logger")
 

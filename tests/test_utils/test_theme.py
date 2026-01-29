@@ -10,7 +10,7 @@ from repoman.utils.theme.theme import _create_theme, set_theme
 class TestThemeCreation:
     """Test theme creation functionality."""
 
-    def test_create_theme_with_valid_colors(self):
+    def test_create_theme_with_valid_colors(self) -> None:
         """Test that _create_theme creates a valid Theme object."""
 
         # Mock colors object with hex attributes
@@ -66,7 +66,7 @@ class TestThemeCreation:
         assert "#cdd6f4" in str(theme.styles["text"])
         assert "#1e1e2e" in str(theme.styles["base"])
 
-    def test_create_theme_inheritance(self):
+    def test_create_theme_inheritance(self) -> None:
         """Test that created theme has inherit=True behavior."""
 
         class MockColors:
@@ -114,24 +114,24 @@ class TestThemeCreation:
 class TestSetTheme:
     """Test theme setting functionality."""
 
-    def test_set_theme_dark(self):
+    def test_set_theme_dark(self) -> None:
         """Test setting dark theme."""
         theme = set_theme("dark")
         assert isinstance(theme, Theme)
         assert theme.styles is not None
 
-    def test_set_theme_light(self):
+    def test_set_theme_light(self) -> None:
         """Test setting light theme."""
         theme = set_theme("light")
         assert isinstance(theme, Theme)
         assert theme.styles is not None
 
-    def test_set_theme_invalid_name(self):
+    def test_set_theme_invalid_name(self) -> None:
         """Test that invalid theme names raise ValueError."""
         with pytest.raises(ValueError, match="Unknown theme: invalid"):
             set_theme("invalid")
 
-    def test_set_theme_default_is_dark(self):
+    def test_set_theme_default_is_dark(self) -> None:
         """Test that default theme is dark."""
         theme_default = set_theme()
         theme_dark = set_theme("dark")
@@ -143,7 +143,7 @@ class TestSetTheme:
         # They should be equivalent since default is dark
         assert theme_default.styles == theme_dark.styles
 
-    def test_set_theme_dark_vs_light_different(self):
+    def test_set_theme_dark_vs_light_different(self) -> None:
         """Test that dark and light themes are different."""
         theme_dark = set_theme("dark")
         theme_light = set_theme("light")
@@ -159,7 +159,7 @@ class TestSetTheme:
 class TestTerminalColors:
     """Test terminal color mapping functionality."""
 
-    def test_get_rich_color_known_labels(self):
+    def test_get_rich_color_known_labels(self) -> None:
         """Test that known labels return correct colors."""
         assert get_rich_color("TP") == "green"
         assert get_rich_color("FP") == "maroon"
@@ -168,19 +168,19 @@ class TestTerminalColors:
         assert get_rich_color("header") == "subtext1"
         assert get_rich_color("border") == "overlay1"
 
-    def test_get_rich_color_unknown_label(self):
+    def test_get_rich_color_unknown_label(self) -> None:
         """Test that unknown labels return default 'text' color."""
         assert get_rich_color("unknown") == "text"
         assert get_rich_color("") == "text"
         assert get_rich_color("CUSTOM_LABEL") == "text"
 
-    def test_get_rich_color_case_sensitive(self):
+    def test_get_rich_color_case_sensitive(self) -> None:
         """Test that color mapping is case sensitive."""
         assert get_rich_color("tp") == "text"  # lowercase should return default
         assert get_rich_color("Tp") == "text"  # mixed case should return default
         assert get_rich_color("TP") == "green"  # exact match should work
 
-    def test_get_rich_color_special_characters(self):
+    def test_get_rich_color_special_characters(self) -> None:
         """Test that special characters in labels are handled correctly."""
         assert get_rich_color("TP_123") == "text"  # alphanumeric with underscore
         assert get_rich_color("TP-123") == "text"  # alphanumeric with hyphen
@@ -191,7 +191,7 @@ class TestTerminalColors:
 class TestThemeErrorHandling:
     """Test error handling and edge cases in theme utilities."""
 
-    def test_create_theme_with_invalid_colors(self):
+    def test_create_theme_with_invalid_colors(self) -> None:
         """Test theme creation with invalid color objects."""
         # Test with None colors
         with pytest.raises(AttributeError):
@@ -213,7 +213,7 @@ class TestThemeErrorHandling:
         with pytest.raises(AttributeError):
             _create_theme(PartialColors())
 
-    def test_create_theme_with_malformed_color_values(self):
+    def test_create_theme_with_malformed_color_values(self) -> None:
         """Test theme creation with malformed color values."""
 
         class MalformedColors:
@@ -250,7 +250,7 @@ class TestThemeErrorHandling:
         with pytest.raises(Exception):  # Rich will raise StyleSyntaxError
             _create_theme(colors)
 
-    def test_create_theme_with_missing_color_attributes(self):
+    def test_create_theme_with_missing_color_attributes(self) -> None:
         """Test theme creation when color objects are missing hex attributes."""
 
         class ColorsWithoutHex:
@@ -287,7 +287,7 @@ class TestThemeErrorHandling:
         with pytest.raises(AttributeError):
             _create_theme(colors)
 
-    def test_set_theme_with_invalid_names(self):
+    def test_set_theme_with_invalid_names(self) -> None:
         """Test set_theme with invalid theme names."""
         # Test with None
         with pytest.raises(ValueError):
@@ -311,7 +311,7 @@ class TestThemeErrorHandling:
         with pytest.raises(ValueError):
             set_theme({"theme": "dark"})
 
-    def test_set_theme_with_edge_case_names(self):
+    def test_set_theme_with_edge_case_names(self) -> None:
         """Test set_theme with edge case theme names."""
         # Test with whitespace-only names
         with pytest.raises(ValueError):
@@ -332,7 +332,7 @@ class TestThemeErrorHandling:
         with pytest.raises(ValueError):
             set_theme("light-中文")
 
-    def test_get_rich_color_with_edge_cases(self):
+    def test_get_rich_color_with_edge_cases(self) -> None:
         """Test get_rich_color with edge case inputs."""
         # Test with None - should return default since .get() handles None gracefully
         result = get_rich_color(None)
@@ -361,7 +361,7 @@ class TestThemeErrorHandling:
         result = get_rich_color(special_label)
         assert result == "text"  # Should return default
 
-    def test_theme_creation_with_corrupted_color_data(self):
+    def test_theme_creation_with_corrupted_color_data(self) -> None:
         """Test theme creation with corrupted or unexpected color data."""
 
         # Test with colors that have non-string hex values
@@ -399,7 +399,7 @@ class TestThemeErrorHandling:
         with pytest.raises(Exception):  # Rich will raise various errors
             _create_theme(colors)
 
-    def test_theme_creation_under_memory_pressure(self):
+    def test_theme_creation_under_memory_pressure(self) -> None:
         """Test theme creation under memory pressure conditions."""
         # Create many theme objects to simulate memory pressure
         themes = []
@@ -407,7 +407,7 @@ class TestThemeErrorHandling:
             for i in range(100):  # Reduced from 1000 to avoid test timeouts
 
                 class MockColors:
-                    def __init__(self, index):
+                    def __init__(self, index: Any):
                         self.rosewater = type("Color", (), {"hex": "#f5e0dc"})()
                         self.flamingo = type("Color", (), {"hex": "#f2cdcd"})()
                         self.pink = type("Color", (), {"hex": "#f5c2e7"})()

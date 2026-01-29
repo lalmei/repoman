@@ -61,6 +61,15 @@ ignore = [
     "PLR2004",  # Magic value used in comparison
     "S101",  # Use of assert detected
 ]
+"src/repoman/cli/commands/**/*.py" = [
+    "FBT001",  # Boolean positional arg in function definition (Typer Option requires positional default)
+    "FBT003",  # Boolean positional value in function call (Typer Option requires positional default)
+]
+"src/repoman/cli/main_cli.py" = [
+    "FBT001",  # Boolean positional arg in function definition (Typer callbacks and Option require bool params)
+    "FBT003",  # Boolean positional value in function call (Typer Option requires positional default)
+    "ARG001",  # Unused function argument (version and debug_info handled by callbacks)
+]
 
 [lint.flake8-quotes]
 docstring-quotes = "double"

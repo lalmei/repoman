@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 
+import jinja2
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from rich.panel import Panel
@@ -144,7 +145,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     # Determine project directory
     if project_dir is None:
@@ -160,7 +161,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     # Determine answers file path
     if answers_file is None:
@@ -184,7 +185,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e
     except yaml.YAMLError as e:
         console.print(
             Panel(
@@ -193,7 +194,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e
 
     # Extract required context
     python_package_import_name = answers.get("python_package_import_name")
@@ -209,7 +210,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     python_package_command_line_name = answers.get("python_package_command_line_name", python_package_import_name)
     command_description = answers.get("command_description", f"{command_name} command")
@@ -225,7 +226,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e
 
     # Locate template directory
     # The template directory is literally named "{{command_name}}"
@@ -281,7 +282,7 @@ def add(
                     border_style="yellow",
                 )
             )
-            raise Exit(1)
+        raise Exit(1) from None
         if test_output_file.exists():
             console.print(
                 Panel(
@@ -293,7 +294,7 @@ def add(
                     border_style="yellow",
                 )
             )
-            raise Exit(1)
+        raise Exit(1) from None
 
     # Render templates
     try:
@@ -307,7 +308,7 @@ def add(
 
         rendered_command = command_template.render(**template_context)
         rendered_test = test_template.render(**template_context)
-    except Exception as e:
+    except (FileNotFoundError, jinja2.TemplateNotFound, jinja2.TemplateError) as e:
         console.print(
             Panel(
                 Text(f"Error rendering templates: {e}", style="red"),
@@ -316,7 +317,7 @@ def add(
             )
         )
         logger.exception("Template rendering error")
-        raise Exit(1)
+        raise Exit(1) from e
 
     if dry_run:
         console.print(
@@ -376,7 +377,7 @@ def add(
             )
         )
 
-    except Exception as e:
+    except (OSError, PermissionError) as e:
         console.print(
             Panel(
                 Text(f"Error creating files: {e}", style="red"),
@@ -385,4 +386,4 @@ def add(
             )
         )
         logger.exception("File creation error")
-        raise Exit(1)
+        raise Exit(1) from e

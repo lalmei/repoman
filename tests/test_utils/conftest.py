@@ -9,7 +9,7 @@ from rich.console import Console
 
 
 @pytest.fixture(scope="module")
-def mock_colors():
+def mock_colors() -> Path:
     """Provide mock colors object for theme testing.
 
     **Scope**: module - shared across test classes in the module for performance
@@ -17,7 +17,7 @@ def mock_colors():
     **Usage**: Use in theme-related tests that need color objects
 
     Example:
-        def test_theme_creation(mock_colors):
+        def test_theme_creation(mock_colors: Any) -> None:
             theme = _create_theme(mock_colors)
             assert isinstance(theme, Theme)
     """
@@ -55,7 +55,7 @@ def mock_colors():
 
 
 @pytest.fixture(scope="module")
-def test_console():
+def test_console() -> None:
     """Provide a test console for logging tests.
 
     **Scope**: module - shared across test classes in the module for performance
@@ -63,7 +63,7 @@ def test_console():
     **Usage**: Use in logging tests that need a console object
 
     Example:
-        def test_logging_with_console(test_console):
+        def test_logging_with_console(test_console: Any) -> None:
             logger, console = get_logger_console("test", console=test_console)
             assert console is test_console
     """
@@ -71,14 +71,14 @@ def test_console():
 
 
 @pytest.fixture
-def temp_log_dir():
+def temp_log_dir() -> Path:
     """Provide a temporary directory for log file testing."""
     with tempfile.TemporaryDirectory() as temp_dir:
         yield Path(temp_dir)
 
 
 @pytest.fixture
-def mock_config():
+def mock_config() -> Any:
     """Provide a mock config object for testing."""
     config = Mock()
     config.log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

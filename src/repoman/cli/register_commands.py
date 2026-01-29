@@ -56,5 +56,5 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
 
         except ImportError as e:
             logger.warning(f"Failed to import submodule '{module_name}': {e}. Skipping.")
-        except Exception as e:
+        except (AttributeError, TypeError, ValueError) as e:
             logger.warning(f"Error processing submodule '{module_name}': {e}. Skipping.")
