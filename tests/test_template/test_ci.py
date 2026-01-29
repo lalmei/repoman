@@ -73,10 +73,6 @@ def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     # Verify artifacts are removed
     assert not (instantiated_template / ".venv").exists(), ".venv should be removed"
     assert not (instantiated_template / "dist").exists(), "dist should be removed"
-    assert not (instantiated_template / "__pycache__").exists(), (
-        "__pycache__ should be removed"
-    )
-    assert not (instantiated_template / ".pytest_cache").exists(), (
-        ".pytest_cache should be removed"
-    )
+    assert not (instantiated_template / "__pycache__").exists(), "__pycache__ should be removed"
+    assert not (instantiated_template / ".pytest_cache").exists(), ".pytest_cache should be removed"
     assert not (instantiated_template / "site").exists(), "site should be removed"
