@@ -3,7 +3,7 @@
 from tests.ci_runner import run_make_command
 
 
-def test_instantiated_template_format_check(setup_template):
+def test_instantiated_template_format_check(setup_template: Any) -> None:
     """Test that make format-check runs successfully in instantiated template."""
     result = run_make_command(setup_template, "format-check")
 
@@ -17,7 +17,7 @@ def test_instantiated_template_format_check(setup_template):
     )
 
 
-def test_instantiated_template_lint(setup_template):
+def test_instantiated_template_lint(setup_template: Any) -> None:
     """Test that make lint runs successfully in instantiated template."""
     result = run_make_command(setup_template, "lint")
 
@@ -29,7 +29,7 @@ def test_instantiated_template_lint(setup_template):
     )
 
 
-def test_instantiated_template_type_check(setup_template):
+def test_instantiated_template_type_check(setup_template: Any) -> None:
     """Test that make check-types runs successfully in instantiated template."""
     # Note: Verify exact command name matches template Makefile (may be check-types or type-check)
     result = run_make_command(setup_template, "check-types")
@@ -42,7 +42,7 @@ def test_instantiated_template_type_check(setup_template):
     )
 
 
-def test_instantiated_template_test(setup_template):
+def test_instantiated_template_test(setup_template: Any) -> None:
     """Test that make test runs successfully in instantiated template."""
     result = run_make_command(setup_template, "test")
 
@@ -54,9 +54,9 @@ def test_instantiated_template_test(setup_template):
     )
 
 
-def test_cleanup_removes_artifacts(instantiated_template):
+def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     """Test that cleanup removes all artifacts after CI tests."""
-    from tests.template_testing import cleanup_project_artifacts
+    from tests.template_testing import cleanup_project_artifacts  # noqa: PLC0415
 
     # Create some artifacts
     (instantiated_template / ".venv").mkdir()
@@ -71,6 +71,10 @@ def test_cleanup_removes_artifacts(instantiated_template):
     # Verify artifacts are removed
     assert not (instantiated_template / ".venv").exists(), ".venv should be removed"
     assert not (instantiated_template / "dist").exists(), "dist should be removed"
-    assert not (instantiated_template / "__pycache__").exists(), "__pycache__ should be removed"
-    assert not (instantiated_template / ".pytest_cache").exists(), ".pytest_cache should be removed"
+    assert not (instantiated_template / "__pycache__").exists(), (
+        "__pycache__ should be removed"
+    )
+    assert not (instantiated_template / ".pytest_cache").exists(), (
+        ".pytest_cache should be removed"
+    )
     assert not (instantiated_template / "site").exists(), "site should be removed"

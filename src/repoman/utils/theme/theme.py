@@ -3,7 +3,7 @@ from rich.style import Style
 from rich.theme import Theme
 
 
-def _create_theme(colors) -> Theme:
+def _create_theme(colors: Any) -> Theme:
     styles: dict[str, Style | str] = {
         "rosewater": colors.rosewater.hex,
         "flamingo": colors.flamingo.hex,
@@ -33,9 +33,7 @@ def _create_theme(colors) -> Theme:
         "crust": colors.crust.hex,
     }
 
-    theme = Theme(styles=styles, inherit=True)
-
-    return theme
+    return Theme(styles=styles, inherit=True)
 
 
 def set_theme(theme_name: str = "dark") -> Theme:

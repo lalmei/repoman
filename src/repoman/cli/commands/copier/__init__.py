@@ -6,7 +6,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Context, Exit, Option, Typer
+from typer import Argument, Exit, Option, Typer
 
 from copier import run_copy
 from copier.errors import CopierError
@@ -38,10 +38,10 @@ def validate_project_name(project_name: str) -> bool:
         r"\.\.%5c",  # ..%5c (lowercase URL-encoded backslash)
         r"\.\.%252F",  # ..%252F (double URL-encoded forward slash)
         r"\.\.%255C",  # ..%255C (double URL-encoded backslash)
-        r"\.\.∕",  # ..∕ (Unicode forward slash)
-        r"\.\.﹨",  # ..﹨ (Unicode backslash)
-        r"\.\.／",  # ..／ (Full-width forward slash)
-        r"\.\.＼",  # ..＼ (Full-width backslash)
+        r"\.\.\u2215",  # ..\u2215 (Unicode division slash, looks like /)
+        r"\.\.\uFE68",  # ..\uFE68 (Unicode small reverse solidus, looks like \)
+        r"\.\.\uFF0F",  # ..\uFF0F (Full-width solidus, looks like /)
+        r"\.\.\uFF3C",  # ..\uFF3C (Full-width reverse solidus, looks like \)
     ]
 
     for pattern in path_traversal_patterns:
@@ -55,7 +55,8 @@ def validate_project_name(project_name: str) -> bool:
             raise ValueError(f"Project name contains invalid character: {char}")
 
     # Check for control characters
-    if any(ord(char) < 32 for char in project_name):
+    control_char_threshold = 32
+    if any(ord(char) < control_char_threshold for char in project_name):
         raise ValueError("Project name contains control characters")
 
     # Check for reserved names (Windows)
@@ -73,7 +74,6 @@ app = Typer(add_completion=True, no_args_is_help=True)
 
 @app.callback(invoke_without_command=True, no_args_is_help=True)
 def create_project(
-    ctx: Context,
     project_name: str = Argument(..., help="Name of the project to create"),
     template_path: str | None = Option(
         None,
@@ -100,7 +100,7 @@ def create_project(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     # Determine template path
     if template_path is None:
@@ -110,10 +110,7 @@ def create_project(
         logger.info(f"Using main template at {template_path}")
 
     # Determine output directory
-    if output_dir is None:
-        output_dir = Path.cwd() / project_name
-    else:
-        output_dir = Path(output_dir) / project_name
+    output_dir = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
 
     # Check if output directory exists
     if output_dir.exists() and not force:
@@ -127,7 +124,7 @@ def create_project(
                 border_style="yellow",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     # Prepare copier options
     copier_options = {
@@ -202,8 +199,9 @@ def create_project(
                 border_style="red",
             )
         )
-        raise Exit(1)
-    except Exception as e:
+        raise Exit(1) from e
+    except (OSError, ValueError, RuntimeError) as e:
+        # Catch common file system and runtime errors that might occur during project creation
         console.print(
             Panel(
                 Text(f"Unexpected error: {e}", style="red"),
@@ -211,4 +209,4 @@ def create_project(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e

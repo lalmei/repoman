@@ -3,14 +3,18 @@
 import re
 import shutil
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
 from rich.console import Console
+from typer import Typer
+from typer.testing import CliRunner
 
 console = Console()
 
 
-def test_parse_args_second(cli_runner, cli_app) -> None:
+def test_parse_args_second(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test verbose create mode with enhanced argument validation."""
     verbose_check = re.compile(r"\w* (INFO     Setting verbose mode ON)")
     result = cli_runner.invoke(
@@ -32,7 +36,7 @@ def test_parse_args_second(cli_runner, cli_app) -> None:
     assert "Dry Run" in result.output
 
 
-def test_create_command_missing_required_args(cli_runner, cli_app) -> None:
+def test_create_command_missing_required_args(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with missing required arguments."""
     result = cli_runner.invoke(cli_app, ["create"], input="")
     console.print(result.output)
@@ -44,7 +48,7 @@ def test_create_command_missing_required_args(cli_runner, cli_app) -> None:
     assert "Try 'root create --help' for help" in result.output
 
 
-def test_create_command_invalid_argument_combination(cli_runner, cli_app) -> None:
+def test_create_command_invalid_argument_combination(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with invalid argument combinations."""
     # Test --help with other arguments (should still show help)
     result = cli_runner.invoke(cli_app, ["create", "--help", "test-project"], input="")
@@ -57,7 +61,7 @@ def test_create_command_invalid_argument_combination(cli_runner, cli_app) -> Non
     assert "project_name" in result.output
 
 
-def test_create_command_help(cli_runner, cli_app) -> None:
+def test_create_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command help."""
     result = cli_runner.invoke(cli_app, ["create", "--help"], input="")
     console.print(result.output)
@@ -73,7 +77,7 @@ def test_create_command_help(cli_runner, cli_app) -> None:
     assert "--output" in result.output
 
 
-def test_create_command_argument_order(cli_runner, cli_app) -> None:
+def test_create_command_argument_order(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with different argument orders."""
     project_name = "test-project"
 
@@ -90,7 +94,8 @@ def test_create_command_argument_order(cli_runner, cli_app) -> None:
     assert "Would create project" in result2.output
 
 
-def test_create_command_dry_run(tmp_path: Path, sample_project_names, cli_runner, cli_app) -> None:
+@pytest.mark.usefixtures("tmp_path")
+def test_create_command_dry_run(sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with dry-run flag."""
     project_name = sample_project_names[0]
 
@@ -105,7 +110,9 @@ def test_create_command_dry_run(tmp_path: Path, sample_project_names, cli_runner
     assert "Copier options:" in result.output
 
 
-def test_create_command_force_overwrite(tmp_path: Path, mock_project_structure, cli_runner, cli_app) -> None:
+def test_create_command_force_overwrite(
+    tmp_path: Path, mock_project_structure: Any, cli_runner: CliRunner, cli_app: Typer
+) -> None:
     """Test create command with force overwrite."""
     project_name = "test-project"
     project_dir = tmp_path / project_name
@@ -131,7 +138,8 @@ def test_create_command_force_overwrite(tmp_path: Path, mock_project_structure, 
     assert "Copier options:" in result.output
 
 
-def test_create_command_template_not_found(tmp_path: Path, mock_template_structure, cli_runner, cli_app) -> None:
+@pytest.mark.usefixtures("tmp_path")
+def test_create_command_template_not_found(mock_template_structure: Any, cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with non-existent template using mock template structure."""
     project_name = "test-project"
     # Use the mock template structure to test with a real template
@@ -162,7 +170,7 @@ def test_create_command_template_not_found(tmp_path: Path, mock_template_structu
     # Note: "Copying from template" output is suppressed by quiet mode
 
 
-def test_create_command_invalid_template_path(cli_runner, cli_app) -> None:
+def test_create_command_invalid_template_path(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with invalid template path."""
     project_name = "test-project"
     invalid_template = "/non/existent/template/path"
@@ -179,7 +187,8 @@ def test_create_command_invalid_template_path(cli_runner, cli_app) -> None:
     assert "not found" in result.output or "must be a directory" in result.output or "template" in result.output
 
 
-def test_create_command_output_directory(tmp_path: Path, test_workspace, cli_runner, cli_app) -> None:
+@pytest.mark.usefixtures("tmp_path")
+def test_create_command_output_directory(test_workspace: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with custom output directory using test workspace."""
     project_name = "test-project"
     # Use the structured workspace instead of a simple custom output
@@ -211,13 +220,13 @@ def test_create_command_output_directory(tmp_path: Path, test_workspace, cli_run
     assert "dst_path" in result.output
 
 
-def test_create_command_invalid_project_names(cli_runner, cli_app) -> None:
+def test_create_command_invalid_project_names(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with various invalid project names."""
     # Mock os.scandir to prevent scandir iterator warnings
     with patch("os.scandir") as mock_scandir:
         # Create a mock iterator that properly closes
         class MockScandirIterator:
-            def __init__(self, path):
+            def __init__(self, path: Path):
                 self.path = path
                 self.closed = False
 
@@ -236,7 +245,7 @@ def test_create_command_invalid_project_names(cli_runner, cli_app) -> None:
                 self.closed = True
                 return mock_entry
 
-            def close(self):
+            def close(self) -> None:
                 self.closed = True
 
         mock_scandir.side_effect = lambda path: MockScandirIterator(path)
@@ -291,7 +300,7 @@ def test_create_command_invalid_project_names(cli_runner, cli_app) -> None:
 class TestCLIErrorHandling:
     """Test error handling and edge cases in CLI commands."""
 
-    def test_create_command_with_extremely_long_project_name(self, cli_runner, cli_app):
+    def test_create_command_with_extremely_long_project_name(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with extremely long project names."""
         # Test with very long name (1000 characters)
         long_name = "a" * 1000
@@ -306,7 +315,7 @@ class TestCLIErrorHandling:
             # If it fails, should have some error message
             assert len(result.output.strip()) > 0
 
-    def test_create_command_with_special_characters(self, cli_runner, cli_app):
+    def test_create_command_with_special_characters(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with various special characters."""
         special_names = [
             "project-with-dashes",
@@ -332,7 +341,7 @@ class TestCLIErrorHandling:
             else:
                 assert any(error_msg in result.output for error_msg in ["Error", "invalid", "name", "character"])
 
-    def test_create_command_with_unicode_characters(self, cli_runner, cli_app):
+    def test_create_command_with_unicode_characters(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with unicode characters."""
         unicode_names = [
             "project-émojis-🚀",
@@ -355,7 +364,7 @@ class TestCLIErrorHandling:
             else:
                 assert any(error_msg in result.output for error_msg in ["Error", "invalid", "name", "character"])
 
-    def test_create_command_with_path_traversal_attempts(self, cli_runner, cli_app):
+    def test_create_command_with_path_traversal_attempts(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with potential path traversal attempts."""
         malicious_names = [
             # Basic path traversal
@@ -375,11 +384,11 @@ class TestCLIErrorHandling:
             # Mixed encoding attempts
             "..%2F..\\..%5Cetc%2Fpasswd",
             "..\\..%2F..%5Cwindows\\system32",
-            # Unicode path traversal attempts
-            "..∕..∕..∕etc∕passwd",  # Unicode forward slash
-            "..﹨..﹨..﹨windows﹨system32",  # Unicode backslash
-            "..／..／..／etc／passwd",  # Full-width forward slash
-            "..＼..＼..＼windows＼system32",  # Full-width backslash
+            # Unicode path traversal attempts (using escape sequences to avoid RUF001)
+            "..\u2215..\u2215..\u2215etc\u2215passwd",  # Unicode division slash
+            "..\ufe68..\ufe68..\ufe68windows\ufe68system32",  # Unicode small reverse solidus
+            "..\uff0f..\uff0f..\uff0fetc\uff0fpasswd",  # Full-width solidus
+            "..\uff3c..\uff3c..\uff3cwindows\uff3csystem32",  # Full-width reverse solidus
         ]
 
         for name in malicious_names:
@@ -392,7 +401,7 @@ class TestCLIErrorHandling:
                 error_msg in result.output for error_msg in ["Error", "invalid", "path", "security", "forbidden"]
             )
 
-    def test_create_command_with_invalid_template_paths(self, cli_runner, cli_app):
+    def test_create_command_with_invalid_template_paths(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with various invalid template paths."""
         invalid_templates = [
             "/non/existent/path",
@@ -420,7 +429,7 @@ class TestCLIErrorHandling:
             assert result.exit_code == 1
             assert any(error_msg in result.output for error_msg in ["Error", "not found", "invalid", "template"])
 
-    def test_create_command_with_invalid_output_paths(self, cli_runner, cli_app):
+    def test_create_command_with_invalid_output_paths(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with various invalid output paths."""
         invalid_outputs = [
             "/root/system/directory",
@@ -455,7 +464,7 @@ class TestCLIErrorHandling:
                     ]
                 )
 
-    def test_create_command_with_conflicting_flags(self, cli_runner, cli_app):
+    def test_create_command_with_conflicting_flags(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with conflicting or invalid flag combinations."""
         # Test --dry-run with --force (should work together)
         result = cli_runner.invoke(cli_app, ["create", "test-project", "--dry-run", "--force"], input="")
@@ -472,7 +481,7 @@ class TestCLIErrorHandling:
         assert result.exit_code == 2
         assert "no such option" in result.output.lower() or "unrecognized arguments" in result.output.lower()
 
-    def test_create_command_with_malformed_input(self, cli_runner, cli_app):
+    def test_create_command_with_malformed_input(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command with malformed or unexpected input."""
         # Test with very large input
         large_input = "a" * 10000
@@ -494,7 +503,7 @@ class TestCLIErrorHandling:
         # Should handle gracefully
         assert result.exit_code in [0, 1]
 
-    def test_create_command_with_network_issues(self, cli_runner, cli_app):
+    def test_create_command_with_network_issues(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command behavior when network resources are unavailable."""
         # Test with non-existent local template path (simulates network failure)
         result = cli_runner.invoke(
@@ -523,7 +532,7 @@ class TestCLIErrorHandling:
             ]
         )
 
-    def test_create_command_with_file_system_issues(self, cli_runner, cli_app):
+    def test_create_command_with_file_system_issues(self, cli_runner: CliRunner, cli_app: Typer) -> None:
         """Test create command behavior when file system operations fail."""
         # Test with read-only file system
         with patch("pathlib.Path.mkdir") as mock_mkdir:

@@ -1,7 +1,10 @@
 """Tests for dynamic command registration."""
 
+from typer import Typer
+from typer.testing import CliRunner
 
-def test_create_command_registered(cli_runner, cli_app) -> None:
+
+def test_create_command_registered(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the 'create' command is dynamically registered and can be invoked."""
     # Test that the command exists by invoking it with --help
     # This verifies the command was registered dynamically
@@ -14,7 +17,7 @@ def test_create_command_registered(cli_runner, cli_app) -> None:
     assert "PROJECT_NAME" in result.output or "project_name" in result.output, "Command arguments should be shown"
 
 
-def test_generator_command_registered(cli_runner, cli_app) -> None:
+def test_generator_command_registered(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the 'generator' command is dynamically registered and can be invoked."""
     # Test that the command exists by invoking it with --help
     # This verifies the command was registered dynamically
@@ -26,7 +29,7 @@ def test_generator_command_registered(cli_runner, cli_app) -> None:
     assert "generator" in result.output.lower(), "Command name should appear in help"
 
 
-def test_dynamic_command_discovery(cli_runner, cli_app) -> None:
+def test_dynamic_command_discovery(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that commands are discovered from modules in the cli directory."""
     # Test that an unknown command fails (proving command discovery is working)
     result = cli_runner.invoke(cli_app, ["nonexistent-command"], input="")

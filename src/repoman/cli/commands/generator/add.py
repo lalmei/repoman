@@ -3,12 +3,13 @@
 import re
 from pathlib import Path
 
+import jinja2
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Context, Exit, Option, Typer
+from typer import Argument, Exit, Option, Typer
 
 from repoman.extensions import CurrentYearExtension, GitExtension, SlugifyExtension
 from repoman.utils.logging import get_logger_console
@@ -113,7 +114,6 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 
 @app.callback(no_args_is_help=True)
 def add(
-    ctx: Context,
     command_name: str = Argument(..., help="Name of the command to create"),
     project_dir: str | None = Option(
         None,
@@ -144,13 +144,10 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     # Determine project directory
-    if project_dir is None:
-        project_dir = Path.cwd()
-    else:
-        project_dir = Path(project_dir).resolve()
+    project_dir = Path.cwd() if project_dir is None else Path(project_dir).resolve()
 
     if not project_dir.exists():
         console.print(
@@ -160,13 +157,10 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     # Determine answers file path
-    if answers_file is None:
-        answers_file = project_dir / ".copier-answers.yml"
-    else:
-        answers_file = Path(answers_file).resolve()
+    answers_file = project_dir / ".copier-answers.yml" if answers_file is None else Path(answers_file).resolve()
 
     # Load copier answers
     try:
@@ -184,7 +178,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e
     except yaml.YAMLError as e:
         console.print(
             Panel(
@@ -193,7 +187,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e
 
     # Extract required context
     python_package_import_name = answers.get("python_package_import_name")
@@ -209,7 +203,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from None
 
     python_package_command_line_name = answers.get("python_package_command_line_name", python_package_import_name)
     command_description = answers.get("command_description", f"{command_name} command")
@@ -225,7 +219,7 @@ def add(
                 border_style="red",
             )
         )
-        raise Exit(1)
+        raise Exit(1) from e
 
     # Locate template directory
     # The template directory is literally named "{{command_name}}"
@@ -252,6 +246,7 @@ def add(
         loader=FileSystemLoader(str(template_dir)),
         extensions=[CurrentYearExtension, GitExtension, SlugifyExtension],
         keep_trailing_newline=True,
+        autoescape=True,  # Enable autoescape to prevent XSS vulnerabilities
     )
 
     # Prepare template context
@@ -281,7 +276,7 @@ def add(
                     border_style="yellow",
                 )
             )
-            raise Exit(1)
+        raise Exit(1) from None
         if test_output_file.exists():
             console.print(
                 Panel(
@@ -293,7 +288,7 @@ def add(
                     border_style="yellow",
                 )
             )
-            raise Exit(1)
+        raise Exit(1) from None
 
     # Render templates
     try:
@@ -301,13 +296,14 @@ def add(
         # The test template filename is literally "test_{{command_name}}.py.jinja"
         # We need to load it by its actual filename
         test_template_filename = "test_{{command_name}}.py.jinja"
-        if not (template_dir / test_template_filename).exists():
-            raise FileNotFoundError(f"Test template not found: {template_dir / test_template_filename}")
+        template_path = template_dir / test_template_filename
+        if not template_path.exists():
+            raise FileNotFoundError(f"Test template not found: {template_path}")  # noqa: TRY301 - Simple error, no need to abstract
         test_template = env.get_template(test_template_filename)
 
         rendered_command = command_template.render(**template_context)
         rendered_test = test_template.render(**template_context)
-    except Exception as e:
+    except (FileNotFoundError, jinja2.TemplateNotFound, jinja2.TemplateError) as e:
         console.print(
             Panel(
                 Text(f"Error rendering templates: {e}", style="red"),
@@ -316,7 +312,7 @@ def add(
             )
         )
         logger.exception("Template rendering error")
-        raise Exit(1)
+        raise Exit(1) from e
 
     if dry_run:
         console.print(
@@ -376,7 +372,7 @@ def add(
             )
         )
 
-    except Exception as e:
+    except (OSError, PermissionError) as e:
         console.print(
             Panel(
                 Text(f"Error creating files: {e}", style="red"),
@@ -385,4 +381,4 @@ def add(
             )
         )
         logger.exception("File creation error")
-        raise Exit(1)
+        raise Exit(1) from e

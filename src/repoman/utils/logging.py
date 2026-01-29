@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from logging import DEBUG, INFO, Formatter, Logger, getLogger
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -16,10 +16,11 @@ def _set_up_logger(
     name: str = "repoman",
     console: Console | None = None,
     log_level: int | None = None,
+    *,
     use_rotating_file_handler: bool = False,
     log_file_base_path: Path | None = None,
 ) -> Logger:
-    """Setting up the logger"""
+    """Set up the logger with Rich console handler and optional file handler."""
     os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
     if log_level is None:
         log_level = int(os.getenv("_REPOMAN_LOG_LEVEL", DEBUG))
@@ -49,11 +50,10 @@ def _set_up_logger(
     rich_handler.set_name("rich")
     module_logger.addHandler(rich_handler)
 
-    if use_rotating_file_handler:
-        if log_file_base_path is not None:
-            current_date = datetime.now().strftime("%Y_m_%d")
-            log_file_path = log_file_base_path / f"log_{current_date}.log"
-            os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+    if use_rotating_file_handler and log_file_base_path is not None:
+        current_date = datetime.now(timezone.utc).strftime("%Y_m_%d")
+        log_file_path = log_file_base_path / f"log_{current_date}.log"
+        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
     module_logger.setLevel(level=log_level)
 
@@ -89,13 +89,15 @@ def get_logger_console(
     console: Console | None = None,
     log_level: int | None = None,
 ) -> tuple[Logger, Console]:
-    """Args:
-        name (str, optional): _description_. Defaults to "repoman".
-        console (Console | None, optional): _description_. Defaults to None.
-        log_level (int, optional): _description_. Defaults to INFO.
+    """Get logger and console instance for repoman.
+
+    Args:
+        name: Logger name. Defaults to "repoman".
+        console: Rich console instance. Defaults to None (creates new one).
+        log_level: Logging level. Defaults to INFO.
 
     Returns:
-        tuple[Logger, Console]: _description_
+        Tuple of (Logger, Console) instances
     """
     if log_level is None:
         log_level = int(os.getenv("_REPOMAN_LOG_LEVEL", INFO))
