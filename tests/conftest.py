@@ -488,9 +488,7 @@ def instantiated_template(tmp_path: Path) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=False
-        )
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
         yield instantiated_path
 
     finally:
