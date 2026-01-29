@@ -1,11 +1,13 @@
 import re
 
 from rich.console import Console
+from typer import Typer
+from typer.testing import CliRunner
 
 console = Console()
 
 
-def test_version(cli_runner, cli_app) -> None:
+def test_version(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test version call."""
     result = cli_runner.invoke(cli_app, ["--version"], input="")
     console.print(result.output)
