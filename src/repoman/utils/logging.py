@@ -1,6 +1,7 @@
 """Logging utilities for repoman CLI application."""
 
 import os
+import sys
 from datetime import datetime, timezone
 from logging import DEBUG, INFO, Formatter, Logger, getLogger
 from logging.handlers import RotatingFileHandler

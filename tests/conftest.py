@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -12,11 +13,26 @@ from repoman import cli
 from tests.template_testing import cleanup_project_artifacts, instantiate_template
 
 
+def strip_ansi_codes(text: str) -> str:
+    """Strip ANSI escape codes from text for easier pattern matching in tests.
+
+    Args:
+        text: Text that may contain ANSI escape codes
+
+    Returns:
+        Plain text without ANSI codes
+    """
+    # Remove ANSI escape sequences (including Rich's hyperlinks)
+    ansi_escape = re.compile(
+        r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|]8;[^;]*;[^\\]*\\|]8;;)"
+    )
+    return ansi_escape.sub("", text)
+
+
 @pytest.fixture(autouse=True)
 def setup_test_environment() -> None:
     """Set up test environment variables, paths, and working directory isolation."""
-    """Set up test environment variables, paths, and working directory isolation."""
-    """Set up test environment variables, paths, and working directory isolation."""
+
     # Store original environment variables
     original_env = {}
     for key in ["_REPOMAN_LOG_LEVEL", "PYTHONPATH", "NO_ALBUMENTATIONS_UPDATE"]:
@@ -200,9 +216,13 @@ def mock_template_structure(tmp_path: Path) -> Any:
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
+    (template_dir / "README.md.jinja").write_text(
+        "# {{ project_name }}\n\nGenerated project."
+    )
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
+    (template_dir / "src" / "main.py.jinja").write_text(
+        "print('Hello {{ project_name }}')"
+    )
 
     return template_dir
 
@@ -323,7 +343,9 @@ def _get_default_answers_file() -> Path | None:
     return None
 
 
-def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
+def _create_template_instance(
+    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
+) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -389,7 +411,9 @@ def instantiated_template(tmp_path: Path) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=False
+        )
         yield instantiated_path
 
     finally:
@@ -422,7 +446,9 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=True
+        )
 
         yield instantiated_path
 
