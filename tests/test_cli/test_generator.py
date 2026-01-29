@@ -301,39 +301,13 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
 
         def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
-<<<<<<< ours
             if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
                 return True
-<<<<<<< ours
-            return path == answers_file or "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
-||||||| ancestor
             return (
                 path == answers_file
                 or "src/test_package/cli/commands" in path_str
                 or "tests/test_cli" in path_str
             )
-=======
-            if path == answers_file:
-                return True
-            if "src/test_package/cli/commands" in path_str:
-||||||| ancestor
-            if (
-                "extentions/command_template" in path_str
-                or "{{command_name}}" in path_str
-            ):
-                return True
-            if path == answers_file:
-                return True
-            if "src/test_package/cli/commands" in path_str:
-=======
->>>>>>> theirs
-                return True
-            return (
-                path == answers_file
-                or "src/test_package/cli/commands" in path_str
-                or "tests/test_cli" in path_str
-            )
->>>>>>> theirs
 
         mock_exists.side_effect = exists_side_effect
 
@@ -472,7 +446,6 @@ def test_generator_add_file_already_exists(cli_runner: CliRunner, cli_app: Typer
     # Mock template directory existence
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
 
-        def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
             if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
                 return True
