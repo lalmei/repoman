@@ -4,7 +4,6 @@ import re
 import shutil
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
 
 import pytest
 from rich.console import Console
