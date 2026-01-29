@@ -1,5 +1,7 @@
 """Integration tests for running CI commands on instantiated templates."""
 
+from typing import Any
+
 from tests.ci_runner import run_make_command
 
 
