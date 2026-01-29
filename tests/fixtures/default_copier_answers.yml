@@ -1,0 +1,38 @@
+# Default answers file for test template instantiation
+# This file provides test-friendly defaults for template instantiation in tests
+
+# CI/CD Platform
+ci: github
+
+# Project Information
+project_name: test-project
+project_description: Test project for repoman template testing
+
+# Author Information
+author_fullname: Test User
+author_email: test@example.com
+author_username: testuser
+
+# Repository Configuration
+repository_provider: github.com
+repository_namespace: testuser
+repository_name: test-project
+
+# Copyright Information
+copyright_holder: Test User
+copyright_holder_email: test@example.com
+copyright_date: "2025"
+copyright_license: MIT
+
+# Python Package Configuration
+python_package_distribution_name: test-project
+python_package_import_name: test_project
+python_package_command_line_name: test-project
+python_distribution_name: test-project
+
+# Container Configuration
+container_registry: ""
+
+# Insiders Program (not applicable for tests)
+insiders: false
+public_release: false
