@@ -15,6 +15,21 @@ from repoman.config import Config
 from repoman.utils.theme.theme import set_theme
 
 
+def _is_running_in_pytest() -> bool:
+    """Check if code is running inside pytest.
+
+    Returns:
+        True if running in pytest, False otherwise
+    """
+    # Check for pytest in sys.modules or environment variable
+    # Also check if we're being imported during pytest collection
+    return (
+        "pytest" in sys.modules
+        or "PYTEST_CURRENT_TEST" in os.environ
+        or any("pytest" in str(arg) for arg in sys.argv if isinstance(arg, str))
+    )
+
+
 def _set_up_logger(
     name: str = "repoman",
     console: Console | None = None,
@@ -46,7 +61,17 @@ def _set_up_logger(
                 return module_logger
 
     if not console:
-        console = Console(theme=set_theme("dark"))
+        # In pytest, disable Rich formatting to avoid ANSI codes in test assertions
+        if _is_running_in_pytest():
+            # Use a console that outputs plain text (no colors/formatting)
+            console = Console(
+                file=sys.stderr,
+                force_terminal=False,
+                legacy_windows=False,
+                no_color=True,
+            )
+        else:
+            console = Console(theme=set_theme("dark"))
 
     rich_handler = RichHandler(rich_tracebacks=True, console=console)
 
@@ -139,6 +164,16 @@ def get_logger_console(
 
     # If no console was found and none was provided, create a new one
     if console is None:
-        console = Console()
+        # In pytest, disable Rich formatting to avoid ANSI codes in test assertions
+        if _is_running_in_pytest():
+            # Use a console that outputs plain text (no colors/formatting)
+            console = Console(
+                file=sys.stderr,
+                force_terminal=False,
+                legacy_windows=False,
+                no_color=True,
+            )
+        else:
+            console = Console()
 
     return logger, console

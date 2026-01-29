@@ -76,7 +76,7 @@ def test_create_command_output_directory(tmp_path: Path, cli_runner: CliRunner, 
 
     result = cli_runner.invoke(
         cli_app,
-        ["create", project_name, "--output", str(custom_output), "--dry-run"],
+        ["--dry-run", "create", "--output", str(custom_output), project_name],
         input="",
     )
     console.print(result.output)

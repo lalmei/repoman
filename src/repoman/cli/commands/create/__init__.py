@@ -8,7 +8,7 @@ from copier.errors import CopierError
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Exit, Option, Typer
+from typer import Argument, Context, Exit, Option, Typer
 
 from repoman.utils.logging import get_logger_console
 
@@ -61,7 +61,9 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"]
+        + [f"COM{i}" for i in range(1, 10)]
+        + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -74,6 +76,7 @@ app = Typer(add_completion=True)
 
 @app.callback(invoke_without_command=True)
 def create(
+    ctx: Context,
     project_name: str = Argument(..., help="Name of the project to create"),
     template_path: str | None = Option(
         None,
@@ -81,10 +84,18 @@ def create(
         "-t",
         help="Path to custom template (defaults to main template)",
     ),
-    output_dir: str | None = Option(None, "--output", "-o", help="Output directory (defaults to current directory)"),
-    answers_file: str | None = Option(None, "--answers", "-a", help="Path to answers file"),
-    force: bool = Option(False, "--force", "-f", help="Force overwrite of existing files"),
-    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
+    output_dir: str | None = Option(
+        None, "--output", "-o", help="Output directory (defaults to current directory)"
+    ),
+    answers_file: str | None = Option(
+        None, "--answers", "-a", help="Path to answers file"
+    ),
+    force: bool = Option(
+        False, "--force", "-f", help="Force overwrite of existing files"
+    ),
+    dry_run: bool = Option(
+        False, "--dry-run", help="Show what would be created without actually creating"
+    ),
 ) -> None:
     """Create a new Python project using the repoman template."""
     logger, console = get_logger_console()
@@ -107,13 +118,17 @@ def create(
     if template_path is None:
         # Use the main template included with repoman
         current_file = Path(__file__)
-        template_path_obj = current_file.parent.parent / "main_template"
+        template_path_obj = current_file.parent.parent.parent.parent / "main_template"
         logger.info(f"Using main template at {template_path_obj}")
     else:
         template_path_obj = Path(template_path)
 
     # Determine output directory
-    output_dir_obj: Path = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
+    output_dir_obj: Path = (
+        Path.cwd() / project_name
+        if output_dir is None
+        else Path(output_dir) / project_name
+    )
 
     # Check if output directory exists
     if output_dir_obj.exists() and not force:
@@ -148,7 +163,7 @@ def create(
         },
     }
 
-    if dry_run:
+    if dry_run or ctx.obj.get("dry_run", True):
         console.print(
             Panel(
                 Text(
@@ -178,15 +193,21 @@ def create(
             progress.update(task, description="Project created successfully!")
 
         # Success message
+        next_steps = [
+            f"cd {output_dir_obj}",
+            "Review and customize the generated project",
+            "Initialize git repository",
+            "Start developing!",
+        ]
+
+        steps_text = "\n".join(
+            f"  {i + 1}. {step}" for i, step in enumerate(next_steps)
+        )
+
         console.print(
             Panel(
                 Text(
-                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\n"
-                    f"Next steps:\n"
-                    f"  cd {output_dir_obj}\n"
-                    f"  # Review and customize the generated project\n"
-                    f"  # Initialize git repository\n"
-                    f"  # Start developing!",
+                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\nNext steps:\n{steps_text}",
                     style="green",
                 ),
                 title="Success",
