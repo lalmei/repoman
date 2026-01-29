@@ -33,9 +33,7 @@ def _create_theme(colors) -> Theme:
         "crust": colors.crust.hex,
     }
 
-    theme = Theme(styles=styles, inherit=True)
-
-    return theme
+    return Theme(styles=styles, inherit=True)
 
 
 def set_theme(theme_name: str = "dark") -> Theme:

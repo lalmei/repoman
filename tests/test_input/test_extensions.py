@@ -1,8 +1,8 @@
 """Unit tests for repoman extensions module."""
 
 import subprocess
-import time
-from datetime import date
+from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import patch
 
 import pytest
