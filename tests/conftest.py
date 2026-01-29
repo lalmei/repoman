@@ -84,46 +84,6 @@ def cli_app() -> Any:
     return cli
 
 
-def pytest_configure(config: Any) -> None:
-    """Configure pytest before test collection."""
-    # Register custom markers
-    config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line(
-        "markers", "integration: Integration tests that may have dependencies"
-    )
-    config.addinivalue_line("markers", "cli: CLI command tests")
-    config.addinivalue_line("markers", "utils: Utility function tests")
-    config.addinivalue_line("markers", "slow: Slow running tests")
-    config.addinivalue_line("markers", "isolated: Tests that must run in isolation")
-
-
-def pytest_collection_modifyitems(config: Any, items: Any) -> None:
-    """Modify test collection to add default markers based on test location."""
-    for item in items:
-        # Add default markers based on test file/class names and locations
-        if "test_utils" in item.nodeid:
-            item.add_marker(pytest.mark.utils)
-            item.add_marker(pytest.mark.unit)
-        elif "test_cli" in item.nodeid:
-            item.add_marker(pytest.mark.cli)
-            item.add_marker(pytest.mark.integration)
-        else:
-            # Default to unit tests for other test files
-            item.add_marker(pytest.mark.unit)
-
-        # Mark tests that use file system operations as isolated
-        if any(
-            keyword in item.nodeid.lower()
-            for keyword in ["file", "path", "directory", "log"]
-        ):
-            item.add_marker(pytest.mark.isolated)
-
-
-def pytest_unconfigure(config: Any) -> None:
-    """Clean up after all tests are complete."""
-    # Clean up any global resources here
-
-
 @pytest.fixture(scope="session")
 def sample_project_names() -> Any:
     """Provide sample project names for testing.
@@ -240,13 +200,9 @@ def mock_template_structure(tmp_path: Path) -> Any:
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text(
-        "# {{ project_name }}\n\nGenerated project."
-    )
+    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text(
-        "print('Hello {{ project_name }}')"
-    )
+    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
 
     return template_dir
 
@@ -367,9 +323,7 @@ def _get_default_answers_file() -> Path | None:
     return None
 
 
-def _create_template_instance(
-    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
-) -> Path:
+def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -435,9 +389,7 @@ def instantiated_template(tmp_path: Path) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=False
-        )
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
         yield instantiated_path
 
     finally:
@@ -470,9 +422,7 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(
-            tmp_path, "test-project", run_setup=True
-        )
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
 
         yield instantiated_path
 
