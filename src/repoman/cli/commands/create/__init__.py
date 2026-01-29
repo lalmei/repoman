@@ -1,15 +1,15 @@
-"""Copier command for generating repositories from templates."""
+"""Create command for generating repositories from templates."""
 
 import re
 from pathlib import Path
 
+from copier import run_copy
+from copier.errors import CopierError
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
 from typer import Argument, Exit, Option, Typer
 
-from copier import run_copy
-from copier.errors import CopierError
 from repoman.utils.logging import get_logger_console
 
 
@@ -61,7 +61,9 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"]
+        + [f"COM{i}" for i in range(1, 10)]
+        + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -69,11 +71,11 @@ def validate_project_name(project_name: str) -> bool:
     return True
 
 
-app = Typer(add_completion=True, no_args_is_help=True)
+app = Typer(add_completion=True)
 
 
-@app.callback(invoke_without_command=True, no_args_is_help=True)
-def create_project(
+@app.callback(invoke_without_command=True)
+def create(
     project_name: str = Argument(..., help="Name of the project to create"),
     template_path: str | None = Option(
         None,
@@ -81,10 +83,18 @@ def create_project(
         "-t",
         help="Path to custom template (defaults to main template)",
     ),
-    output_dir: str | None = Option(None, "--output", "-o", help="Output directory (defaults to current directory)"),
-    answers_file: str | None = Option(None, "--answers", "-a", help="Path to answers file"),
-    force: bool = Option(False, "--force", "-f", help="Force overwrite of existing files"),
-    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
+    output_dir: str | None = Option(
+        None, "--output", "-o", help="Output directory (defaults to current directory)"
+    ),
+    answers_file: str | None = Option(
+        None, "--answers", "-a", help="Path to answers file"
+    ),
+    force: bool = Option(
+        False, "--force", "-f", help="Force overwrite of existing files"
+    ),
+    dry_run: bool = Option(
+        False, "--dry-run", help="Show what would be created without actually creating"
+    ),
 ) -> None:
     """Create a new Python project using the repoman template."""
     logger, console = get_logger_console()
@@ -113,7 +123,11 @@ def create_project(
         template_path_obj = Path(template_path)
 
     # Determine output directory
-    output_dir_obj: Path = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
+    output_dir_obj: Path = (
+        Path.cwd() / project_name
+        if output_dir is None
+        else Path(output_dir) / project_name
+    )
 
     # Check if output directory exists
     if output_dir_obj.exists() and not force:

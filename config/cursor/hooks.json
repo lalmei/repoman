@@ -4,6 +4,9 @@
         "afterFileEdit": [
             {
                 "command": "make format"
+            },
+            {
+                "command": "make check"
             }
         ]
     }

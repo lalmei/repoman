@@ -88,14 +88,16 @@ def pytest_configure(config: Any) -> None:
     """Configure pytest before test collection."""
     # Register custom markers
     config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line("markers", "integration: Integration tests that may have dependencies")
+    config.addinivalue_line(
+        "markers", "integration: Integration tests that may have dependencies"
+    )
     config.addinivalue_line("markers", "cli: CLI command tests")
     config.addinivalue_line("markers", "utils: Utility function tests")
     config.addinivalue_line("markers", "slow: Slow running tests")
     config.addinivalue_line("markers", "isolated: Tests that must run in isolation")
 
 
-def pytest_collection_modifyitems(_config: Any, items: Any) -> None:
+def pytest_collection_modifyitems(config: Any, items: Any) -> None:
     """Modify test collection to add default markers based on test location."""
     for item in items:
         # Add default markers based on test file/class names and locations
@@ -110,7 +112,10 @@ def pytest_collection_modifyitems(_config: Any, items: Any) -> None:
             item.add_marker(pytest.mark.unit)
 
         # Mark tests that use file system operations as isolated
-        if any(keyword in item.nodeid.lower() for keyword in ["file", "path", "directory", "log"]):
+        if any(
+            keyword in item.nodeid.lower()
+            for keyword in ["file", "path", "directory", "log"]
+        ):
             item.add_marker(pytest.mark.isolated)
 
 
@@ -235,9 +240,13 @@ def mock_template_structure(tmp_path: Path) -> Any:
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
+    (template_dir / "README.md.jinja").write_text(
+        "# {{ project_name }}\n\nGenerated project."
+    )
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
+    (template_dir / "src" / "main.py.jinja").write_text(
+        "print('Hello {{ project_name }}')"
+    )
 
     return template_dir
 
@@ -261,7 +270,7 @@ def test_workspace(tmp_path: Path) -> None:
 
 @pytest.fixture
 def mock_copier_available(monkeypatch: pytest.MonkeyPatch) -> Any:
-    """Mock copier availability for testing."""
+    """Mock copier library availability for testing."""
 
     # Mock the copier import to always be available
     def mock_import_copier() -> Any:
@@ -271,7 +280,8 @@ def mock_copier_available(monkeypatch: pytest.MonkeyPatch) -> Any:
 
         return MockCopier()
 
-    monkeypatch.setattr("repoman.cli.copier.copier", mock_import_copier())
+    # Mock the copier library itself, not the command module
+    monkeypatch.setattr("copier.copier", mock_import_copier())
 
 
 @pytest.fixture
@@ -344,7 +354,22 @@ def cleanup_loggers() -> None:
         logging.root.addHandler(handler)
 
 
-def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
+def _get_default_answers_file() -> Path | None:
+    """Get the default answers file path if it exists.
+
+    Returns:
+        Path to default answers file, or None if it doesn't exist
+    """
+    current_file = Path(__file__)
+    default_answers = current_file.parent / "fixtures" / "default_copier_answers.yml"
+    if default_answers.exists():
+        return default_answers
+    return None
+
+
+def _create_template_instance(
+    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
+) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -360,10 +385,14 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
     """
     instantiated_path = None
     try:
+        # Get default answers file if available
+        default_answers = _get_default_answers_file()
+
         # Instantiate template
         instantiated_path = instantiate_template(
             output_dir=tmp_path_base,
             project_name=project_name,
+            answers_file=default_answers,
             force=True,
         )
 
@@ -406,7 +435,9 @@ def instantiated_template(tmp_path: Path) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=False
+        )
         yield instantiated_path
 
     finally:
@@ -439,10 +470,9 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=True
+        )
 
         yield instantiated_path
 
