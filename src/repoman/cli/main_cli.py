@@ -97,7 +97,7 @@ def main(
     ),
     theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
 ) -> None:
-    """Welcome to repoman CLI App
+    r"""Welcome to repoman CLI App.
 
     \f
 

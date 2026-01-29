@@ -205,8 +205,8 @@ class TestGitExtension:
 
     def test_git_extension_initialization(self) -> None:
         """Test GitExtension initialization."""
-        env = Environment()
-        extension = GitExtension(env)
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
+        GitExtension(env)
 
         assert "git_user_name" in env.filters
         assert "git_user_email" in env.filters
@@ -220,7 +220,7 @@ class TestGitExtension:
         mock_git_name.return_value = "John Doe"
         mock_git_email.return_value = "john@example.com"
 
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         GitExtension(env)
 
         template = env.from_string(
@@ -238,15 +238,15 @@ class TestSlugifyExtension:
 
     def test_slugify_extension_initialization(self) -> None:
         """Test SlugifyExtension initialization."""
-        env = Environment()
-        extension = SlugifyExtension(env)
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
+        SlugifyExtension(env)
 
         assert "slugify" in env.filters
         assert env.filters["slugify"] == slugify
 
     def test_slugify_extension_filter_in_template(self) -> None:
         """Test SlugifyExtension filter in Jinja2 template."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         SlugifyExtension(env)
 
         template = env.from_string("{{ 'Hello World!' | slugify }}")
@@ -256,7 +256,7 @@ class TestSlugifyExtension:
 
     def test_slugify_extension_filter_with_custom_separator(self) -> None:
         """Test SlugifyExtension filter with custom separator in template."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         SlugifyExtension(env)
 
         template = env.from_string("{{ 'Hello World!' | slugify('_') }}")
@@ -270,25 +270,25 @@ class TestCurrentYearExtension:
 
     def test_current_year_extension_initialization(self) -> None:
         """Test CurrentYearExtension initialization."""
-        env = Environment()
-        extension = CurrentYearExtension(env)
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
+        CurrentYearExtension(env)
 
         assert "current_year" in env.globals
-        assert env.globals["current_year"] == get_current_year()
+        assert env.globals["current_year"] == datetime.now(timezone.utc).date().year
 
     def test_current_year_extension_global_in_template(self) -> None:
         """Test CurrentYearExtension global in Jinja2 template."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         CurrentYearExtension(env)
 
         template = env.from_string("Current year: {{ current_year }}")
         result = template.render()
 
-        assert result == f"Current year: {date.today().year}"
+        assert result == f"Current year: {datetime.now(timezone.utc).date().year}"
 
     def test_current_year_extension_math_operations(self) -> None:
         """Test CurrentYearExtension with math operations in template."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         CurrentYearExtension(env)
 
         template = env.from_string("Next year: {{ current_year + 1 }}")
@@ -302,7 +302,7 @@ class TestExtensionsIntegration:
 
     def test_multiple_extensions_in_single_environment(self) -> None:
         """Test multiple extensions working together in one environment."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         GitExtension(env)
         SlugifyExtension(env)
         CurrentYearExtension(env)
@@ -318,7 +318,7 @@ class TestExtensionsIntegration:
         """Test multiple extensions working together in a template."""
         mock_git_name.return_value = "John Doe"
 
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         GitExtension(env)
         SlugifyExtension(env)
         CurrentYearExtension(env)
@@ -338,7 +338,7 @@ class TestExtensionsErrorHandling:
         with patch("subprocess.getoutput") as mock_getoutput:
             mock_getoutput.side_effect = subprocess.SubprocessError("Git not found")
 
-            env = Environment()
+            env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
             GitExtension(env)
 
             template = env.from_string("{{ 'default' | git_user_name }}")
@@ -348,7 +348,7 @@ class TestExtensionsErrorHandling:
 
     def test_slugify_extension_with_invalid_input(self) -> None:
         """Test SlugifyExtension handles invalid input gracefully."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         SlugifyExtension(env)
 
         # Test with None
@@ -363,7 +363,7 @@ class TestExtensionsErrorHandling:
 
     def test_current_year_extension_consistency(self) -> None:
         """Test CurrentYearExtension returns consistent year value."""
-        env = Environment()
+        env = Environment()  # noqa: S701 - Test code: autoescape not needed for unit tests
         CurrentYearExtension(env)
 
         # Get the year value multiple times
@@ -371,4 +371,4 @@ class TestExtensionsErrorHandling:
         year2 = env.globals["current_year"]
 
         assert year1 == year2
-        assert year1 == date.fromtimestamp(time.time()).year
+        assert year1 == datetime.now(timezone.utc).date().year

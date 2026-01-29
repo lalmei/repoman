@@ -6,7 +6,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
-from typer import Argument, Context, Exit, Option, Typer
+from typer import Argument, Exit, Option, Typer
 
 from copier import run_copy
 from copier.errors import CopierError
@@ -55,8 +55,8 @@ def validate_project_name(project_name: str) -> bool:
             raise ValueError(f"Project name contains invalid character: {char}")
 
     # Check for control characters
-    CONTROL_CHAR_THRESHOLD = 32
-    if any(ord(char) < CONTROL_CHAR_THRESHOLD for char in project_name):
+    control_char_threshold = 32
+    if any(ord(char) < control_char_threshold for char in project_name):
         raise ValueError("Project name contains control characters")
 
     # Check for reserved names (Windows)

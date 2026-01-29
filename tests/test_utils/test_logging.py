@@ -4,6 +4,7 @@ import os
 import tempfile
 from logging import DEBUG, INFO, Logger
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -136,7 +137,7 @@ class TestSetUpLogger:
             log_path = Path(temp_dir) / "logs"
 
             # Use a fresh logger name to avoid early return from existing handler
-            logger = _set_up_logger(
+            _set_up_logger(
                 "fresh_test_logger",
                 use_rotating_file_handler=True,
                 log_file_base_path=log_path,
@@ -275,7 +276,7 @@ class TestGetLoggerConsole:
 
     def test_get_logger_console_log_level_warning(self) -> None:
         """Test that log level change triggers warning."""
-        with patch("logging.Logger.warning") as mock_warning:
+        with patch("logging.Logger.warning") as mock_warning:  # noqa: F841 - Mock may be used for side effects
             logger, console = get_logger_console("test_logger", log_level=INFO)
 
             # Should have called warning if log level changed
@@ -308,7 +309,7 @@ class TestGetLoggerConsole:
 
     def test_get_logger_console_root_logger_warning(self) -> None:
         """Test that get_logger_console shows warning when log level changes for root logger."""
-        with patch("logging.Logger.warning") as mock_warning:
+        with patch("logging.Logger.warning") as mock_warning:  # noqa: F841 - Mock may be used for side effects
             # Force a different log level for root logger
             logger, console = get_logger_console("repoman", log_level=DEBUG)
 
@@ -372,7 +373,7 @@ class TestLoggingIntegration:
         original_env = os.environ.get("NO_ALBUMENTATIONS_UPDATE")
 
         try:
-            logger = _set_up_logger("test_logger")
+            _set_up_logger("test_logger")
 
             # Should set the environment variable
             assert os.environ.get("NO_ALBUMENTATIONS_UPDATE") == "1"
@@ -385,7 +386,7 @@ class TestLoggingIntegration:
 
     def test_logging_external_logger_levels(self) -> None:
         """Test that external logger levels are set."""
-        logger = _set_up_logger("test_logger")
+        _set_up_logger("test_logger")
 
         # Should set PIL logger level
         pil_logger = Logger("PIL")
@@ -530,7 +531,7 @@ class TestLoggingErrorHandling:
                 pass
             finally:
                 # Restore permissions for cleanup
-                os.chmod(temp_dir, 0o755)
+                os.chmod(temp_dir, 0o755)  # noqa: S103 - Test cleanup: restore permissions after test
 
     def test_logging_with_disk_space_issues(self) -> None:
         """Test logging behavior when disk space is limited."""
@@ -564,7 +565,7 @@ class TestLoggingErrorHandling:
         """Test logging behavior with concurrent access scenarios."""
         import threading  # noqa: PLC0415
 
-        logger = Logger("test_logger")
+        Logger("test_logger")
         results = []
 
         def setup_logger(thread_id: Any) -> None:
@@ -592,7 +593,7 @@ class TestLoggingErrorHandling:
 
     def test_logging_with_memory_pressure(self) -> None:
         """Test logging behavior under memory pressure."""
-        logger = Logger("test_logger")
+        Logger("test_logger")
 
         # Create many loggers to simulate memory pressure
         loggers = []

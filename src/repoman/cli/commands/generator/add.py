@@ -246,6 +246,7 @@ def add(
         loader=FileSystemLoader(str(template_dir)),
         extensions=[CurrentYearExtension, GitExtension, SlugifyExtension],
         keep_trailing_newline=True,
+        autoescape=True,  # Enable autoescape to prevent XSS vulnerabilities
     )
 
     # Prepare template context

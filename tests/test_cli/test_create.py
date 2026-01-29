@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
 from rich.console import Console
 from typer import Typer
 from typer.testing import CliRunner

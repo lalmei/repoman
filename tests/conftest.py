@@ -9,12 +9,64 @@ import pytest
 from typer.testing import CliRunner
 
 from repoman import cli
+<<<<<<< ours
+<<<<<<< ours
 from tests.template_testing import cleanup_project_artifacts, instantiate_template
+<<<<<<< ours
+||||||| ancestor
+||||||| ancestor
+from repoman.utils.template_testing import cleanup_project_artifacts, instantiate_template
+=======
+from repoman.utils.template_testing import (
+    cleanup_project_artifacts,
+    instantiate_template,
+)
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+>>>>>>> theirs
+||||||| ancestor
+from tests.template_testing import cleanup_project_artifacts, instantiate_template
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+||||||| ancestor
+=======
+from tests.template_testing import cleanup_project_artifacts, instantiate_template
+>>>>>>> theirs
 
 
 @pytest.fixture(autouse=True)
+<<<<<<< ours
 def setup_test_environment() -> None:
     """Set up test environment variables, paths, and working directory isolation."""
+<<<<<<< ours
+||||||| ancestor
+||||||| ancestor
+def setup_test_environment() -> None:
+    """Set up test environment variables and paths."""
+=======
+def setup_test_environment():
+    """Set up test environment variables and paths."""
+>>>>>>> theirs
+=======
+||||||| ancestor
+||||||| ancestor
+<<<<<<< ours
+def setup_test_environment() -> None:
+    """Set up test environment variables, paths, and working directory isolation."""
+||||||| ancestor
+=======
+>>>>>>> theirs
+def setup_test_environment() -> None:
+    """Set up test environment variables, paths, and working directory isolation."""
+<<<<<<< ours
+>>>>>>> theirs
+>>>>>>> theirs
+||||||| ancestor
+>>>>>>> theirs
+=======
+>>>>>>> theirs
     # Store original environment variables
     original_env = {}
     for key in ["_REPOMAN_LOG_LEVEL", "PYTHONPATH", "NO_ALBUMENTATIONS_UPDATE"]:
@@ -86,9 +138,7 @@ def pytest_configure(config: Any) -> None:
     """Configure pytest before test collection."""
     # Register custom markers
     config.addinivalue_line("markers", "unit: Unit tests that can run in isolation")
-    config.addinivalue_line(
-        "markers", "integration: Integration tests that may have dependencies"
-    )
+    config.addinivalue_line("markers", "integration: Integration tests that may have dependencies")
     config.addinivalue_line("markers", "cli: CLI command tests")
     config.addinivalue_line("markers", "utils: Utility function tests")
     config.addinivalue_line("markers", "slow: Slow running tests")
@@ -110,10 +160,7 @@ def pytest_collection_modifyitems(_config: Any, items: Any) -> None:
             item.add_marker(pytest.mark.unit)
 
         # Mark tests that use file system operations as isolated
-        if any(
-            keyword in item.nodeid.lower()
-            for keyword in ["file", "path", "directory", "log"]
-        ):
+        if any(keyword in item.nodeid.lower() for keyword in ["file", "path", "directory", "log"]):
             item.add_marker(pytest.mark.isolated)
 
 
@@ -238,13 +285,9 @@ def mock_template_structure(tmp_path: Path) -> Any:
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text(
-        "# {{ project_name }}\n\nGenerated project."
-    )
+    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text(
-        "print('Hello {{ project_name }}')"
-    )
+    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
 
     return template_dir
 
@@ -315,6 +358,27 @@ def mock_rich_console(monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 @pytest.fixture(autouse=True)
+<<<<<<< ours
+<<<<<<< ours
+def cleanup_loggers() -> Path:
+||||||| ancestor
+<<<<<<< ours
+def cleanup_loggers() -> Path:
+||||||| ancestor
+def isolate_test_environment():
+    """Ensure each test runs in an isolated environment."""
+    # Store original working directory
+    original_cwd = os.getcwd()
+
+    yield
+
+    # Restore working directory
+    os.chdir(original_cwd)
+
+
+@pytest.fixture(autouse=True)
+def cleanup_loggers() -> Path:
+=======
 def isolate_test_environment():
     """Ensure each test runs in an isolated environment."""
     # Store original working directory
@@ -328,6 +392,31 @@ def isolate_test_environment():
 
 @pytest.fixture(autouse=True)
 def cleanup_loggers():
+>>>>>>> theirs
+=======
+||||||| ancestor
+=======
+def isolate_test_environment():
+    """Ensure each test runs in an isolated environment."""
+    # Store original working directory
+    original_cwd = os.getcwd()
+
+    yield
+
+    # Restore working directory
+    os.chdir(original_cwd)
+
+
+@pytest.fixture(autouse=True)
+>>>>>>> theirs
+def cleanup_loggers():
+<<<<<<< ours
+>>>>>>> theirs
+>>>>>>> theirs
+||||||| ancestor
+>>>>>>> theirs
+=======
+>>>>>>> theirs
     """Clean up logger state between tests to prevent interference."""
     # Store original root logger state
     original_root_level = logging.root.level
@@ -363,9 +452,103 @@ def cleanup_loggers():
         logging.root.addHandler(handler)
 
 
+<<<<<<< ours
+<<<<<<< ours
+def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
+||||||| ancestor
 def _create_template_instance(
     tmp_path_base: Path, project_name: str, *, run_setup: bool = False
 ) -> Path:
+=======
+def _create_template_instance(tmp_path_base, project_name, run_setup=False):
+    """Helper to create template instance with optional setup.
+
+    Args:
+        tmp_path_base: Base temporary directory path (from tmp_path or tmp_path_factory)
+        project_name: Name of the project to create
+        run_setup: If True, run 'make setup' after instantiation
+
+    Returns:
+        Path to the instantiated project directory
+
+    Raises:
+        pytest.fail: If setup fails when run_setup=True
+    """
+    instantiated_path = None
+    try:
+        # Instantiate template
+        instantiated_path = instantiate_template(
+            output_dir=tmp_path_base,
+            project_name=project_name,
+            force=True,
+        )
+
+        # Optionally run make setup
+        if run_setup:
+            from tests.ci_runner import run_make_command
+
+            result = run_make_command(instantiated_path, "setup")
+            if result.returncode != 0:
+                pytest.fail(
+                    f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+                )
+
+        return instantiated_path
+    except Exception:
+        # Cleanup on error
+        if instantiated_path is not None:
+            cleanup_project_artifacts(instantiated_path)
+        raise
+
+
+||||||| ancestor
+def _create_template_instance(tmp_path_base, project_name, run_setup=False):
+    """Helper to create template instance with optional setup.
+
+    Args:
+        tmp_path_base: Base temporary directory path (from tmp_path or tmp_path_factory)
+        project_name: Name of the project to create
+        run_setup: If True, run 'make setup' after instantiation
+
+    Returns:
+        Path to the instantiated project directory
+
+    Raises:
+        pytest.fail: If setup fails when run_setup=True
+    """
+    instantiated_path = None
+    try:
+        # Instantiate template
+        instantiated_path = instantiate_template(
+            output_dir=tmp_path_base,
+            project_name=project_name,
+            force=True,
+        )
+
+        # Optionally run make setup
+        if run_setup:
+            from tests.ci_runner import run_make_command
+
+            result = run_make_command(instantiated_path, "setup")
+            if result.returncode != 0:
+                pytest.fail(
+                    f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+                )
+
+        return instantiated_path
+    except Exception:
+        # Cleanup on error
+        if instantiated_path is not None:
+            cleanup_project_artifacts(instantiated_path)
+        raise
+
+
+=======
+>>>>>>> theirs
+def _create_template_instance(
+    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
+) -> Path:
+>>>>>>> theirs
     """Helper to create template instance with optional setup.
 
     Args:
@@ -462,10 +645,48 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
+<<<<<<< ours
+<<<<<<< ours
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+||||||| ancestor
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=True
+        )
+<<<<<<< ours
+||||||| ancestor
+
+        # Run make setup
+        result = run_make_command(instantiated_path, "setup")
+        if result.returncode != 0:
+            pytest.fail(f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
+
+=======
+
+        # Run make setup
+        result = run_make_command(instantiated_path, "setup")
+        if result.returncode != 0:
+            pytest.fail(
+                f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+            )
+
+>>>>>>> theirs
+=======
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+>>>>>>> theirs
+||||||| ancestor
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+=======
         instantiated_path = _create_template_instance(
             tmp_path, "test-project", run_setup=True
         )
 
+<<<<<<< ours
+>>>>>>> theirs
+>>>>>>> theirs
+||||||| ancestor
+>>>>>>> theirs
+=======
+>>>>>>> theirs
         yield instantiated_path
 
     finally:

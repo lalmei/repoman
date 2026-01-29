@@ -191,7 +191,9 @@ class TestErrorHandling:
     @patch("repoman._version.metadata.version")
     def test_get_version_metadata_error(self, mock_version: Any) -> None:
         """Test get_version handles metadata errors."""
-        from importlib.metadata import PackageNotFoundError
+        from importlib.metadata import (  # noqa: PLC0415 - Conditional import for test error handling
+            PackageNotFoundError,
+        )
 
         mock_version.side_effect = PackageNotFoundError("test-package")
         result = get_version("test-package")
