@@ -63,9 +63,7 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"]
-        + [f"COM{i}" for i in range(1, 10)]
-        + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -86,18 +84,10 @@ def create(
         "-t",
         help="Path to custom template (defaults to main template)",
     ),
-    output_dir: str | None = Option(
-        None, "--output", "-o", help="Output directory (defaults to current directory)"
-    ),
-    answers_file: str | None = Option(
-        None, "--answers", "-a", help="Path to answers file"
-    ),
-    force: bool = Option(
-        False, "--force", "-f", help="Force overwrite of existing files"
-    ),
-    dry_run: bool = Option(
-        False, "--dry-run", help="Show what would be created without actually creating"
-    ),
+    output_dir: str | None = Option(None, "--output", "-o", help="Output directory (defaults to current directory)"),
+    answers_file: str | None = Option(None, "--answers", "-a", help="Path to answers file"),
+    force: bool = Option(False, "--force", "-f", help="Force overwrite of existing files"),
+    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
 ) -> None:
     """Create a new Python project using the repoman template."""
     logger, console = get_logger_console()
@@ -126,11 +116,7 @@ def create(
         template_path_obj = Path(template_path)
 
     # Determine output directory
-    output_dir_obj: Path = (
-        Path.cwd() / project_name
-        if output_dir is None
-        else Path(output_dir) / project_name
-    )
+    output_dir_obj: Path = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
 
     # Check if output directory exists
     if output_dir_obj.exists() and not force:
@@ -177,9 +163,7 @@ def create(
 
     if dry_run or ctx.obj.get("dry_run", True):
         # Convert Path objects to strings for JSON serialization
-        copier_options_serializable = {
-            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
-        }
+        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
 
         console.print(
             Panel(
@@ -215,9 +199,7 @@ def create(
 
         # Success message
         # Convert Path objects to strings for JSON serialization
-        copier_options_serializable = {
-            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
-        }
+        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
 
         console.print(
             Panel(
