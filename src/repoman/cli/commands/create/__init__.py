@@ -1,5 +1,6 @@
 """Create command for generating repositories from templates."""
 
+import json
 import re
 from pathlib import Path
 
@@ -164,12 +165,15 @@ def create(
     }
 
     if dry_run or ctx.obj.get("dry_run", True):
+        # Pretty print copier options as JSON
+        copier_options_json = json.dumps(copier_options, indent=2, default=str)
+
         console.print(
             Panel(
                 Text(
                     f"Would create project '{project_name}' in {output_dir_obj}\n"
-                    f"Using template: {template_path_obj}\n"
-                    f"Copier options: {copier_options}",
+                    f"Using template: {template_path_obj}\n\n"
+                    f"Copier options:\n{copier_options_json}",
                     style="blue",
                 ),
                 title="Dry Run",
@@ -204,10 +208,15 @@ def create(
             f"  {i + 1}. {step}" for i, step in enumerate(next_steps)
         )
 
+        # Pretty print copier options as JSON
+        copier_options_json = json.dumps(copier_options, indent=2, default=str)
+
         console.print(
             Panel(
                 Text(
-                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\nNext steps:\n{steps_text}",
+                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\n"
+                    f"Copier options used:\n{copier_options_json}\n\n"
+                    f"Next steps:\n{steps_text}",
                     style="green",
                 ),
                 title="Success",
