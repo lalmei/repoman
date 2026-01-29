@@ -136,4 +136,8 @@ def get_logger_console(
                 console = rich_handler.console
                 return logger, console
 
+    # If no console was found and none was provided, create a new one
+    if console is None:
+        console = Console()
+
     return logger, console

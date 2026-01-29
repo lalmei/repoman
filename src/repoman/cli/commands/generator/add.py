@@ -147,12 +147,12 @@ def add(
         raise Exit(1) from None
 
     # Determine project directory
-    project_dir = Path.cwd() if project_dir is None else Path(project_dir).resolve()
+    project_dir_path: Path = Path.cwd() if project_dir is None else Path(project_dir).resolve()
 
-    if not project_dir.exists():
+    if not project_dir_path.exists():
         console.print(
             Panel(
-                Text(f"Project directory does not exist: {project_dir}", style="red"),
+                Text(f"Project directory does not exist: {project_dir_path}", style="red"),
                 title="Error",
                 border_style="red",
             )
@@ -160,11 +160,13 @@ def add(
         raise Exit(1) from None
 
     # Determine answers file path
-    answers_file = project_dir / ".copier-answers.yml" if answers_file is None else Path(answers_file).resolve()
+    answers_file_path: Path = (
+        project_dir_path / ".copier-answers.yml" if answers_file is None else Path(answers_file).resolve()
+    )
 
     # Load copier answers
     try:
-        answers = load_copier_answers(answers_file)
+        answers = load_copier_answers(answers_file_path)
     except FileNotFoundError as e:
         console.print(
             Panel(
@@ -210,7 +212,7 @@ def add(
 
     # Detect project structure
     try:
-        commands_dir, tests_dir = detect_project_structure(project_dir, python_package_import_name)
+        commands_dir, tests_dir = detect_project_structure(project_dir_path, python_package_import_name)
     except ValueError as e:
         console.print(
             Panel(
@@ -358,8 +360,8 @@ def add(
                 Text(
                     f"Command '{command_name}' created successfully!\n\n"
                     f"Created files:\n"
-                    f"  - {command_output_file.relative_to(project_dir)}\n"
-                    f"  - {test_output_file.relative_to(project_dir)}\n\n"
+                    f"  - {command_output_file.relative_to(project_dir_path)}\n"
+                    f"  - {test_output_file.relative_to(project_dir_path)}\n\n"
                     f"Next steps:\n"
                     f"  1. Review and customize the generated command\n"
                     f"  2. Implement the command functionality\n"

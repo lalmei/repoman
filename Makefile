@@ -80,6 +80,13 @@ format-check: ## Check if code is formatted correctly
 fix: ## Auto-fix linting issues
 	uv run ruff check --fix src/repoman tests/ --config=config/ruff.toml --exclude src/repoman/main_template
 
+check-types: ## Type check code using mypy
+	uv run mypy src/repoman/ --config-file=config/mypy.ini
+
+type-check: check-types ## Alias for check-types
+
+check: format-check lint check-types ## Run all quality checks (format-check, lint, check-types)
+
 #######################
 #   Documentation     #
 #######################

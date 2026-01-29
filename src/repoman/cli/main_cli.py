@@ -115,24 +115,25 @@ def main(
     """
     logger, console = get_logger_console()
 
+    config: Config | None = None
     try:
-        ctx.config = Config()
+        config = Config()
         if verbose:
             logger.setLevel(logging.DEBUG)
             logger.info(Text("Setting verbose mode ON", style="orange"))
         else:
             logger.setLevel(logging.INFO)
 
-        logger.debug(ctx.config.model_dump())
+        logger.debug(config.model_dump())
         logger.debug(Text("Configuration set", style="yellow"))
     except ValidationError:
         logger.exception("Unable to load configuration: ")
         logger.exception("Obtained the following validating Errors loading configuration")
-        ctx.config = None
+        config = None
 
     ctx.obj = {
         "verbose": verbose,
         "dry_run": dry_run,
         "theme": theme,
-        "config": ctx.config,
+        "config": config,
     }
