@@ -85,6 +85,8 @@ check-types: ## Type check code using mypy
 
 type-check: check-types ## Alias for check-types
 
+check: format-check lint check-types ## Run all quality checks (format-check, lint, check-types)
+
 #######################
 #   Documentation     #
 #######################
