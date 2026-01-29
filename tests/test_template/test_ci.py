@@ -1,7 +1,6 @@
 """Integration tests for running CI commands on instantiated templates."""
 
-import pytest
-from repoman.utils.ci_runner import run_make_command
+from tests.ci_runner import run_make_command
 
 
 def test_instantiated_template_format_check(setup_template):
