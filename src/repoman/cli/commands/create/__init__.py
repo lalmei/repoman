@@ -1,11 +1,12 @@
 """Create command for generating repositories from templates."""
 
-import json
 import re
 from pathlib import Path
 
 from copier import run_copy
 from copier.errors import CopierError
+from rich.console import Group
+from rich.json import JSON
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
@@ -165,16 +166,21 @@ def create(
     }
 
     if dry_run or ctx.obj.get("dry_run", True):
-        # Pretty print copier options as JSON
-        copier_options_json = json.dumps(copier_options, indent=2, default=str)
+        # Convert Path objects to strings for JSON serialization
+        copier_options_serializable = {
+            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
+        }
 
         console.print(
             Panel(
-                Text(
-                    f"Would create project '{project_name}' in {output_dir_obj}\n"
-                    f"Using template: {template_path_obj}\n\n"
-                    f"Copier options:\n{copier_options_json}",
-                    style="blue",
+                Group(
+                    Text(
+                        f"Would create project '{project_name}' in {output_dir_obj}\n"
+                        f"Using template: {template_path_obj}\n",
+                        style="blue",
+                    ),
+                    Text("Copier options:", style="blue"),
+                    JSON.from_data(copier_options_serializable, indent=2),
                 ),
                 title="Dry Run",
                 border_style="blue",
@@ -208,16 +214,21 @@ def create(
             f"  {i + 1}. {step}" for i, step in enumerate(next_steps)
         )
 
-        # Pretty print copier options as JSON
-        copier_options_json = json.dumps(copier_options, indent=2, default=str)
+        # Convert Path objects to strings for JSON serialization
+        copier_options_serializable = {
+            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
+        }
 
         console.print(
             Panel(
-                Text(
-                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\n"
-                    f"Copier options used:\n{copier_options_json}\n\n"
-                    f"Next steps:\n{steps_text}",
-                    style="green",
+                Group(
+                    Text(
+                        f"Project '{project_name}' created successfully in {output_dir_obj}\n",
+                        style="green",
+                    ),
+                    Text("Copier options used:", style="green"),
+                    JSON.from_data(copier_options_serializable, indent=2),
+                    Text(f"\nNext steps:\n{steps_text}", style="green"),
                 ),
                 title="Success",
                 border_style="green",
