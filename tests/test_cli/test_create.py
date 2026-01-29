@@ -12,7 +12,6 @@ console = Console()
 
 def test_parse_args_second(cli_runner, cli_app) -> None:
     """Test verbose create mode with enhanced argument validation."""
-
     verbose_check = re.compile(r"\w* (INFO     Setting verbose mode ON)")
     result = cli_runner.invoke(
         cli_app,

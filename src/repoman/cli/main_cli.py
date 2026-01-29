@@ -59,7 +59,7 @@ def _version_callback(value: bool) -> None:
         console.print(
             version_info(),
         )
-        raise Exit(1)
+        raise Exit(0)
 
 
 def _debug_info_callback(value: bool) -> None:
@@ -73,7 +73,7 @@ def _debug_info_callback(value: bool) -> None:
     if value:
         console = Console(theme=set_theme("dark"))
         debug_info(console)
-        raise Exit(1)
+        raise Exit(0)
 
 
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)

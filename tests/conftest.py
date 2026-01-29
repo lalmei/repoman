@@ -8,20 +8,24 @@ import pytest
 from typer.testing import CliRunner
 
 from repoman import cli
-from repoman.utils.template_testing import cleanup_project_artifacts, instantiate_template
+from tests.template_testing import cleanup_project_artifacts, instantiate_template
 
 
 @pytest.fixture(autouse=True)
 def setup_test_environment():
-    """Set up test environment variables and paths."""
+    """Set up test environment variables, paths, and working directory isolation."""
     # Store original environment variables
     original_env = {}
-    for key in ["_REPOMAN_LOG_LEVEL", "PYTHONPATH"]:
+    for key in ["_REPOMAN_LOG_LEVEL", "PYTHONPATH", "NO_ALBUMENTATIONS_UPDATE"]:
         if key in os.environ:
             original_env[key] = os.environ[key]
 
+    # Store original working directory
+    original_cwd = os.getcwd()
+
     # Set test-specific environment variables
     os.environ["_REPOMAN_LOG_LEVEL"] = "20"  # INFO level for tests
+    os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
 
     # Ensure PYTHONPATH includes the src directory for proper imports
     src_path = str(Path(__file__).parent.parent / "src")
@@ -34,10 +38,13 @@ def setup_test_environment():
 
     yield
 
+    # Restore working directory
+    os.chdir(original_cwd)
+
     # Restore original environment variables
     for key, value in original_env.items():
         os.environ[key] = value
-    for key in ["_REPOMAN_LOG_LEVEL", "PYTHONPATH"]:
+    for key in ["_REPOMAN_LOG_LEVEL", "PYTHONPATH", "NO_ALBUMENTATIONS_UPDATE"]:
         if key not in original_env and key in os.environ:
             del os.environ[key]
 
@@ -107,7 +114,6 @@ def pytest_collection_modifyitems(config, items):
 def pytest_unconfigure(config):
     """Clean up after all tests are complete."""
     # Clean up any global resources here
-    pass
 
 
 @pytest.fixture(scope="session")
@@ -245,27 +251,7 @@ def test_workspace(tmp_path):
     (workspace / "templates").mkdir()
     (workspace / "output").mkdir()
 
-    yield workspace
-
-    # Cleanup is handled by pytest's tmp_path fixture
-
-
-@pytest.fixture
-def isolated_test_dir(tmp_path):
-    """Provide an isolated test directory that's automatically cleaned up."""
-    test_dir = tmp_path / f"isolated_test_{os.getpid()}_{id(tmp_path)}"
-    test_dir.mkdir()
-
-    # Store original working directory
-    original_cwd = os.getcwd()
-
-    # Change to test directory for isolation
-    os.chdir(test_dir)
-
-    yield test_dir
-
-    # Change back to original directory
-    os.chdir(original_cwd)
+    return workspace
 
     # Cleanup is handled by pytest's tmp_path fixture
 
@@ -319,18 +305,6 @@ def mock_rich_console(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def isolate_test_environment():
-    """Ensure each test runs in an isolated environment."""
-    # Store original working directory
-    original_cwd = os.getcwd()
-
-    yield
-
-    # Restore working directory
-    os.chdir(original_cwd)
-
-
-@pytest.fixture(autouse=True)
 def cleanup_loggers():
     """Clean up logger state between tests to prevent interference."""
     # Store original root logger state
@@ -367,6 +341,47 @@ def cleanup_loggers():
         logging.root.addHandler(handler)
 
 
+def _create_template_instance(tmp_path_base, project_name, run_setup=False):
+    """Helper to create template instance with optional setup.
+
+    Args:
+        tmp_path_base: Base temporary directory path (from tmp_path or tmp_path_factory)
+        project_name: Name of the project to create
+        run_setup: If True, run 'make setup' after instantiation
+
+    Returns:
+        Path to the instantiated project directory
+
+    Raises:
+        pytest.fail: If setup fails when run_setup=True
+    """
+    instantiated_path = None
+    try:
+        # Instantiate template
+        instantiated_path = instantiate_template(
+            output_dir=tmp_path_base,
+            project_name=project_name,
+            force=True,
+        )
+
+        # Optionally run make setup
+        if run_setup:
+            from tests.ci_runner import run_make_command
+
+            result = run_make_command(instantiated_path, "setup")
+            if result.returncode != 0:
+                pytest.fail(
+                    f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+                )
+
+        return instantiated_path
+    except Exception:
+        # Cleanup on error
+        if instantiated_path is not None:
+            cleanup_project_artifacts(instantiated_path)
+        raise
+
+
 @pytest.fixture
 def instantiated_template(tmp_path):
     """Instantiate the main template in a temporary directory.
@@ -383,17 +398,10 @@ def instantiated_template(tmp_path):
             # instantiated_template is a Path to the project directory
             assert (instantiated_template / "pyproject.toml").exists()
     """
-    project_dir = tmp_path / "test-project"
     instantiated_path = None
 
     try:
-        # Instantiate template
-        instantiated_path = instantiate_template(
-            output_dir=tmp_path,
-            project_name="test-project",
-            force=True,
-        )
-
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
         yield instantiated_path
 
     finally:
@@ -421,26 +429,12 @@ def setup_template(tmp_path_factory):
             # Now run other CI commands
             pass
     """
-    from repoman.utils.ci_runner import run_make_command
-
     # Create a module-scoped temporary directory
     tmp_path = tmp_path_factory.mktemp("template-ci-module")
-    project_dir = tmp_path / "test-project"
     instantiated_path = None
 
     try:
-        # Instantiate template
-        instantiated_path = instantiate_template(
-            output_dir=tmp_path,
-            project_name="test-project",
-            force=True,
-        )
-
-        # Run make setup
-        result = run_make_command(instantiated_path, "setup")
-        if result.returncode != 0:
-            pytest.fail(f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
-
+        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
         yield instantiated_path
 
     finally:

@@ -3,10 +3,27 @@
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import yaml  # noqa: TID251
+import yaml
 from rich.console import Console
 
 console = Console()
+
+
+def _create_test_project_structure(tmp_path: Path, package_name: str = "test_package") -> tuple[Path, Path]:
+    """Create standard test project directory structure.
+
+    Args:
+        tmp_path: Base temporary directory
+        package_name: Python package name
+
+    Returns:
+        Tuple of (commands_dir, tests_dir)
+    """
+    commands_dir = tmp_path / "src" / package_name / "cli" / "commands"
+    tests_dir = tmp_path / "tests" / "test_cli"
+    commands_dir.mkdir(parents=True)
+    tests_dir.mkdir(parents=True)
+    return commands_dir, tests_dir
 
 
 def test_generator_command_help(cli_runner, cli_app) -> None:
@@ -198,8 +215,7 @@ def test_generator_add_valid_command_name_validation(cli_runner, cli_app, tmp_pa
     )
 
     # Create mock project structure
-    (tmp_path / "src" / "test_package" / "cli" / "commands").mkdir(parents=True)
-    (tmp_path / "tests" / "test_cli").mkdir(parents=True)
+    _create_test_project_structure(tmp_path)
 
     # Mock the template directory and file operations
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
@@ -280,8 +296,7 @@ def test_generator_add_dry_run(cli_runner, cli_app, tmp_path: Path) -> None:
     )
 
     # Create mock project structure
-    (tmp_path / "src" / "test_package" / "cli" / "commands").mkdir(parents=True)
-    (tmp_path / "tests" / "test_cli").mkdir(parents=True)
+    _create_test_project_structure(tmp_path)
 
     # Mock template directory existence
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
@@ -347,7 +362,7 @@ def test_generator_add_missing_answers_file(cli_runner, cli_app, tmp_path: Path)
     """
     # Don't create the answers file
     # Create mock project structure (but answers file missing)
-    (tmp_path / "src" / "test_package" / "cli" / "commands").mkdir(parents=True)
+    _create_test_project_structure(tmp_path)
 
     result = cli_runner.invoke(
         cli_app,

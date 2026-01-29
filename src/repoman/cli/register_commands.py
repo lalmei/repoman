@@ -12,7 +12,7 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
     Scans all subdirectories in the commands directory and registers any that have an 'app'
     attribute defined in their __init__.py file.
     """
-    console, logger = get_logger_console()
+    logger, console = get_logger_console()
 
     # Get the cli directory path
     if path is None:
@@ -42,7 +42,7 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
                 continue
 
             # Get the app from the module
-            sub_command = getattr(module, "app")
+            sub_command = module.app
 
             if module_name in registered_commands:
                 logger.warning(

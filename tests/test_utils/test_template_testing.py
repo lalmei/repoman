@@ -120,52 +120,38 @@ def test_instantiate_template_invalid_path(tmp_path):
 def test_cleanup_project_artifacts_venv(tmp_path):
     """Test that cleanup_project_artifacts removes .venv directory."""
     project_dir = tmp_path / "test-project"
-    project_dir.mkdir()
-    venv_dir = project_dir / ".venv"
-    venv_dir.mkdir()
-    (venv_dir / "bin").mkdir()
+    artifacts = _create_test_artifacts(project_dir, ["venv"])
 
     cleanup_project_artifacts(project_dir)
 
-    assert not venv_dir.exists()
+    assert not artifacts["venv"].exists()
 
 
 def test_cleanup_project_artifacts_build_dirs(tmp_path):
     """Test that cleanup_project_artifacts removes build directories."""
     project_dir = tmp_path / "test-project"
-    project_dir.mkdir()
-    (project_dir / "dist").mkdir()
-    (project_dir / "build").mkdir()
-    (project_dir / "site").mkdir()
-    (project_dir / "test_project.egg-info").mkdir()
+    artifacts = _create_test_artifacts(project_dir, ["build", "egg_info"])
 
     cleanup_project_artifacts(project_dir)
 
-    assert not (project_dir / "dist").exists()
-    assert not (project_dir / "build").exists()
-    assert not (project_dir / "site").exists()
-    assert not (project_dir / "test_project.egg-info").exists()
+    assert not artifacts["dist"].exists()
+    assert not artifacts["build"].exists()
+    assert not artifacts["site"].exists()
+    assert not artifacts["egg_info"].exists()
 
 
 def test_cleanup_project_artifacts_cache_dirs(tmp_path):
     """Test that cleanup_project_artifacts removes cache directories recursively."""
     project_dir = tmp_path / "test-project"
-    project_dir.mkdir()
-    (project_dir / "__pycache__").mkdir()
-    (project_dir / ".pytest_cache").mkdir()
-    (project_dir / ".mypy_cache").mkdir()
-    (project_dir / "src").mkdir()
-    (project_dir / "src" / "__pycache__").mkdir()
-    (project_dir / "tests").mkdir()
-    (project_dir / "tests" / "__pycache__").mkdir()
+    artifacts = _create_test_artifacts(project_dir, ["cache"])
 
     cleanup_project_artifacts(project_dir)
 
-    assert not (project_dir / "__pycache__").exists()
-    assert not (project_dir / ".pytest_cache").exists()
-    assert not (project_dir / ".mypy_cache").exists()
-    assert not (project_dir / "src" / "__pycache__").exists()
-    assert not (project_dir / "tests" / "__pycache__").exists()
+    assert not artifacts["__pycache__"].exists()
+    assert not artifacts[".pytest_cache"].exists()
+    assert not artifacts[".mypy_cache"].exists()
+    assert not artifacts["src/__pycache__"].exists()
+    assert not artifacts["tests/__pycache__"].exists()
 
 
 def test_cleanup_project_artifacts_nonexistent_dir(tmp_path):
@@ -179,34 +165,21 @@ def test_cleanup_project_artifacts_nonexistent_dir(tmp_path):
 def test_cleanup_project_artifacts_comprehensive(tmp_path):
     """Test comprehensive cleanup of all artifact types."""
     project_dir = tmp_path / "test-project"
-    project_dir.mkdir()
-
-    # Create all types of artifacts
-    (project_dir / ".venv").mkdir()
-    (project_dir / "dist").mkdir()
-    (project_dir / "build").mkdir()
-    (project_dir / "test_project.egg-info").mkdir()
-    (project_dir / "__pycache__").mkdir()
-    (project_dir / ".pytest_cache").mkdir()
-    (project_dir / ".mypy_cache").mkdir()
-    (project_dir / ".ipynb_checkpoints").mkdir()
-    (project_dir / "site").mkdir()
-    (project_dir / "src").mkdir()
-    (project_dir / "src" / "__pycache__").mkdir()
+    artifacts = _create_test_artifacts(project_dir)
 
     cleanup_project_artifacts(project_dir)
 
     # Verify all artifacts are removed
-    assert not (project_dir / ".venv").exists()
-    assert not (project_dir / "dist").exists()
-    assert not (project_dir / "build").exists()
-    assert not (project_dir / "test_project.egg-info").exists()
-    assert not (project_dir / "__pycache__").exists()
-    assert not (project_dir / ".pytest_cache").exists()
-    assert not (project_dir / ".mypy_cache").exists()
-    assert not (project_dir / ".ipynb_checkpoints").exists()
-    assert not (project_dir / "site").exists()
-    assert not (project_dir / "src" / "__pycache__").exists()
+    assert not artifacts["venv"].exists()
+    assert not artifacts["dist"].exists()
+    assert not artifacts["build"].exists()
+    assert not artifacts["egg_info"].exists()
+    assert not artifacts["__pycache__"].exists()
+    assert not artifacts[".pytest_cache"].exists()
+    assert not artifacts[".mypy_cache"].exists()
+    assert not artifacts[".ipynb_checkpoints"].exists()
+    assert not artifacts["site"].exists()
+    assert not artifacts["src/__pycache__"].exists()
 
     # Verify non-artifact directories still exist
     assert (project_dir / "src").exists()

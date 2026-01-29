@@ -87,7 +87,6 @@ def create_project(
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
 ) -> None:
     """Create a new Python project using the repoman template."""
-
     logger, console = get_logger_console()
 
     # Validate project name for security

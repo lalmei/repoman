@@ -1,6 +1,5 @@
 """Test configuration for utility modules."""
 
-import os
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock
@@ -84,26 +83,3 @@ def mock_config():
     config = Mock()
     config.log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     return config
-
-
-@pytest.fixture(autouse=True)
-def setup_test_environment():
-    """Set up test environment variables."""
-    # Store original environment variables
-    original_env = {}
-    for key in ["NO_ALBUMENTATIONS_UPDATE"]:
-        if key in os.environ:
-            original_env[key] = os.environ[key]
-
-    # Set test-specific environment variables
-    # Note: _REPOMAN_LOG_LEVEL is set by main conftest.py, don't override it
-    os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
-
-    yield
-
-    # Restore original environment variables
-    for key, value in original_env.items():
-        os.environ[key] = value
-    for key in ["NO_ALBUMENTATIONS_UPDATE"]:
-        if key not in original_env and key in os.environ:
-            del os.environ[key]
