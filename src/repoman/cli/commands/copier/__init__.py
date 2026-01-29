@@ -103,21 +103,24 @@ def create_project(
         raise Exit(1) from None
 
     # Determine template path
+    template_path_obj: Path
     if template_path is None:
         # Use the main template included with repoman
         current_file = Path(__file__)
-        template_path = current_file.parent.parent / "main_template"
-        logger.info(f"Using main template at {template_path}")
+        template_path_obj = current_file.parent.parent / "main_template"
+        logger.info(f"Using main template at {template_path_obj}")
+    else:
+        template_path_obj = Path(template_path)
 
     # Determine output directory
-    output_dir = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
+    output_dir_obj: Path = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
 
     # Check if output directory exists
-    if output_dir.exists() and not force:
+    if output_dir_obj.exists() and not force:
         console.print(
             Panel(
                 Text(
-                    f"Output directory {output_dir} already exists. Use --force to overwrite.",
+                    f"Output directory {output_dir_obj} already exists. Use --force to overwrite.",
                     style="yellow",
                 ),
                 title="Warning",
@@ -128,8 +131,8 @@ def create_project(
 
     # Prepare copier options
     copier_options = {
-        "src_path": str(template_path),
-        "dst_path": str(output_dir),
+        "src_path": str(template_path_obj),
+        "dst_path": str(output_dir_obj),
         "answers_file": answers_file,
         "overwrite": force,  # Make copier non-interactive by using force flag
         "quiet": True,  # Suppress interactive output
@@ -149,8 +152,8 @@ def create_project(
         console.print(
             Panel(
                 Text(
-                    f"Would create project '{project_name}' in {output_dir}\n"
-                    f"Using template: {template_path}\n"
+                    f"Would create project '{project_name}' in {output_dir_obj}\n"
+                    f"Using template: {template_path_obj}\n"
                     f"Copier options: {copier_options}",
                     style="blue",
                 ),
@@ -170,7 +173,7 @@ def create_project(
             task = progress.add_task("Creating project...", total=None)
 
             # Run copier
-            run_copy(**copier_options)
+            run_copy(**copier_options)  # type: ignore[arg-type]  # copier accepts dict with mixed types
 
             progress.update(task, description="Project created successfully!")
 
@@ -178,9 +181,9 @@ def create_project(
         console.print(
             Panel(
                 Text(
-                    f"Project '{project_name}' created successfully in {output_dir}\n\n"
+                    f"Project '{project_name}' created successfully in {output_dir_obj}\n\n"
                     f"Next steps:\n"
-                    f"  cd {output_dir}\n"
+                    f"  cd {output_dir_obj}\n"
                     f"  # Review and customize the generated project\n"
                     f"  # Initialize git repository\n"
                     f"  # Start developing!",

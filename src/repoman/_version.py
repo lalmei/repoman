@@ -140,7 +140,7 @@ def get_debug_info() -> Environment:
     )
 
 
-def debug_info(console: Console = None) -> None:
+def debug_info(console: Console | None = None) -> None:
     """Return debug information."""
     if not console:
         console = Console(theme=set_theme())
