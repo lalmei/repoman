@@ -3,6 +3,7 @@
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import jinja2
 import yaml
 from rich.console import Console
 from typer import Typer
