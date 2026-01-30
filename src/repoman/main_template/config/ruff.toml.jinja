@@ -70,6 +70,10 @@ ignore = [
     "PLR2004",  # Magic value used in comparison
     "S101",  # Use of assert detected
 ]
+"src/**/app/**/*.py" = [
+    "FBT001",  # Boolean positional (aiohttp API uses raise_for_status)
+    "FBT002",  # Boolean default positional
+]
 
 [lint.flake8-quotes]
 docstring-quotes = "double"

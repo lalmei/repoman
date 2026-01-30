@@ -359,7 +359,7 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
             force=True,
         )
 
-        # Optionally run make setup
+        # Optionally run make setup, then format and fix so generated code passes format-check and lint
         if run_setup:
             from tests.ci_runner import (  # noqa: PLC0415 - Conditional import to avoid circular dependency
                 run_make_command,
@@ -370,6 +370,13 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
                 pytest.fail(
                     f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
                 )
+            # Format and fix so template output passes format-check and lint tests
+            for cmd in ("format", "fix"):
+                res = run_make_command(instantiated_path, cmd)
+                if res.returncode != 0:
+                    pytest.fail(
+                        f"make {cmd} failed:\nCommand: {res.command}\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
+                    )
     except Exception:
         # Cleanup on error
         if instantiated_path is not None:
