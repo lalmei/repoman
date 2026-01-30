@@ -33,11 +33,14 @@ classifiers = [
 ]
 dependencies = [
     "catppuccin>=2.3.4",
-    "fastapi>=0.115.6",
     "pydantic-settings>=2.7.1",
     "rich>=13.9.4",
     "pydantic>=2.10.5",
     "typer>=0.12.5",
+    {%- if fastapi_enabled %}
+    "aiohttp>=3.9.0",
+    "fastapi>=0.115.6",
+    {%- endif %}
 ]
 
 [project.urls]

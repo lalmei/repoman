@@ -1,0 +1,38 @@
+{% if fastapi_enabled %}"""Application configuration - root APIRouter.
+
+Defines all FastAPI application endpoints.
+
+Resources:
+    1. https://fastapi.tiangolo.com/tutorial/bigger-applications
+
+"""
+
+from fastapi import APIRouter
+{% if include_health_endpoints %}
+from {{python_package_import_name}}.app.controllers import health_check, ready
+{% endif %}
+from {{python_package_import_name}}.config import Config
+
+
+def _get_root_api_router() -> APIRouter:
+    """Build root API router with prefix from config.
+
+    Controllers are included here so the prefix is applied once.
+    """
+    config = Config()
+    prefix = config.fastapi_config.api_prefix
+    router = APIRouter(prefix=prefix)
+{% if include_health_endpoints %}
+    router.include_router(ready.router, tags=["ready"])
+    router.include_router(health_check.router, tags=["health check"])
+{% endif %}
+    return router
+
+
+# Module-level router built with default config (for app assembly)
+root_api_router = _get_root_api_router()
+{% else %}
+# FastAPI disabled - stub
+root_api_router = None
+{% endif %}
+

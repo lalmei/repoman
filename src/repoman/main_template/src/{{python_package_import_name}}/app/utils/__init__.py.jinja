@@ -1,0 +1,9 @@
+{% if fastapi_enabled %}"""Application utilities."""
+
+from {{python_package_import_name}}.app.utils.aiohttp_client import AiohttpClient
+
+__all__: list[str] = ["AiohttpClient"]
+{% else %}
+# FastAPI disabled
+__all__: list[str] = []
+{% endif %}

@@ -1,0 +1,15 @@
+{% if fastapi_enabled %}"""Application controllers."""
+{% if include_health_endpoints %}
+
+from {{python_package_import_name}}.app.controllers import health_check, ready
+
+__all__ = ["health_check", "ready"]
+{% else %}
+
+# Add your controllers here when include_health_endpoints is false.
+__all__: list[str] = []
+{% endif %}
+{% else %}
+# FastAPI disabled
+__all__: list[str] = []
+{% endif %}
