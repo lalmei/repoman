@@ -141,14 +141,22 @@ def test_register_commands_import_error(tmp_path: Path) -> None:
     with patch("repoman.cli.register_commands.importlib.import_module") as mock_import:
         mock_import.side_effect = ImportError("Cannot import module")
 
-        # Mock Path.iterdir to return our test module
-        with patch("pathlib.Path.iterdir") as mock_iterdir:
-            mock_iterdir.return_value = [test_module_dir]
+        # The function uses cli_dir.iterdir() and checks (d / "__init__.py").exists()
+        # We need to ensure Path.exists() works for the __init__.py check
+        original_exists = Path.exists
 
+        def exists_side_effect(self: Path) -> bool:
+            # Make __init__.py exist for our test module
+            if self == test_module_dir / "__init__.py":
+                return True
+            return original_exists(self)
+
+        with patch.object(Path, "exists", exists_side_effect):
             # Should not raise an error, just log a warning and continue
+            # The ImportError will be caught and logged by _register_commands
             _register_commands(app, path=commands_dir)
 
-            # Verify import was attempted
+            # Verify import was attempted (the function tries to import even if it fails)
             mock_import.assert_called()
 
 
