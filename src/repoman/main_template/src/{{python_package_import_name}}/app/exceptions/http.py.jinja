@@ -40,7 +40,7 @@ class HTTPException(Exception):  # noqa: N818
         return f"{self.__class__.__name__}({', '.join(kwargs)})"
 
 
-async def http_exception_handler(request: Request, exception: Exception) -> JSONResponse:
+async def http_exception_handler(_request: Request, exception: Exception) -> JSONResponse:
     """Custom HTTPException handler.
 
     Registered in asgi.py when initializing the FastAPI application.

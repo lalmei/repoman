@@ -13,10 +13,9 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-{% if fastapi_enabled %}
-from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
-{% endif %}
 from {{python_package_import_name}}._version import get_version
+{% if fastapi_enabled %}from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
+{% endif %}
 
 
 class Config(BaseSettings):

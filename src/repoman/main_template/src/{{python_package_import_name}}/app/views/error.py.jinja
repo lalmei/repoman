@@ -46,7 +46,7 @@ class ErrorResponse(BaseModel):
                 details=details,
                 status=status,
                 **kwargs,
-            )
+            ),
         )
 {% else %}
 # FastAPI disabled

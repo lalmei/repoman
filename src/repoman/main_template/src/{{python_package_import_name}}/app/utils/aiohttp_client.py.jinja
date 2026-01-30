@@ -3,11 +3,14 @@
 import asyncio
 import logging
 from socket import AF_INET
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
 from {{python_package_import_name}}.config import Config
+
+if TYPE_CHECKING:
+    from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
 
 
 class AiohttpClient:
@@ -26,7 +29,10 @@ class AiohttpClient:
     log: logging.Logger = logging.getLogger(__name__)
 
     @classmethod
-    def get_aiohttp_client(cls, fastapi_config=None) -> aiohttp.ClientSession:
+    def get_aiohttp_client(
+        cls,
+        fastapi_config: "FastAPIConfig | None" = None,
+    ) -> aiohttp.ClientSession:
         """Create or return existing aiohttp client session.
 
         Args:
@@ -65,18 +71,24 @@ class AiohttpClient:
     async def get(
         cls,
         url: str,
+        *,
         headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP GET request."""
         client = cls.get_aiohttp_client()
         cls.log.debug("Started GET %s", url)
-        return await client.get(url, headers=headers, raise_for_status=raise_for_status)
+        return await client.get(
+            url,
+            headers=headers,
+            raise_for_status=raise_for_status,
+        )
 
     @classmethod
     async def post(
         cls,
         url: str,
+        *,
         data: Any | None = None,
         headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
@@ -85,13 +97,17 @@ class AiohttpClient:
         client = cls.get_aiohttp_client()
         cls.log.debug("Started POST %s", url)
         return await client.post(
-            url, data=data, headers=headers, raise_for_status=raise_for_status
+            url,
+            data=data,
+            headers=headers,
+            raise_for_status=raise_for_status,
         )
 
     @classmethod
     async def put(
         cls,
         url: str,
+        *,
         data: Any | None = None,
         headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
@@ -100,25 +116,34 @@ class AiohttpClient:
         client = cls.get_aiohttp_client()
         cls.log.debug("Started PUT %s", url)
         return await client.put(
-            url, data=data, headers=headers, raise_for_status=raise_for_status
+            url,
+            data=data,
+            headers=headers,
+            raise_for_status=raise_for_status,
         )
 
     @classmethod
     async def delete(
         cls,
         url: str,
+        *,
         headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP DELETE request."""
         client = cls.get_aiohttp_client()
         cls.log.debug("Started DELETE %s", url)
-        return await client.delete(url, headers=headers, raise_for_status=raise_for_status)
+        return await client.delete(
+            url,
+            headers=headers,
+            raise_for_status=raise_for_status,
+        )
 
     @classmethod
     async def patch(
         cls,
         url: str,
+        *,
         data: Any | None = None,
         headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
@@ -127,7 +152,10 @@ class AiohttpClient:
         client = cls.get_aiohttp_client()
         cls.log.debug("Started PATCH %s", url)
         return await client.patch(
-            url, data=data, headers=headers, raise_for_status=raise_for_status
+            url,
+            data=data,
+            headers=headers,
+            raise_for_status=raise_for_status,
         )
 {% else %}
 # FastAPI disabled
