@@ -146,3 +146,39 @@ container_registry:
   help: Container registry URL for Docker images (e.g., Azure Container Registry name or Docker Hub)
   default: "docker.io"
 
+# FastAPI application (when fastapi_enabled)
+fastapi_enabled:
+  type: bool
+  help: Enable FastAPI application structure
+  default: true
+
+fastapi_docs_url:
+  type: str
+  help: FastAPI documentation endpoint path
+  default: "/docs"
+
+fastapi_api_prefix:
+  type: str
+  help: API route prefix for all endpoints
+  default: "/api"
+
+fastapi_debug:
+  type: bool
+  help: Enable FastAPI debug mode
+  default: false
+
+include_health_endpoints:
+  type: bool
+  help: Include health check and ready endpoints
+  default: true
+
+aiohttp_timeout:
+  type: int
+  help: HTTP client timeout in seconds
+  default: 2
+
+aiohttp_pool_size:
+  type: int
+  help: HTTP client connection pool size
+  default: 100
+

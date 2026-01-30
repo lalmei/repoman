@@ -1,0 +1,38 @@
+{% if fastapi_enabled %}"""Error response models."""
+
+from typing import Any, Union
+
+from pydantic import BaseModel
+
+
+class ErrorModel(BaseModel):
+    """Base error model for API error responses.
+
+    Attributes:
+        code: HTTP error status code.
+        message: Detail on HTTP error.
+        details: Optional list of detail dicts.
+        status: Optional HTTP reason-phrase (RFC 7235).
+    """
+
+    code: int
+    message: str
+    details: list[dict[str, Any]] | None = None
+    status: str | None = None
+
+
+class ErrorResponse(BaseModel):
+    """Error response model wrapping ErrorModel.
+
+    Attributes:
+        error: ErrorModel instance.
+    """
+
+    error: ErrorModel
+
+    def __init__(self, **kwargs: Union[int, str, list[dict[str, Any]]]) -> None:
+        """Initialize ErrorResponse with kwargs passed to ErrorModel."""
+        super().__init__(error=ErrorModel(**kwargs))
+{% else %}
+# FastAPI disabled
+{% endif %}
