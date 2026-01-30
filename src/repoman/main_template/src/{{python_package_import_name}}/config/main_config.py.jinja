@@ -13,11 +13,10 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-from {{python_package_import_name}}._version import get_version
 {% if fastapi_enabled %}
-
 from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
 {% endif %}
+from {{python_package_import_name}}._version import get_version
 
 
 class Config(BaseSettings):

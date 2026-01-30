@@ -107,7 +107,7 @@ class AiohttpClient:
     async def delete(
         cls,
         url: str,
-        headers: dict[str, AnyStr] | None = None,
+        headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP DELETE request."""
@@ -120,7 +120,7 @@ class AiohttpClient:
         cls,
         url: str,
         data: Any | None = None,
-        headers: dict[str, AnyStr] | None = None,
+        headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP PATCH request."""
