@@ -1,5 +1,8 @@
 """Tests for dynamic command registration."""
 
+from pathlib import Path
+from unittest.mock import Mock, patch
+
 from typer import Typer
 from typer.testing import CliRunner
 
