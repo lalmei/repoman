@@ -11,8 +11,6 @@ from pathlib import Path
 
 from repoman.utils.logging import get_logger_console
 
-logger, console = get_logger_console(__name__)
-
 
 @dataclass
 class CommandResult:
@@ -58,6 +56,7 @@ def run_make_command(
         FileNotFoundError: If make command is not found or uv is not available
         subprocess.TimeoutExpired: If command times out (only if timeout is set)
     """
+    logger, console = get_logger_console(__name__)
     project_dir = Path(project_dir).resolve()
     if not project_dir.exists():
         raise ValueError(f"Project directory does not exist: {project_dir}")
@@ -153,24 +152,28 @@ def run_make_command(
 
             start_time = time.time()
 
+        def _raise_timeout_error() -> None:
+            """Raise TimeoutExpired exception after draining output queues."""
+            process.kill()
+            # Drain queues before raising
+            while not stdout_queue.empty():
+                line = stdout_queue.get()
+                if line is not None:
+                    stdout_lines.append(line)
+            while not stderr_queue.empty():
+                line = stderr_queue.get()
+                if line is not None:
+                    stderr_lines.append(line)
+            stdout = "".join(stdout_lines)
+            stderr = "".join(stderr_lines)
+            raise subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)  # noqa: TRY301 - Exception must be raised here to be caught by outer handler; abstracted to inner function for clarity
+
         while not (stdout_done and stderr_done):
             # Check timeout if specified
             if timeout:
                 elapsed = time.time() - start_time
                 if elapsed >= timeout:
-                    process.kill()
-                    # Drain queues before raising
-                    while not stdout_queue.empty():
-                        line = stdout_queue.get()
-                        if line is not None:
-                            stdout_lines.append(line)
-                    while not stderr_queue.empty():
-                        line = stderr_queue.get()
-                        if line is not None:
-                            stderr_lines.append(line)
-                    stdout = "".join(stdout_lines)
-                    stderr = "".join(stderr_lines)
-                    raise subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)  # noqa: TRY301 - Re-raising with context
+                    _raise_timeout_error()
 
             # Read from stdout queue (non-blocking)
             try:
