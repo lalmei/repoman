@@ -20,8 +20,3 @@ from {{python_package_import_name}}.app.asgi import get_application
 __all__: list[str] = [
     "get_application",
 ]
-{% else %}"\"\"\"Application package (FastAPI disabled).\"\"\"
-
-Enable FastAPI in copier answers to generate the app structure.
-"""
-{% endif %}

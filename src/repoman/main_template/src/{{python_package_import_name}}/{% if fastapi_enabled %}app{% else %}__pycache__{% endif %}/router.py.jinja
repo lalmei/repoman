@@ -31,8 +31,4 @@ def _get_root_api_router() -> APIRouter:
 
 # Module-level router built with default config (for app assembly)
 root_api_router = _get_root_api_router()
-{% else %}
-# FastAPI disabled - stub
-root_api_router = None
-{% endif %}
 

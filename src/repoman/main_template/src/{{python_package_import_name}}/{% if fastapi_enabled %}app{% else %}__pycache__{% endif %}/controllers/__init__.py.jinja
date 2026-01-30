@@ -9,7 +9,3 @@ __all__ = ["health_check", "ready"]
 # Add your controllers here when include_health_endpoints is false.
 __all__: list[str] = []
 {% endif %}
-{% else %}
-# FastAPI disabled
-__all__: list[str] = []
-{% endif %}
