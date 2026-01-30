@@ -1,8 +1,10 @@
 """Integration tests for running CI commands on instantiated templates."""
 
+from pathlib import Path
 from typing import Any
 
 from tests.ci_runner import CommandResult, run_make_command
+from tests.template_testing import instantiate_template
 
 
 def test_instantiated_template_format_check(setup_template: Any) -> None:
