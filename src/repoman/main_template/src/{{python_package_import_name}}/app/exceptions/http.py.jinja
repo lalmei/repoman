@@ -6,7 +6,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
-class HTTPException(Exception):
+class HTTPException(Exception):  # noqa: N818
     """Custom HTTPException class.
 
     This exception combined with exception_handler allows you to use it
@@ -40,7 +40,7 @@ class HTTPException(Exception):
         return f"{self.__class__.__name__}({', '.join(kwargs)})"
 
 
-async def http_exception_handler(request: Request, exception: HTTPException) -> JSONResponse:
+async def http_exception_handler(request: Request, exception: Exception) -> JSONResponse:
     """Custom HTTPException handler.
 
     Registered in asgi.py when initializing the FastAPI application.
@@ -53,6 +53,8 @@ async def http_exception_handler(request: Request, exception: HTTPException) -> 
     Returns:
         JSONResponse with status_code, content, and headers from the exception.
     """
+    if not isinstance(exception, HTTPException):
+        raise exception
     return JSONResponse(
         status_code=exception.status_code,
         content=exception.content,

@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from socket import AF_INET
-from typing import Any, AnyStr
+from typing import Any
 
 import aiohttp
 
@@ -65,7 +65,7 @@ class AiohttpClient:
     async def get(
         cls,
         url: str,
-        headers: dict[str, AnyStr] | None = None,
+        headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP GET request."""
@@ -78,7 +78,7 @@ class AiohttpClient:
         cls,
         url: str,
         data: Any | None = None,
-        headers: dict[str, AnyStr] | None = None,
+        headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP POST request."""
@@ -93,7 +93,7 @@ class AiohttpClient:
         cls,
         url: str,
         data: Any | None = None,
-        headers: dict[str, AnyStr] | None = None,
+        headers: dict[str, str] | None = None,
         raise_for_status: bool = False,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP PUT request."""
