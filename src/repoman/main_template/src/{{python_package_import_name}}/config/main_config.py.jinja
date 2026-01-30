@@ -1,11 +1,15 @@
-import json
-from pathlib import Path
+"""Configuration management for {{python_package_import_name}}."""
 
-from pydantic import Field, field_validator, model_validator
+# Template note: These imports are kept for potential future use in template expansions
+# They may be used conditionally based on template variables or in extended configurations
+import json  # noqa: F401 - Reserved for future JSON config file handling
+from pathlib import Path  # noqa: F401 - Reserved for future path-based config loading
+
+from pydantic import Field, field_validator, model_validator  # noqa: F401 - Reserved for future field validation
 from pydantic_settings import (
     BaseSettings,
-    JsonConfigSettingsSource,
-    PydanticBaseSettingsSource,
+    JsonConfigSettingsSource,  # noqa: F401 - Reserved for future JSON config source
+    PydanticBaseSettingsSource,  # noqa: F401 - Reserved for future custom config sources
     SettingsConfigDict,
 )
 
@@ -16,7 +20,8 @@ class Config(BaseSettings):
     """Configuration class for loading environment variables.
 
     This class uses pydantic and pydantic-settings to define and load environment variables.
-    It supports loading from .env and .env.prod files (lowest to highest priority), and uses field validators for data validation.
+    It supports loading from .env and .env.prod files (lowest to highest priority),
+    and uses field validators for data validation.
     """
 
     schema_version: str = "1.0.0"
@@ -26,8 +31,6 @@ class Config(BaseSettings):
         json_file="ml_config.json",
     )
     # Configurations for the application
-
-
     app_name: str = "{{python_package_import_name}}"
     app_description: str = "{{project_description}}"
     app_author: str = "{{author_fullname}}"
