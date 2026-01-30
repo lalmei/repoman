@@ -241,8 +241,6 @@ class TestEdgeCases:
         result = get_debug_info()
         assert isinstance(result, Environment)
 
-    @patch("sys.implementation")
-    @pytest.mark.usefixtures("_mock_implementation")
     def test_interpreter_name_version_non_final_release(self) -> None:
         """Test _interpreter_name_version with non-final release level.
 
