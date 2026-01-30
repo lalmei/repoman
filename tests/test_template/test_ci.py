@@ -2,12 +2,12 @@
 
 from typing import Any
 
-from tests.ci_runner import run_make_command
+from tests.ci_runner import CommandResult, run_make_command
 
 
 def test_instantiated_template_format_check(setup_template: Any) -> None:
     """Test that make format-check runs successfully in instantiated template."""
-    result = run_make_command(setup_template, "format-check")
+    result: CommandResult = run_make_command(setup_template, "format-check")
 
     # Output is automatically visible in pytest output
     # Also capture it for assertions
@@ -21,7 +21,7 @@ def test_instantiated_template_format_check(setup_template: Any) -> None:
 
 def test_instantiated_template_lint(setup_template: Any) -> None:
     """Test that make lint runs successfully in instantiated template."""
-    result = run_make_command(setup_template, "lint")
+    result: CommandResult = run_make_command(setup_template, "lint")
 
     assert result.returncode == 0, (
         f"lint failed with exit code {result.returncode}\n"
@@ -34,7 +34,7 @@ def test_instantiated_template_lint(setup_template: Any) -> None:
 def test_instantiated_template_type_check(setup_template: Any) -> None:
     """Test that make check-types runs successfully in instantiated template."""
     # Note: Verify exact command name matches template Makefile (may be check-types or type-check)
-    result = run_make_command(setup_template, "check-types")
+    result: CommandResult = run_make_command(setup_template, "check-types")
 
     assert result.returncode == 0, (
         f"type-check failed with exit code {result.returncode}\n"
@@ -46,7 +46,7 @@ def test_instantiated_template_type_check(setup_template: Any) -> None:
 
 def test_instantiated_template_test(setup_template: Any) -> None:
     """Test that make test runs successfully in instantiated template."""
-    result = run_make_command(setup_template, "test")
+    result: CommandResult = run_make_command(setup_template, "test")
 
     assert result.returncode == 0, (
         f"test failed with exit code {result.returncode}\n"

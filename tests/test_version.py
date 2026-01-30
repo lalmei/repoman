@@ -2,6 +2,7 @@
 
 import os
 import sys
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
@@ -239,3 +240,83 @@ class TestEdgeCases:
         # This test verifies the function works normally
         result = get_debug_info()
         assert isinstance(result, Environment)
+
+    def test_interpreter_name_version_non_final_release(self) -> None:
+        """Test _interpreter_name_version with non-final release level.
+
+        This test verifies version formatting for non-final releases (line 73).
+        """
+        # Create a mock implementation with non-final release level
+        mock_version = SimpleNamespace(major=3, minor=12, micro=0)
+        mock_release = SimpleNamespace(releaselevel="alpha", serial=1)
+        mock_version.releaselevel = mock_release.releaselevel
+        mock_version.serial = mock_release.serial
+
+        mock_impl = SimpleNamespace(name="cpython", version=mock_version)
+        mock_impl.version.releaselevel = "alpha"
+        mock_impl.version.serial = 1
+
+        with patch("sys.implementation", mock_impl):
+            name, version = _interpreter_name_version()
+            assert name == "cpython"
+            # For alpha release with serial 1, version should be "3.12.0a1"
+            # (base version + first char of releaselevel + serial)
+            assert version == "3.12.0a1", f"Expected '3.12.0a1', got '{version}'"
+
+    @patch("repoman._version.metadata.distributions")
+    def test_get_debug_info_package_not_found_error(self, mock_distributions: Any) -> None:
+        """Test get_debug_info handles PackageNotFoundError.
+
+        This test verifies PackageNotFoundError handling (line 117, 125-127).
+        """
+        from importlib.metadata import PackageNotFoundError  # noqa: PLC0415
+
+        mock_distributions.side_effect = PackageNotFoundError("Package not found")
+        result = get_debug_info()
+
+        # Should fallback to repoman package
+        assert isinstance(result, Environment)
+        assert len(result.packages) >= 1
+        repoman_packages = [pkg for pkg in result.packages if pkg.name == "repoman"]
+        assert len(repoman_packages) == 1
+
+    @patch("repoman._version.metadata.distributions")
+    def test_get_debug_info_key_error(self, mock_distributions: Any) -> None:
+        """Test get_debug_info handles KeyError.
+
+        This test verifies KeyError handling (lines 125-127).
+        """
+        # Create a mock distribution that raises KeyError
+        mock_dist = type(
+            "MockDist",
+            (),
+            {
+                "metadata": type(
+                    "MockMeta", (), {"get": lambda self, key, default=None: (_ for _ in ()).throw(KeyError("key"))}
+                )()
+            },
+        )()
+        mock_distributions.return_value = [mock_dist]
+
+        result = get_debug_info()
+
+        # Should fallback to repoman package
+        assert isinstance(result, Environment)
+        assert len(result.packages) >= 1
+
+    @patch("repoman._version.metadata.distributions")
+    def test_get_debug_info_attribute_error(self, mock_distributions: Any) -> None:
+        """Test get_debug_info handles AttributeError.
+
+        This test verifies AttributeError handling (lines 125-127).
+        """
+        # Create a mock distribution that raises AttributeError
+        mock_dist = type("MockDist", (), {})()
+        # Accessing metadata will raise AttributeError
+        mock_distributions.return_value = [mock_dist]
+
+        result = get_debug_info()
+
+        # Should fallback to repoman package
+        assert isinstance(result, Environment)
+        assert len(result.packages) >= 1

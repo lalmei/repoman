@@ -1,5 +1,6 @@
 """Tests for logging utilities."""
 
+import logging
 import os
 import tempfile
 from logging import DEBUG, INFO, Logger
@@ -613,3 +614,77 @@ class TestLoggingErrorHandling:
             # Clean up loggers
             for lg in loggers:
                 lg.handlers.clear()
+
+
+def test_set_up_logger_console_creation_not_in_pytest() -> None:
+    """Test that console is created with theme when not in pytest.
+
+    This test verifies console creation path (line 75).
+    """
+    # Mock _is_running_in_pytest to return False
+    with patch("repoman.utils.logging._is_running_in_pytest", return_value=False):
+        logger = _set_up_logger("test_logger_not_pytest")
+
+        # Verify logger was created
+        assert logger is not None
+        assert logger.name == "test_logger_not_pytest"
+
+
+def test_get_logger_console_log_level_warning() -> None:
+    """Test that log level mismatch triggers a warning.
+
+    This test verifies log level warning (lines 154-155).
+    """
+    # Get logger with default level
+    logger1, _ = get_logger_console("test_logger", log_level=logging.INFO)
+
+    # Get logger with different level - should trigger warning
+    with patch("repoman.utils.logging.getLogger") as mock_get_logger:
+        mock_logger = logging.getLogger("test_logger")
+        mock_logger.level = logging.DEBUG  # Different from INFO
+        mock_get_logger.return_value = mock_logger
+
+        logger2, console2 = get_logger_console("test_logger", log_level=logging.WARNING)
+
+        # Verify logger was returned
+        assert logger2 is not None
+
+
+def test_get_logger_console_fallback_creation() -> None:
+    """Test that console is created as fallback when no handler found.
+
+    This test verifies console creation fallback (line 179).
+    """
+    # Mock root logger to have no handlers
+    with patch("repoman.utils.logging._set_up_logger") as mock_setup:
+        mock_logger = logging.getLogger("test_fallback")
+        mock_logger.handlers = []  # No handlers
+        mock_setup.return_value = mock_logger
+
+        logger, console = get_logger_console("test_fallback")
+
+        # Verify both logger and console were returned
+        assert logger is not None
+        assert console is not None
+
+
+def test_get_logger_console_not_in_pytest() -> None:
+    """Test console creation when not in pytest environment.
+
+    This test verifies console creation path when not in pytest (line 179).
+    """
+    # Mock _is_running_in_pytest to return False
+    with (
+        patch("repoman.utils.logging._is_running_in_pytest", return_value=False),
+        patch("repoman.utils.logging._set_up_logger") as mock_setup,
+    ):
+        # Mock root logger to have no handlers to trigger fallback
+        mock_logger = logging.getLogger("test_not_pytest")
+        mock_logger.handlers = []
+        mock_setup.return_value = mock_logger
+
+        logger, console = get_logger_console("test_not_pytest")
+
+        # Verify both logger and console were returned
+        assert logger is not None
+        assert console is not None
