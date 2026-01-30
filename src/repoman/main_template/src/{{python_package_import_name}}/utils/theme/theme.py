@@ -1,11 +1,13 @@
 """Theme configuration for Rich terminal output."""
 
+from typing import Any
+
 from catppuccin import PALETTE
-from rich.style import Style
+from rich.style import Style  # noqa: TC002 - Style is used at runtime in dict type annotation, not just type checking
 from rich.theme import Theme
 
 
-def _create_theme(colors: object) -> Theme:
+def _create_theme(colors: Any) -> Theme:
     styles: dict[str, Style | str] = {
         "rosewater": colors.rosewater.hex,
         "flamingo": colors.flamingo.hex,
@@ -35,9 +37,7 @@ def _create_theme(colors: object) -> Theme:
         "crust": colors.crust.hex,
     }
 
-    theme = Theme(styles=styles, inherit=True)
-
-    return theme
+    return Theme(styles=styles, inherit=True)
 
 
 def set_theme(theme_name: str = "dark") -> Theme:
