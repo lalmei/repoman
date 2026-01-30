@@ -79,9 +79,18 @@ def test_config_validation_error(cli_runner: CliRunner, cli_app: Typer) -> None:
 
     # Mock Config to raise ValidationError
     with patch("repoman.cli.main_cli.Config") as mock_config:
-        # Create a ValidationError - Pydantic v2 uses a list of errors and model name
-        error = ValidationError.from_exception_data(
-            "Config", [{"type": "value_error", "loc": ("test_field",), "msg": "Invalid value", "input": None}]
+        # Create a ValidationError directly - Pydantic v2 constructor
+        # Format: ValidationError(errors, model)
+        error = ValidationError(
+            [
+                {
+                    "type": "value_error",
+                    "loc": ("test_field",),
+                    "msg": "Invalid value",
+                    "input": None,
+                }
+            ],
+            "Config",
         )
         mock_config.side_effect = error
 
