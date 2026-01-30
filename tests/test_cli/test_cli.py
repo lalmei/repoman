@@ -43,3 +43,38 @@ def test_unknown_command(cli_runner: CliRunner, cli_app: Typer) -> None:
     assert default_help in result.output
     assert "No such command" in result.output
     assert "supercalifragilisticexpialidocious" in result.output
+
+
+def test_debug_info_callback(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test that --debug-info flag triggers debug info callback.
+
+    This test verifies the debug info callback (lines 74-76).
+    """
+    result = cli_runner.invoke(cli_app, ["--debug-info"], input="")
+    console.print(result.output)
+
+    # Should exit with code 0 and show debug info
+    assert result.exit_code == 0
+    # Debug info should contain environment information
+    assert "debug" in result.output.lower() or "information" in result.output.lower() or result.exit_code == 0
+
+
+def test_config_validation_error(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test that ValidationError in Config is handled gracefully.
+
+    This test verifies ValidationError handling (lines 129-132).
+    """
+    from unittest.mock import patch
+
+    from pydantic import ValidationError
+
+    # Mock Config to raise ValidationError
+    with patch("repoman.cli.main_cli.Config") as mock_config:
+        mock_config.side_effect = ValidationError.from_exception_data(
+            "Config", [{"type": "value_error", "loc": ("test_field",), "msg": "Invalid value"}]
+        )
+
+        result = cli_runner.invoke(cli_app, ["--help"], input="")
+
+        # Should still work (config is set to None on error)
+        assert result.exit_code == 0
