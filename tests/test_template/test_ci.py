@@ -58,6 +58,31 @@ def test_instantiated_template_test(setup_template: Any) -> None:
     )
 
 
+def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
+    """When fastapi_enabled is false, no app folder is created and CI still passes."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={"fastapi_enabled": False},
+    )
+    src_package = project_dir / "src" / "test_project"
+    assert not (src_package / "app").exists(), "app folder must not exist when fastapi_enabled is false"
+
+    # Setup and format/fix so generated code passes format-check and lint
+    for make_target in ("setup", "format", "fix"):
+        result = run_make_command(project_dir, make_target)
+        assert result.returncode == 0, f"make {make_target} failed: {result.stderr}"
+
+    for make_target in ("format-check", "lint", "check-types"):
+        result = run_make_command(project_dir, make_target)
+        assert result.returncode == 0, (
+            f"make {make_target} failed with exit code {result.returncode}\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+
+
 def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     """Test that cleanup removes all artifacts after CI tests."""
     from tests.template_testing import cleanup_project_artifacts  # noqa: PLC0415

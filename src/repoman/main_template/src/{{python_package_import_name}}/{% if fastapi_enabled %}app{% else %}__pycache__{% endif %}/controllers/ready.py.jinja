@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}{% if include_health_endpoints %}"""Application implementation - Ready controller."""
+{% if include_health_endpoints %}"""Application implementation - Ready controller."""
 
 from fastapi import APIRouter
 
@@ -33,8 +33,4 @@ async def readiness_check() -> ReadyResponse:
 from fastapi import APIRouter
 
 router = APIRouter()
-{% endif %}
-{% else %}
-# FastAPI disabled
-router = None
 {% endif %}

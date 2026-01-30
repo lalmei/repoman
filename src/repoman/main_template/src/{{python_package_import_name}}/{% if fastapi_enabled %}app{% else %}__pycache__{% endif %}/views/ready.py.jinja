@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}"""Ready and health check response models."""
+"""Ready and health check response models."""
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -23,6 +23,3 @@ class HealthCheckResponse(BaseModel):
 
     model_config = ConfigDict()
     healthcheck: str | None = Field(default=None)
-{% else %}
-# FastAPI disabled
-{% endif %}

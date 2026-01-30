@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}"""Application implementation - custom FastAPI HTTP exception with handler."""
+"""Application implementation - custom FastAPI HTTP exception with handler."""
 
 from typing import Any
 
@@ -60,6 +60,3 @@ async def http_exception_handler(_request: Request, exception: Exception) -> JSO
         content=exception.content,
         headers=exception.headers,
     )
-{% else %}
-# FastAPI disabled
-{% endif %}

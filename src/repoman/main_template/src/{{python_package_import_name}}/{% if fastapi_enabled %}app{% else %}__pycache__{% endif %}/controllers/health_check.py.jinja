@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}{% if include_health_endpoints %}"""Application implementation - Health check controller."""
+{% if include_health_endpoints %}"""Application implementation - Health check controller."""
 
 from fastapi import APIRouter
 
@@ -33,8 +33,4 @@ async def healthcheck() -> HealthCheckResponse:
 from fastapi import APIRouter
 
 router = APIRouter()
-{% endif %}
-{% else %}
-# FastAPI disabled
-router = None
 {% endif %}

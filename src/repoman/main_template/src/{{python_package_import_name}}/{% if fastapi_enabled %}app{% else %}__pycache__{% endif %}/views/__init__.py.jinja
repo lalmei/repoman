@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}"""Application implementation - views (response models)."""
+"""Application implementation - views (response models)."""
 
 from {{python_package_import_name}}.app.views.error import ErrorModel, ErrorResponse
 from {{python_package_import_name}}.app.views.ready import HealthCheckResponse, ReadyResponse
@@ -9,7 +9,3 @@ __all__: list[str] = [
     "HealthCheckResponse",
     "ReadyResponse",
 ]
-{% else %}
-# FastAPI disabled
-__all__: list[str] = []
-{% endif %}

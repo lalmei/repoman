@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}"""Aiohttp client class utility."""
+"""Aiohttp client class utility."""
 
 import asyncio
 import logging
@@ -157,6 +157,3 @@ class AiohttpClient:
             headers=headers,
             raise_for_status=raise_for_status,
         )
-{% else %}
-# FastAPI disabled
-{% endif %}
