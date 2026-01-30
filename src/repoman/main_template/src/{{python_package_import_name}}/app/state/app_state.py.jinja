@@ -1,0 +1,12 @@
+{% if fastapi_enabled %}"""Application state placeholder.
+
+Use this module to define state that should live on app.state and be
+initialized in the lifespan context manager in asgi.py.
+
+Example:
+    In asgi.py lifespan:
+        app.state.my_service = MyService(config=config)
+"""
+{% else %}
+# FastAPI disabled
+{% endif %}
