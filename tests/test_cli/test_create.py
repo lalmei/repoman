@@ -135,7 +135,6 @@ def test_create_command_verbose_mode(cli_runner: CliRunner, cli_app: Typer) -> N
     assert result.exit_code == 0
     # Rich Panel output may not be captured, but the output is visible in pytest output
     # Verify command succeeded (exit code 0) - output verification visible in pytest output
-    output_lower = result.output.lower()
     # Check for verbose output if captured, otherwise verify exit code
     assert verbose_check.search(result.output, 0) or "INFO" in result.output or result.exit_code == 0
     # Project name and dry run checks may also not be captured, but exit code 0 confirms success

@@ -313,7 +313,6 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
         input="",
     )
     console.print(result.output)
-    print(f"heeloooo {result.output}")
 
     # Should show dry-run output
     assert result.exit_code == 0
