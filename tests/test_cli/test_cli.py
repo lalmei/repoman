@@ -56,7 +56,16 @@ def test_debug_info_callback(cli_runner: CliRunner, cli_app: Typer) -> None:
     # Should exit with code 0 and show debug info
     assert result.exit_code == 0
     # Debug info should contain environment information
-    assert "debug" in result.output.lower() or "information" in result.output.lower() or result.exit_code == 0
+    # Note: Rich Panel output may not be fully captured in result.output, but if there is output,
+    # it should contain debug-related content. If output is empty, that's acceptable (Rich may
+    # output to stderr/console directly rather than being captured).
+    if result.output:
+        assert (
+            "debug" in result.output.lower()
+            or "information" in result.output.lower()
+            or "interpreter" in result.output.lower()
+            or "platform" in result.output.lower()
+        ), f"Expected debug output keywords not found. Output: {result.output[:200]}"
 
 
 def test_config_validation_error(cli_runner: CliRunner, cli_app: Typer) -> None:
