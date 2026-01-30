@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime, timezone
 from logging import DEBUG, INFO, Formatter, Logger, getLogger
 from logging.handlers import RotatingFileHandler
@@ -10,6 +11,21 @@ from rich.logging import RichHandler
 
 from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.utils.theme.theme import set_theme
+
+
+def _is_running_in_pytest() -> bool:
+    """Check if code is running inside pytest.
+
+    Returns:
+        True if running in pytest, False otherwise
+    """
+    # Check for pytest in sys.modules or environment variable
+    # Also check if we're being imported during pytest collection
+    return (
+        "pytest" in sys.modules
+        or "PYTEST_CURRENT_TEST" in os.environ
+        or any("pytest" in str(arg) for arg in sys.argv if isinstance(arg, str))
+    )
 
 
 def _set_up_logger(
