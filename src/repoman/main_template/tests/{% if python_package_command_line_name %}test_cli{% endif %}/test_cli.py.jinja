@@ -2,17 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
-
-import sys
-from unittest.mock import patch
-
-import pytest
 from typer.testing import CliRunner
 
-from {{ python_package_import_name }} import main
 from {{ python_package_import_name }}.cli import cli
-from {{ python_package_import_name }}._internal import debug
 
 
 def test_main() -> None:
