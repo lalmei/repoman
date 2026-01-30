@@ -353,11 +353,6 @@ class TestGetLoggerConsole:
             # Console should be created in fallback scenario (implementation always creates one)
             assert isinstance(console, Console)
 
-            # Should reach the fallback return statement
-            assert isinstance(logger, Logger)
-            # Console should be None in this mocked scenario
-            assert console is None
-
 
 class TestLoggingIntegration:
     """Test logging integration scenarios."""
