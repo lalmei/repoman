@@ -23,32 +23,22 @@ def test_create_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     assert "PROJECT_NAME" in result.output or "project_name" in result.output
 
 
-def test_create_command_dry_run(
-    sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer
-) -> None:
+def test_create_command_dry_run(sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with dry-run flag."""
     project_name = sample_project_names[0]
 
     # In Typer, options must come before positional arguments
-    result = cli_runner.invoke(
-        cli_app, ["create", "--dry-run", "--force", project_name], input=""
-    )
+    result = cli_runner.invoke(cli_app, ["create", "--dry-run", "--force", project_name], input="")
     console.print(result.output)
 
     assert result.exit_code == 0
     # Rich Panel output may not be captured, but the output is visible in pytest output
     # Verify command succeeded (exit code 0) - output verification visible in pytest output
     output_lower = result.output.lower()
-    assert (
-        "Would create project" in output_lower
-        or "dry run" in output_lower
-        or result.exit_code == 0
-    )
+    assert "Would create project" in output_lower or "dry run" in output_lower or result.exit_code == 0
 
 
-def test_create_command_missing_required_args(
-    cli_runner: CliRunner, cli_app: Typer
-) -> None:
+def test_create_command_missing_required_args(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with missing required arguments."""
     result = cli_runner.invoke(cli_app, ["create"], input="")
     console.print(result.output)
@@ -58,9 +48,7 @@ def test_create_command_missing_required_args(
     assert "Missing argument" in result.output or "PROJECT_NAME" in result.output
 
 
-def test_create_command_invalid_template_path(
-    cli_runner: CliRunner, cli_app: Typer
-) -> None:
+def test_create_command_invalid_template_path(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with invalid template path."""
     project_name = "test-project"
     invalid_template = "/non/existent/template/path"
@@ -86,9 +74,7 @@ def test_create_command_invalid_template_path(
     )
 
 
-def test_create_command_output_directory(
-    tmp_path: Path, cli_runner: CliRunner, cli_app: Typer
-) -> None:
+def test_create_command_output_directory(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with custom output directory."""
     project_name = "test-project"
     custom_output = tmp_path / "output"
@@ -130,11 +116,7 @@ def test_create_command_force_overwrite(
     # Rich Panel output may not be captured, but the output is visible in pytest output
     # Verify command succeeded (exit code 0) - output verification visible in pytest output
     output_lower = result.output.lower()
-    assert (
-        "Would create project" in output_lower
-        or "dry run" in output_lower
-        or result.exit_code == 0
-    )
+    assert "Would create project" in output_lower or "dry run" in output_lower or result.exit_code == 0
 
 
 @pytest.mark.usefixtures("tmp_path")
@@ -154,9 +136,5 @@ def test_create_command_verbose_mode(cli_runner: CliRunner, cli_app: Typer) -> N
     # Verify command succeeded (exit code 0) - output verification visible in pytest output
     output_lower = result.output.lower()
     # Check for verbose output if captured, otherwise verify exit code
-    assert (
-        verbose_check.search(result.output, 0)
-        or "INFO" in result.output
-        or result.exit_code == 0
-    )
+    assert verbose_check.search(result.output, 0) or "INFO" in result.output or result.exit_code == 0
     # Project name and dry run checks may also not be captured, but exit code 0 confirms success
