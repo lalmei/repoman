@@ -1,5 +1,6 @@
 """Tests for logging utilities."""
 
+import logging
 import os
 import tempfile
 from logging import DEBUG, INFO, Logger
@@ -620,10 +621,6 @@ def test_set_up_logger_console_creation_not_in_pytest() -> None:
 
     This test verifies console creation path (line 75).
     """
-    from unittest.mock import patch
-
-    from repoman.utils.logging import _set_up_logger
-
     # Mock _is_running_in_pytest to return False
     with patch("repoman.utils.logging._is_running_in_pytest", return_value=False):
         logger = _set_up_logger("test_logger_not_pytest")
@@ -638,11 +635,6 @@ def test_get_logger_console_log_level_warning() -> None:
 
     This test verifies log level warning (lines 154-155).
     """
-    import logging
-    from unittest.mock import patch
-
-    from repoman.utils.logging import get_logger_console
-
     # Get logger with default level
     logger1, _ = get_logger_console("test_logger", log_level=logging.INFO)
 
@@ -663,11 +655,6 @@ def test_get_logger_console_fallback_creation() -> None:
 
     This test verifies console creation fallback (line 179).
     """
-    import logging
-    from unittest.mock import patch
-
-    from repoman.utils.logging import get_logger_console
-
     # Mock root logger to have no handlers
     with patch("repoman.utils.logging._set_up_logger") as mock_setup:
         mock_logger = logging.getLogger("test_fallback")
@@ -686,22 +673,18 @@ def test_get_logger_console_not_in_pytest() -> None:
 
     This test verifies console creation path when not in pytest (line 179).
     """
-    from unittest.mock import patch
-
-    from repoman.utils.logging import get_logger_console
-
     # Mock _is_running_in_pytest to return False
-    with patch("repoman.utils.logging._is_running_in_pytest", return_value=False):
+    with (
+        patch("repoman.utils.logging._is_running_in_pytest", return_value=False),
+        patch("repoman.utils.logging._set_up_logger") as mock_setup,
+    ):
         # Mock root logger to have no handlers to trigger fallback
-        with patch("repoman.utils.logging._set_up_logger") as mock_setup:
-            import logging
+        mock_logger = logging.getLogger("test_not_pytest")
+        mock_logger.handlers = []
+        mock_setup.return_value = mock_logger
 
-            mock_logger = logging.getLogger("test_not_pytest")
-            mock_logger.handlers = []
-            mock_setup.return_value = mock_logger
+        logger, console = get_logger_console("test_not_pytest")
 
-            logger, console = get_logger_console("test_not_pytest")
-
-            # Verify both logger and console were returned
-            assert logger is not None
-            assert console is not None
+        # Verify both logger and console were returned
+        assert logger is not None
+        assert console is not None

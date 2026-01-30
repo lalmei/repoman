@@ -270,13 +270,11 @@ def test_create_command_output_directory_exists(tmp_path: Path, cli_runner: CliR
         assert "already exists" in result.output.lower() or "force" in result.output.lower()
 
 
-def test_create_command_success_path(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+def test_create_command_success_path(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that create command successfully creates a project.
 
     This test verifies the success path for project creation (lines 198-204).
     """
-    from unittest.mock import patch
-
     project_name = "test-project"
 
     # Mock copier.run_copy to simulate successful project creation
@@ -298,15 +296,11 @@ def test_create_command_success_path(tmp_path: Path, cli_runner: CliRunner, cli_
         mock_run_copy.assert_called_once()
 
 
-def test_create_command_copier_error(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+def test_create_command_copier_error(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that create command handles CopierError gracefully.
 
     This test verifies CopierError handling (lines 221-228).
     """
-    from unittest.mock import patch
-
-    from copier.errors import CopierError
-
     project_name = "test-project"
 
     # Mock copier.run_copy to raise CopierError
@@ -325,13 +319,11 @@ def test_create_command_copier_error(tmp_path: Path, cli_runner: CliRunner, cli_
             assert "error" in result.output.lower() or "copier" in result.output.lower()
 
 
-def test_create_command_os_error(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+def test_create_command_os_error(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that create command handles OSError gracefully.
 
     This test verifies OSError handling (lines 229-238).
     """
-    from unittest.mock import patch
-
     project_name = "test-project"
 
     # Mock copier.run_copy to raise OSError
@@ -350,13 +342,11 @@ def test_create_command_os_error(tmp_path: Path, cli_runner: CliRunner, cli_app:
             assert "error" in result.output.lower() or "unexpected" in result.output.lower()
 
 
-def test_create_command_value_error(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+def test_create_command_value_error(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that create command handles ValueError gracefully.
 
     This test verifies ValueError handling (lines 229-238).
     """
-    from unittest.mock import patch
-
     project_name = "test-project"
 
     # Mock copier.run_copy to raise ValueError
@@ -375,13 +365,11 @@ def test_create_command_value_error(tmp_path: Path, cli_runner: CliRunner, cli_a
             assert "error" in result.output.lower() or "unexpected" in result.output.lower()
 
 
-def test_create_command_runtime_error(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+def test_create_command_runtime_error(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that create command handles RuntimeError gracefully.
 
     This test verifies RuntimeError handling (lines 229-238).
     """
-    from unittest.mock import patch
-
     project_name = "test-project"
 
     # Mock copier.run_copy to raise RuntimeError

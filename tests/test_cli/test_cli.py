@@ -1,5 +1,8 @@
 """Tests for the main CLI application."""
 
+from unittest.mock import patch
+
+from pydantic import BaseModel
 from rich.console import Console
 from typer import Typer
 from typer.testing import CliRunner
@@ -73,20 +76,16 @@ def test_config_validation_error(cli_runner: CliRunner, cli_app: Typer) -> None:
 
     This test verifies ValidationError handling (lines 129-132).
     """
-    from unittest.mock import patch
-
-
     # Mock Config to raise ValidationError
     with patch("repoman.cli.main_cli.Config") as mock_config:
         # Make Config() raise ValidationError when instantiated
         # Create ValidationError by validating invalid data (simplest approach)
-        from pydantic import BaseModel
 
         class TestModel(BaseModel):
             required_field: str
 
         # Create a function that raises ValidationError
-        def raise_validation_error(*args, **kwargs):
+        def raise_validation_error(*_args: object, **_kwargs: object) -> None:
             # This will raise ValidationError because required_field is missing
             TestModel()
 

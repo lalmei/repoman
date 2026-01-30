@@ -2,6 +2,7 @@
 
 import os
 import sys
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
@@ -241,13 +242,12 @@ class TestEdgeCases:
         assert isinstance(result, Environment)
 
     @patch("sys.implementation")
-    def test_interpreter_name_version_non_final_release(self, mock_implementation: Any) -> None:
+    @pytest.mark.usefixtures("_mock_implementation")
+    def test_interpreter_name_version_non_final_release(self) -> None:
         """Test _interpreter_name_version with non-final release level.
 
         This test verifies version formatting for non-final releases (line 73).
         """
-        from types import SimpleNamespace
-
         # Create a mock implementation with non-final release level
         mock_version = SimpleNamespace(major=3, minor=12, micro=0)
         mock_release = SimpleNamespace(releaselevel="alpha", serial=1)

@@ -1,9 +1,11 @@
 """Tests for the update command."""
 
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
+from copier.errors import CopierError
 from rich.console import Console
 from typer import Typer
 from typer.testing import CliRunner
@@ -316,8 +318,6 @@ def test_update_command_success_path(tmp_path: Path, cli_runner: CliRunner, cli_
 
     This test verifies the success path for project update (lines 190-225).
     """
-    from unittest.mock import MagicMock, patch
-
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
@@ -355,10 +355,6 @@ def test_update_command_copier_error(tmp_path: Path, cli_runner: CliRunner, cli_
 
     This test verifies CopierError handling (lines 227-235).
     """
-    from unittest.mock import MagicMock, patch
-
-    from copier.errors import CopierError
-
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
@@ -393,8 +389,6 @@ def test_update_command_os_error(tmp_path: Path, cli_runner: CliRunner, cli_app:
 
     This test verifies OSError handling (lines 236-245).
     """
-    from unittest.mock import MagicMock, patch
-
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
@@ -429,8 +423,6 @@ def test_update_command_value_error(tmp_path: Path, cli_runner: CliRunner, cli_a
 
     This test verifies ValueError handling (lines 236-245).
     """
-    from unittest.mock import MagicMock, patch
-
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
@@ -465,8 +457,6 @@ def test_update_command_runtime_error(tmp_path: Path, cli_runner: CliRunner, cli
 
     This test verifies RuntimeError handling (lines 236-245).
     """
-    from unittest.mock import MagicMock, patch
-
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 

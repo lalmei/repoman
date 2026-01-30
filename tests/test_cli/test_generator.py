@@ -698,8 +698,6 @@ def test_generator_add_template_not_found(cli_runner: CliRunner, cli_app: Typer,
 
     # Mock Path.exists to return False for template directory
     # Path.exists is an instance method, so we need to patch it on instances
-    original_exists = Path.exists
-
     def exists_side_effect(self: Path) -> bool:
         path_str = str(self)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
@@ -735,36 +733,34 @@ def test_generator_add_template_rendering_error(cli_runner: CliRunner, cli_app: 
 
     _create_test_project_structure(tmp_path)
 
-    original_exists = Path.exists
-
     def exists_side_effect(self: Path) -> bool:
         path_str = str(self)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
         return self == answers_file or "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
 
-    with patch.object(Path, "exists", exists_side_effect):
+    with (
+        patch.object(Path, "exists", exists_side_effect),
+        patch("repoman.cli.commands.generator.add.Environment") as mock_env,
+    ):
         # Mock template rendering to raise an error
-        with patch("repoman.cli.commands.generator.add.Environment") as mock_env:
-            import jinja2
+        mock_env_instance = Mock()
+        mock_env_instance.get_template.side_effect = jinja2.TemplateNotFound("template not found")
+        mock_env.return_value = mock_env_instance
 
-            mock_env_instance = Mock()
-            mock_env_instance.get_template.side_effect = jinja2.TemplateNotFound("template not found")
-            mock_env.return_value = mock_env_instance
-
-            result = cli_runner.invoke(
-                cli_app,
-                ["generator", "add", "--project-dir", str(tmp_path), "testcommand"],
-                input="",
+        result = cli_runner.invoke(
+            cli_app,
+            ["generator", "add", "--project-dir", str(tmp_path), "testcommand"],
+            input="",
+        )
+        assert result.exit_code == 1
+        # Rich Panel output may not be captured
+        if result.output:
+            assert (
+                "template" in result.output.lower()
+                or "error" in result.output.lower()
+                or "rendering" in result.output.lower()
             )
-            assert result.exit_code == 1
-            # Rich Panel output may not be captured
-            if result.output:
-                assert (
-                    "template" in result.output.lower()
-                    or "error" in result.output.lower()
-                    or "rendering" in result.output.lower()
-                )
 
 
 def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
@@ -788,8 +784,6 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
     template_base = Path(__file__).parent.parent.parent / "src" / "repoman" / "extentions" / "command_template"
     template_dir = template_base / "{{command_name}}"
 
-    original_exists = Path.exists
-
     def exists_side_effect(self: Path) -> bool:
         path_str = str(self)
         # Template directory exists
@@ -809,26 +803,28 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
             return False
         return False
 
-    with patch.object(Path, "exists", exists_side_effect):
+    with (
+        patch.object(Path, "exists", exists_side_effect),
+        patch("repoman.cli.commands.generator.add.Environment") as mock_env,
+    ):
         # Mock template rendering
-        with patch("repoman.cli.commands.generator.add.Environment") as mock_env:
-            mock_template = Mock()
-            mock_template.render.return_value = "# Generated command"
-            mock_env_instance = Mock()
-            mock_env_instance.get_template.return_value = mock_template
-            mock_env.return_value = mock_env_instance
+        mock_template = Mock()
+        mock_template.render.return_value = "# Generated command"
+        mock_env_instance = Mock()
+        mock_env_instance.get_template.return_value = mock_template
+        mock_env.return_value = mock_env_instance
 
-            result = cli_runner.invoke(
-                cli_app,
-                ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
-                input="",
-            )
+        result = cli_runner.invoke(
+            cli_app,
+            ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
+            input="",
+        )
 
-            # Should succeed
-            assert result.exit_code == 0
-            # Rich Panel output may not be captured
-            if result.output:
-                assert "created successfully" in result.output.lower() or "success" in result.output.lower()
+        # Should succeed
+        assert result.exit_code == 0
+        # Rich Panel output may not be captured
+        if result.output:
+            assert "created successfully" in result.output.lower() or "success" in result.output.lower()
 
 
 def test_generator_add_file_creation_permission_error(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
@@ -848,34 +844,34 @@ def test_generator_add_file_creation_permission_error(cli_runner: CliRunner, cli
 
     _create_test_project_structure(tmp_path)
 
-    original_exists = Path.exists
-
     def exists_side_effect(self: Path) -> bool:
         path_str = str(self)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
         return self == answers_file or "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
 
-    with patch.object(Path, "exists", exists_side_effect):
+    with (
+        patch.object(Path, "exists", exists_side_effect),
+        patch("repoman.cli.commands.generator.add.Environment") as mock_env,
+        patch("pathlib.Path.write_text") as mock_write,
+    ):
         # Mock template rendering
-        with patch("repoman.cli.commands.generator.add.Environment") as mock_env:
-            mock_template = Mock()
-            mock_template.render.return_value = "# Generated command"
-            mock_env_instance = Mock()
-            mock_env_instance.get_template.return_value = mock_template
-            mock_env.return_value = mock_env_instance
+        mock_template = Mock()
+        mock_template.render.return_value = "# Generated command"
+        mock_env_instance = Mock()
+        mock_env_instance.get_template.return_value = mock_template
+        mock_env.return_value = mock_env_instance
 
-            # Mock file write to raise PermissionError
-            with patch("pathlib.Path.write_text") as mock_write:
-                mock_write.side_effect = PermissionError("Permission denied")
+        # Mock file write to raise PermissionError
+        mock_write.side_effect = PermissionError("Permission denied")
 
-                result = cli_runner.invoke(
-                    cli_app,
-                    ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
-                    input="",
-                )
+        result = cli_runner.invoke(
+            cli_app,
+            ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
+            input="",
+        )
 
-                assert result.exit_code == 1
-                # Rich Panel output may not be captured
-                if result.output:
-                    assert "error" in result.output.lower() or "permission" in result.output.lower()
+        assert result.exit_code == 1
+        # Rich Panel output may not be captured
+        if result.output:
+            assert "error" in result.output.lower() or "permission" in result.output.lower()

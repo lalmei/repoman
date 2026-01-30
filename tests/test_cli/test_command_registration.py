@@ -1,10 +1,14 @@
 """Tests for dynamic command registration."""
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 from typer import Typer
 from typer.testing import CliRunner
+
+# Import here to avoid circular imports - used in multiple test functions
+from repoman.cli.register_commands import _register_commands
 
 
 def test_create_command_registered(cli_runner: CliRunner, cli_app: Typer) -> None:
@@ -55,8 +59,6 @@ def test_register_commands_module_without_app(tmp_path: Path) -> None:
 
     This test verifies the behavior when a module doesn't have an 'app' attribute (lines 39-41).
     """
-    from repoman.cli.register_commands import _register_commands
-
     # Create a mock commands directory structure
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
@@ -90,8 +92,6 @@ def test_register_commands_duplicate_name(tmp_path: Path) -> None:
 
     This test verifies duplicate registration handling (lines 47-50).
     """
-    from repoman.cli.register_commands import _register_commands
-
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
     test_module_dir = commands_dir / "test_module"
@@ -113,13 +113,11 @@ def test_register_commands_duplicate_name(tmp_path: Path) -> None:
         with patch("pathlib.Path.iterdir") as mock_iterdir:
             mock_iterdir.return_value = [test_module_dir, test_module_dir]
 
-            # Mock registered_commands set to simulate duplicate detection
-            with patch("repoman.cli.register_commands._register_commands") as mock_register:
-                # Call the actual function but track calls
-                _register_commands(app, path=commands_dir)
+            # Call the actual function
+            _register_commands(app, path=commands_dir)
 
-                # Verify import was attempted
-                assert mock_import.called
+            # Verify import was attempted
+            assert mock_import.called
 
 
 def test_register_commands_import_error(tmp_path: Path) -> None:
@@ -127,8 +125,6 @@ def test_register_commands_import_error(tmp_path: Path) -> None:
 
     This test verifies ImportError handling (lines 56-59).
     """
-    from repoman.cli.register_commands import _register_commands
-
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
     test_module_dir = commands_dir / "test_module"
@@ -165,8 +161,6 @@ def test_register_commands_attribute_error(tmp_path: Path) -> None:
 
     This test verifies AttributeError handling (lines 58-59).
     """
-    from repoman.cli.register_commands import _register_commands
-
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
     test_module_dir = commands_dir / "test_module"
@@ -181,7 +175,7 @@ def test_register_commands_attribute_error(tmp_path: Path) -> None:
         # Make hasattr return True but accessing app raises AttributeError
         type(mock_module).app = property(lambda self: (_ for _ in ()).throw(AttributeError("No app")))
 
-        def hasattr_side_effect(obj, name):
+        def hasattr_side_effect(obj: Any, name: str) -> bool:
             if name == "app":
                 return True
             return hasattr(obj, name)
@@ -205,8 +199,6 @@ def test_register_commands_type_error(tmp_path: Path) -> None:
 
     This test verifies TypeError handling (lines 58-59).
     """
-    from repoman.cli.register_commands import _register_commands
-
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
     test_module_dir = commands_dir / "test_module"
@@ -240,8 +232,6 @@ def test_register_commands_value_error(tmp_path: Path) -> None:
 
     This test verifies ValueError handling (lines 58-59).
     """
-    from repoman.cli.register_commands import _register_commands
-
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
     test_module_dir = commands_dir / "test_module"
