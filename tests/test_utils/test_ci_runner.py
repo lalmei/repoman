@@ -42,7 +42,8 @@ def test_run_make_command_nonzero_exit(tmp_path: Path) -> None:
 
     result = run_make_command(tmp_path, "test-fail")
 
-    assert result.returncode == 1
+    # Make returns exit code 2 when a recipe fails (even if the recipe exits with 1)
+    assert result.returncode == 2
     assert result.command == "make test-fail"
 
 
