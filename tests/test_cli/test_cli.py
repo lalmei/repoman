@@ -16,17 +16,19 @@ def test_version(cli_runner: CliRunner, cli_app: Typer) -> None:
 
 
 def test_parse_args(cli_runner: CliRunner, cli_app: Typer) -> None:
-    """Test verbose mode with enhanced argument validation."""
-    result = cli_runner.invoke(cli_app, ["--verbose"], input="")
-    console.print(result.output)
-
-    # Verbose mode should execute successfully
-    assert result.exit_code == 0
+    """Test verbose mode with enhanced argument validation.
 
     # Rich logs go to stderr (via RichHandler) and are displayed by pytest
     # The formatted output is visible in pytest output but may not be in result.output
     # We verify verbose mode works by checking the command succeeds
     # The actual log output with Rich formatting is visible in pytest's output
+
+    """
+    result = cli_runner.invoke(cli_app, ["--verbose"], input="")
+    console.print(result.output)
+
+    # Verbose mode should execute successfully
+    assert result.exit_code == 0
 
 
 def test_unknown_command(cli_runner: CliRunner, cli_app: Typer) -> None:

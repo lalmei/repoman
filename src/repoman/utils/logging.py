@@ -64,8 +64,9 @@ def _set_up_logger(
         # In pytest, disable Rich formatting to avoid ANSI codes in test assertions
         if _is_running_in_pytest():
             # Use a console that outputs plain text (no colors/formatting)
+            # Write to stdout instead of stderr so CliRunner can capture it
             console = Console(
-                file=sys.stderr,
+                file=sys.stdout,
                 force_terminal=False,
                 legacy_windows=False,
                 no_color=True,
@@ -167,8 +168,9 @@ def get_logger_console(
         # In pytest, disable Rich formatting to avoid ANSI codes in test assertions
         if _is_running_in_pytest():
             # Use a console that outputs plain text (no colors/formatting)
+            # Write to stdout instead of stderr so CliRunner can capture it
             console = Console(
-                file=sys.stderr,
+                file=sys.stdout,
                 force_terminal=False,
                 legacy_windows=False,
                 no_color=True,
