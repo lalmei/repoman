@@ -125,8 +125,13 @@ def instantiate_template(
     }
 
     # Add answers_file to copier options if provided
+    # For run_copy, answers_file specifies where Copier will SAVE the answers file
+    # (we've already loaded the data and passed it via the 'data' parameter)
+    # Copier requires answers_file to be relative to dst_path (project_dir)
     if answers_file is not None:
-        copier_options["answers_file"] = str(Path(answers_file).resolve())
+        # For initial creation, we just tell Copier to save answers in the standard location
+        # The actual data comes from the 'data' parameter we already set
+        copier_options["answers_file"] = ".copier-answers.yml"
 
     try:
         logger.info(f"Instantiating template from {template_path} to {project_dir}")
