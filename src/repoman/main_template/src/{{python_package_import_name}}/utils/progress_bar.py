@@ -2,7 +2,7 @@
 
 import time
 
-from rich.progress import BarColumn, Progress, TextColumn, TimeRemainingColumn
+from rich.progress import BarColumn, Progress, TaskID, TextColumn, TimeRemainingColumn
 
 
 class ProgressBar:
@@ -17,7 +17,7 @@ class ProgressBar:
 
     def __init__(
         self,
-        use_progress_bar: bool = True,
+        use_progress_bar: bool = True,  # noqa: FBT001, FBT002 - Boolean positional args acceptable for class initialization
         update_mode: str = "time",
         target_update_interval: float = 1.0,
     ) -> None:
@@ -30,13 +30,13 @@ class ProgressBar:
         """
         self.use_progress_bar = use_progress_bar
         self.progress: Progress | None = None
-        self.task: int | None = None
+        self.task: TaskID | None = None
         self.update_mode = update_mode
         self.target_update_interval = target_update_interval
         self.last_update_time: float = time.perf_counter()
         self.update_interval: int = 1  # Initial step size
 
-    def __enter__(self) -> "ProgressBar":
+    def __enter__(self) -> "ProgressBar":  # noqa: PYI034 - String literal return type is acceptable for forward references
         """Allows `with ProgressBar(...)` usage."""
         return self
 
@@ -44,7 +44,7 @@ class ProgressBar:
         self,
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
-        traceback: object | None,
+        traceback: object | None,  # noqa: PYI036 - object | None is acceptable for traceback parameter
     ) -> None:
         """Ensures `.stop()` is automatically called in `with` blocks."""
         self.stop()
@@ -91,11 +91,12 @@ class ProgressBar:
             (self.update_mode == "step" and current_batch % self.update_interval == 0)
             or (self.update_mode == "time" and now - self.last_update_time >= self.target_update_interval)
         ):
-            self.progress.update(self.task, completed=current_batch, loss=loss, acc=acc, epoch=epoch)
-            self.progress.refresh()
+            if self.progress is not None and self.task is not None:
+                self.progress.update(self.task, completed=current_batch, loss=loss, acc=acc, epoch=epoch)
+                self.progress.refresh()
             self.last_update_time = now
 
     def stop(self) -> None:
         """Stops the progress bar and finalizes its output."""
-        if self.use_progress_bar:
+        if self.use_progress_bar and self.progress is not None:
             self.progress.stop()

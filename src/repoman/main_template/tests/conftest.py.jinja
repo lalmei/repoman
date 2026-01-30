@@ -25,7 +25,7 @@ def cli_runner() -> CliRunner:
 
 
 @pytest.fixture(scope="session")
-def cli_app() -> typer.Typer:
+def cli_app() -> Typer:
     """Provide the CLI application for testing.
 
     **Scope**: session - shared across all tests for maximum performance

@@ -34,10 +34,11 @@ def _set_up_logger(
     name: str = "{{python_package_import_name}}",
     console: Console | None = None,
     log_level: int | None = None,
+    *,
     use_rotating_file_handler: bool = False,
     log_file_base_path: Path | None = None,
 ) -> Logger:
-    """Setting up the logger"""
+    """Setting up the logger."""
     os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
     if log_level is None:
         log_level = int(os.getenv("_{{project_name.upper()}}_LOG_LEVEL", DEBUG))
@@ -78,11 +79,10 @@ def _set_up_logger(
     rich_handler.set_name("rich")
     module_logger.addHandler(rich_handler)
 
-    if use_rotating_file_handler:
-        if log_file_base_path is not None:
-            current_date = datetime.now(tz=timezone.utc).strftime("%Y_%m_%d")
-            log_file_path = log_file_base_path / f"log_{current_date}.log"
-            os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+    if use_rotating_file_handler and log_file_base_path is not None:
+        current_date = datetime.now(tz=timezone.utc).strftime("%Y_%m_%d")
+        log_file_path = log_file_base_path / f"log_{current_date}.log"
+        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
     module_logger.setLevel(level=log_level)
 
@@ -129,7 +129,7 @@ def get_logger_console(
         tuple[Logger, Console]: _description_
     """
     if log_level is None:
-        log_level = int(os.getenv("_{{project_name}}_LOG_LEVEL", INFO))
+        log_level = int(os.getenv("_{{project_name.upper()}}_LOG_LEVEL", INFO))
     else:
         # Handle string log levels and invalid values gracefully
         try:

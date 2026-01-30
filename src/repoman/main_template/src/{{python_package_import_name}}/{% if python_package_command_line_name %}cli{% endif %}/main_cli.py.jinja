@@ -28,33 +28,28 @@ Dependencies:
 - rich
 """
 
-import importlib
-from pathlib import Path
+import logging  # noqa: I001 - Import order is correct; isort may flag due to template variable substitution
 
-import typer
 from pydantic import ValidationError
 from rich.console import Console
 from rich.text import Text
+from typer import Context, Exit, Option, Typer
 
 from {{python_package_import_name}}._version import debug_info, version_info
+from {{python_package_import_name}}.cli.register import _register_commands
 from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.utils.logging import get_logger_console
 from {{python_package_import_name}}.utils.theme.theme import set_theme
-from {{python_package_import_name}}.cli.register import _register_commands() 
 
 
-cli_app = typer.Typer(
-    add_completion=True,
-    invoke_without_command=True,
-    no_args_is_help=True,
-)
+cli_app = Typer(add_completion=True, invoke_without_command=True, no_args_is_help=True)
 
 
 # Register all commands dynamically
 _register_commands(cli_app)
 
 
-def _version_callback(value: bool) -> None:
+def _version_callback(value: bool) -> None:  # noqa: FBT001 - Typer callbacks require bool positional args
     """Print model version information.
 
     Parameters
@@ -64,13 +59,11 @@ def _version_callback(value: bool) -> None:
     """
     if value:
         console = Console(theme=set_theme("dark"))
-        console.print(
-            version_info(),
-        )
-        raise typer.Exit
+        console.print(version_info())
+        raise Exit(0)
 
 
-def _debug_info_callback(value: bool) -> None:
+def _debug_info_callback(value: bool) -> None:  # noqa: FBT001 - Typer callbacks require bool positional args
     """Print debug information.
 
     Parameters
@@ -81,35 +74,31 @@ def _debug_info_callback(value: bool) -> None:
     if value:
         console = Console(theme=set_theme("dark"))
         debug_info(console)
-        raise typer.Exit
+        raise Exit(0)
 
 
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
-    ctx: typer.Context,
-    dry_run: bool | None = typer.Option(False, "--dry-run", help="Show changes but do not execute them"),
-    verbose: bool | None = typer.Option(False, "--verbose", "-v", help="verbose mode"),
-    version: bool | None = typer.Option(
+    ctx: Context,
+    dry_run: bool | None = Option(False, "--dry-run", help="Show changes but do not execute them"),  # noqa: FBT001, FBT003
+    verbose: bool | None = Option(False, "--verbose", "-v", help="verbose mode"),  # noqa: FBT001, FBT003
+    version: bool | None = Option(  # noqa: ARG001, FBT001 - Handled by callback, Typer requires bool positional
         None,
         "--version",
         help="check model version",
         callback=_version_callback,
         is_eager=True,
     ),
-    debug_info: bool | None = typer.Option(
+    debug_info: bool | None = Option(  # noqa: ARG001, FBT001 - Handled by callback, Typer requires bool positional
         None,
         "--debug-info",
         help="Print debug information",
         callback=_debug_info_callback,
         is_eager=True,
     ),
-    theme: str | None = typer.Option(
-        "dark",
-        "--theme",
-        help="Set the theme, 'light' or 'dark' ",
-    ),
+    theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
 ) -> None:
-    """Welcome to {{project_name}} CLI App
+    r"""Welcome to {{project_name}} CLI App.
 
     \f
 
@@ -125,26 +114,27 @@ def main(
         help="check model version", callback=_version_callback)
 
     """
-    logger, console = get_logger_console()
+    logger, _ = get_logger_console()
 
+    config: Config | None = None
     try:
-        ctx.config = Config()
+        config = Config()
         if verbose:
             logger.setLevel(logging.DEBUG)
             logger.info(Text("Setting verbose mode ON", style="orange"))
         else:
             logger.setLevel(logging.INFO)
 
-        logger.debug(ctx.config.model_dump())
+        logger.debug(config.model_dump())
         logger.debug(Text("Configuration set", style="yellow"))
-    except ValidationError as e:
+    except ValidationError:
         logger.exception("Unable to load configuration: ")
-        logger.error(f"Obtained the following validating Errors loading configuration: {e}\n")
-        ctx.config = None
+        logger.exception("Obtained the following validating Errors loading configuration")
+        config = None
 
     ctx.obj = {
         "verbose": verbose,
         "dry_run": dry_run,
         "theme": theme,
-        "config": ctx.config,
+        "config": config,
     }
