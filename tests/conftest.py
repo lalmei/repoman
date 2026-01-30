@@ -85,10 +85,6 @@ def cli_runner() -> CliRunner:
 def cli_app() -> Any:
     """Provide the CLI application for testing.
 
-    **Scope**: session - shared across all tests for maximum performance
-    **Returns**: Typer app instance for testing CLI commands
-    **Usage**: Use in CLI tests that need to invoke commands
-
     Example:
         def test_cli_command(cli_runner: CliRunner, cli_app: Typer) -> None:
             result = cli_runner.invoke(cli_app, ["command", "arg"])
