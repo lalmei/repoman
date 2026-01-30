@@ -33,6 +33,15 @@ python_distribution_name: test-project
 # Container Configuration
 container_registry: ""
 
+# FastAPI application
+fastapi_enabled: true
+fastapi_docs_url: "/docs"
+fastapi_api_prefix: "/api"
+fastapi_debug: false
+include_health_endpoints: true
+aiohttp_timeout: 2
+aiohttp_pool_size: 100
+
 # Insiders Program (not applicable for tests)
 insiders: false
 public_release: false
