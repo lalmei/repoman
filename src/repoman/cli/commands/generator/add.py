@@ -112,7 +112,7 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
     return commands_dir, tests_dir
 
 
-@app.callback(no_args_is_help=True)
+@app.command()
 def add(
     command_name: str = Argument(..., help="Name of the command to create"),
     project_dir: str | None = Option(

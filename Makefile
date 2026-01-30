@@ -67,7 +67,7 @@ test-function: clean ## Run a specific test function (usage: make test-function 
 		echo "Usage: make test-function TEST=tests/test_cli/test_cli.py::test_version"; \
 		exit 1; \
 	fi
-	uv run pytest -c=config/pytest.ini $(TEST) -xvs --no-cov
+	uv run pytest -c=config/pytest.ini $(TEST)
 
 test-coverage: clean ## Run tests with coverage report
 	uv run pytest -c=config/pytest.ini --cov=src/repoman --cov-report=term-missing --cov-report=html $(test.python)

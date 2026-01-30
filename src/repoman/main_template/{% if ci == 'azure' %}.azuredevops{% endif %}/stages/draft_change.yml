@@ -1,0 +1,50 @@
+
+stages:
+  - stage: Draft_Change 
+    displayName: 'Draft Changes'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    jobs:
+      - job: change_draft
+        displayName: 'Draft Changes'
+        
+        steps:
+          - checkout: self
+            displayName: 'Checkout code'
+            persistCredentials: true
+            allowWrite: true
+          
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.12'
+            displayName: 'Use Python 3.12'
+          
+          - script: |
+              echo "Pipeline triggered after successful merge to $(Build.SourceBranchName)!"
+              echo "Build ID: $(Build.BuildId)"
+              echo "Build Number: $(Build.BuildNumber)"
+              echo "Build Reason: $(Build.Reason)"
+              echo "Requested By: $(Build.RequestedFor)"
+              echo "Repository: $(Build.Repository.Name)"
+              echo "Build Source Branch: $(Build.SourceBranchName)"
+              echo "Commit: $(Build.SourceVersion)"
+              echo "Commit Message: $(Build.SourceVersionMessage)"
+            displayName: 'Display Post Request Information'
+          
+          - script: |
+              python3 scripts/create_release_notes.py "$(Build.SourceVersionMessage)"
+            displayName: 'Create/Update Release Notes'
+            continueOnError: true
+          
+          - bash: |
+              if [ -f RELEASE_NOTES.md ]; then
+                git config user.name "loopr-ml Bot"
+                git config user.email "bot@loopr.ai"
+                git add RELEASE_NOTES.md
+                git diff --cached --quiet || git commit -m "docs: Update release notes [skip ci]"
+                git push origin main
+              fi
+            displayName: 'Commit Release Notes to Repository'
+            condition: and(succeeded(), and(didExecute(), exists('RELEASE_NOTES.md')))
+            continueOnError: true

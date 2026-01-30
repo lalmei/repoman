@@ -11,4 +11,4 @@ app = Typer(
 )
 
 
-app.add_typer(add_app, name="add")
+app.add_typer(add_app)

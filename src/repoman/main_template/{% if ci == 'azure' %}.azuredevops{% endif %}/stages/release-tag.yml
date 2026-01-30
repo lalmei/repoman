@@ -1,0 +1,13 @@
+stages:
+  - stage: ReleaseTag
+    displayName: "Release Tag"
+    condition: always()
+
+    jobs:
+      - job: ReleaseTag
+        displayName: "Release Tag"
+        pool:
+          vmImage: 'ubuntu-22.04'
+
+        steps:
+          - checkout: self

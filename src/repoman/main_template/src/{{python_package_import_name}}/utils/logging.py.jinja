@@ -58,7 +58,18 @@ def _set_up_logger(
                 return module_logger
 
     if not console:
-        console = Console(theme=set_theme("dark"))
+        # In pytest, disable Rich formatting to avoid ANSI codes in test assertions
+        if _is_running_in_pytest():
+            # Use a console that outputs plain text (no colors/formatting)
+            # Write to stdout instead of stderr so CliRunner can capture it
+            console = Console(
+                file=sys.stdout,
+                force_terminal=False,
+                legacy_windows=False,
+                no_color=True,
+            )
+        else:
+            console = Console(theme=set_theme("dark"))
 
     rich_handler = RichHandler(rich_tracebacks=True, console=console)
 
@@ -149,5 +160,20 @@ def get_logger_console(
                 # use console from handler
                 console = rich_handler.console
                 return logger, console
+
+    # If no console was found and none was provided, create a new one
+    if console is None:
+        # In pytest, disable Rich formatting to avoid ANSI codes in test assertions
+        if _is_running_in_pytest():
+            # Use a console that outputs plain text (no colors/formatting)
+            # Write to stdout instead of stderr so CliRunner can capture it
+            console = Console(
+                file=sys.stdout,
+                force_terminal=False,
+                legacy_windows=False,
+                no_color=True,
+            )
+        else:
+            console = Console()
 
     return logger, console
