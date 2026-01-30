@@ -261,7 +261,9 @@ class TestEdgeCases:
         with patch("sys.implementation", mock_impl):
             name, version = _interpreter_name_version()
             assert name == "cpython"
-            assert "a1" in version or "alpha" in version.lower() or version != "3.12.0"
+            # For alpha release with serial 1, version should be "3.12.0a1"
+            # (base version + first char of releaselevel + serial)
+            assert version == "3.12.0a1", f"Expected '3.12.0a1', got '{version}'"
 
     @patch("repoman._version.metadata.distributions")
     def test_get_debug_info_package_not_found_error(self, mock_distributions: Any) -> None:
