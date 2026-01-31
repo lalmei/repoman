@@ -16,12 +16,9 @@ import tempfile
 # Project root is parent of scripts/
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOC_PATH = PROJECT_ROOT / "docs" / "development" / "testing.md"
-MARKER_PATTERN = re.compile(
-    r"^(- \*\*📊 Instantiated template coverage\*\*: )"
-    r"(\d+(?:\.\d+)?)(% \(update with.*?\)) "
-    r"(<!-- instantiated-template-coverage: )(\d+(?:\.\d+)?)(% -->)$",
-    re.MULTILINE,
-)
+# Match a line that contains the marker; replace both percentage values on that line
+MARKER_LINE = "instantiated-template-coverage:"
+PERCENT_PATTERN = re.compile(r"\d+(?:\.\d+)?%")
 
 
 def main() -> int:
@@ -62,18 +59,20 @@ def main() -> int:
         return 1
 
     text = DOC_PATH.read_text()
-    new_value = f"{pct:.2f}"
-
-    def replacer(match: re.Match[str]) -> str:
-        prefix, _old1, middle, comment_prefix, _old2, comment_suffix = match.groups()
-        return f"{prefix}{new_value}{middle} {comment_prefix}{new_value}{comment_suffix}"
-
-    new_text = MARKER_PATTERN.sub(replacer, text)
-    if new_text == text:
+    new_value = f"{pct:.2f}%"
+    lines = text.splitlines()
+    updated = False
+    for i, line in enumerate(lines):
+        if MARKER_LINE in line:
+            new_line = PERCENT_PATTERN.sub(new_value, line)
+            if new_line != line:
+                lines[i] = new_line
+                updated = True
+            break
+    if not updated:
         print("error: could not find instantiated-template-coverage line in", DOC_PATH, file=sys.stderr)
         return 1
-
-    DOC_PATH.write_text(new_text)
+    DOC_PATH.write_text("\n".join(lines) + "\n")
     print(f"Updated instantiated template coverage to {new_value}% in {DOC_PATH}")
     return 0
 
