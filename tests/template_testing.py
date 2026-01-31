@@ -1,4 +1,7 @@
-"""Utilities for instantiating templates in tests."""
+"""Utilities for instantiating templates in tests.
+
+See docs/development/testing.md#test-utilities-reference for full reference.
+"""
 
 import re
 import shutil
