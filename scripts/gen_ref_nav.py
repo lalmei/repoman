@@ -17,6 +17,10 @@ for path in sorted(src.rglob("*.py")):
 
     parts = tuple(module_path.parts)
 
+    # Skip main_template (Jinja templates; paths contain {{ ... }} and are not importable).
+    if "main_template" in parts:
+        continue
+
     if parts[-1] == "__init__":
         parts = parts[:-1]
         doc_path = doc_path.with_name("index.md")

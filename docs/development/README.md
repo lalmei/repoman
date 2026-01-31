@@ -732,7 +732,7 @@ Create `.vscode/settings.json`:
 - **[CLI Reference](../cli.md)**: Subcommands and options for `repoman`
 - **[Make commands](../make-commands.md)**: Full list of make targets
 - **[Testing Guide](testing.md)**: Comprehensive testing documentation
-- **[Project README](../../README.md)**: Project overview and usage
+- **Project README** (repo root): Project overview and usage
 - **[uv Documentation](https://docs.astral.sh/uv/)**: uv package manager guide
 - **[Pytest Documentation](https://docs.pytest.org/)**: Testing framework guide
 - **[Ruff Documentation](https://docs.astral.sh/ruff/)**: Linting and formatting guide

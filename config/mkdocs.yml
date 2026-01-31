@@ -7,8 +7,8 @@ strict: false
 docs_dir: "../docs"
 site_dir: "../site"
 
-watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLICY.md, ../scripts/gen_credits.py]  
-edit_uri: edit/main/docs/
+watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLICY.md, ../scripts/gen_credits.py]
+# edit_uri: set when repo_url is configured (e.g. edit/main/docs/) for a valid URL
 
 
 
@@ -26,10 +26,7 @@ nav:
   - Development Guide: development/README.md
   - Testing: development/testing.md
   - Instantiated template coverage plan: development/instantiated-template-coverage-plan.md
-  - Planning and Scope: plan_scope.md
-  - Code of Conduct: code_of_conduct.md
   - Coverage report: coverage.md
-  - SOUP Documentation: credits.md
 
 theme:
   name: material
@@ -121,6 +118,7 @@ plugins:
 - literate-nav:
     nav_file: SUMMARY.md
 - coverage:
+    # Resolved from project root (make docs / make docs-check run from repo root).
     html_report_dir: docs/htmlcov
 - mkdocstrings:
     handlers:

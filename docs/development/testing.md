@@ -147,11 +147,11 @@ uv run pytest -c=config/pytest.ini tests/test_utils/test_theme.py
 ### 4. Run Tests with Coverage
 
 ```bash
-# Generate coverage report
+# Generate coverage report (writes HTML to docs/htmlcov)
 make test-coverage
 
-# View HTML coverage report
-open htmlcov/index.html
+# View HTML coverage report locally, or build docs and open Development → Coverage report
+open docs/htmlcov/index.html
 ```
 
 ## Test Categories

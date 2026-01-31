@@ -20,7 +20,7 @@ The following sections group targets by purpose.
 | `make test-fast` | Run fast tests (skip slow ones) |
 | `make test-single` | Run a single test file. Usage: `make test-single FILE=tests/path/to/test_file.py` |
 | `make test-function` | Run a specific test function. Usage: `make test-function TEST=tests/test_cli/test_cli.py::test_version` |
-| `make test-coverage` | Run tests with coverage report (term + HTML) |
+| `make test-coverage` | Run tests with coverage report (term + HTML); HTML is written to `docs/htmlcov` and included in the built docs under **Development → Coverage report** |
 
 ## Code quality
 
@@ -38,7 +38,7 @@ The following sections group targets by purpose.
 
 | Target | Description |
 |--------|-------------|
-| `make docs` | Build documentation |
+| `make docs` | Build documentation (include the [coverage report](coverage.md) by running `make test-coverage` first) |
 | `make docs-serve` | Serve documentation locally (e.g. http://localhost:8000) |
 | `make docs-check` | Check documentation for issues (strict build) |
 
