@@ -60,9 +60,7 @@ def test_instantiated_template_test(setup_template: Any) -> None:
 
 def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
     """When fastapi_enabled is false, no app folder is created and CI still passes."""
-    answers_file = (
-        Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
-    )
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
     project_dir = instantiate_template(
         output_dir=tmp_path,
         project_name="test-project",
@@ -70,9 +68,7 @@ def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
         copier_data={"fastapi_enabled": False},
     )
     src_package = project_dir / "src" / "test_project"
-    assert not (src_package / "app").exists(), (
-        "app folder must not exist when fastapi_enabled is false"
-    )
+    assert not (src_package / "app").exists(), "app folder must not exist when fastapi_enabled is false"
 
     # Setup and format/fix so generated code passes format-check and lint
     for make_target in ("setup", "format", "fix"):
@@ -104,10 +100,6 @@ def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     # Verify artifacts are removed
     assert not (instantiated_template / ".venv").exists(), ".venv should be removed"
     assert not (instantiated_template / "dist").exists(), "dist should be removed"
-    assert not (instantiated_template / "__pycache__").exists(), (
-        "__pycache__ should be removed"
-    )
-    assert not (instantiated_template / ".pytest_cache").exists(), (
-        ".pytest_cache should be removed"
-    )
+    assert not (instantiated_template / "__pycache__").exists(), "__pycache__ should be removed"
+    assert not (instantiated_template / ".pytest_cache").exists(), ".pytest_cache should be removed"
     assert not (instantiated_template / "site").exists(), "site should be removed"
