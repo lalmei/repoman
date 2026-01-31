@@ -8,7 +8,7 @@ This directory contains the comprehensive test suite for the repoman project, de
 
 - **✅ All Tests Passing**: 143/143 tests (100% success rate)
 - **📊 Coverage**: 93.89% overall coverage (excellent improvement from 79.17%)
-- **📊 Instantiated template coverage**: 55.78% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 55.78% -->
+- **📊 Instantiated template coverage**: 94.64% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 94.64% -->
 - **⚡ Performance**: Full suite runs in ~1.30s
 - **🔧 Test Isolation**: Perfect - no dependencies between tests
 - **🚀 Parallel Execution**: Successfully tested with 8 workers
@@ -147,11 +147,11 @@ uv run pytest -c=config/pytest.ini tests/test_utils/test_theme.py
 ### 4. Run Tests with Coverage
 
 ```bash
-# Generate coverage report
+# Generate coverage report (writes HTML to docs/htmlcov)
 make test-coverage
 
-# View HTML coverage report
-open htmlcov/index.html
+# View HTML coverage report locally, or build docs and open Development → Coverage report
+open docs/htmlcov/index.html
 ```
 
 ## Test Categories

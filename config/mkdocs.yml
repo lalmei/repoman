@@ -7,27 +7,42 @@ strict: false
 docs_dir: "../docs"
 site_dir: "../site"
 
-watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLICY.md, ../scripts/gen_credits.py]  
-edit_uri: edit/main/docs/
+watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLICY.md, ../scripts/gen_credits.py]
+# edit_uri: set when repo_url is configured (e.g. edit/main/docs/) for a valid URL
 
 
 
 nav:
 - Home:
   - Overview: index.md
-  - CLI reference: cli.md
-  - Make commands: make-commands.md
+  - Getting started:
+    - Installation: getting-started/installation.md
+    - Quick start: getting-started/quickstart.md
+  - Concepts:
+    - What is repoman: concepts/overview.md
+    - Copier and answers: concepts/copier-and-answers.md
+    - Generated project: concepts/generated-project.md
+    - The template: template.md
+  - Guides:
+    - Creating a project: guides/creating-a-project.md
+    - Updating a project: guides/updating-a-project.md
+    - Adding a CLI command: guides/adding-a-cli-command.md
+    - Configuration: guides/configuration.md
+  - Reference:
+    - CLI reference: cli.md
+    - Make commands: make-commands.md
+    - Template reference: template.md
+    - Roadmap: roadmap.md
+    - Troubleshooting: reference/troubleshooting.md
 
 - Repoman SDK reference:
   - repoman: reference/
 - Development:
   - Development Guide: development/README.md
+  - Contributing: development/contributing.md
   - Testing: development/testing.md
   - Instantiated template coverage plan: development/instantiated-template-coverage-plan.md
-  - Planning and Scope: plan_scope.md
-  - Code of Conduct: code_of_conduct.md
   - Coverage report: coverage.md
-  - SOUP Documentation: credits.md
 
 theme:
   name: material
@@ -119,6 +134,7 @@ plugins:
 - literate-nav:
     nav_file: SUMMARY.md
 - coverage:
+    # Resolved from project root (make docs / make docs-check run from repo root).
     html_report_dir: docs/htmlcov
 - mkdocstrings:
     handlers:

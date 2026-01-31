@@ -103,6 +103,10 @@ docs: ## Build documentation
 docs-serve: ## Serve documentation locally
 	uv run mkdocs serve --config-file=config/mkdocs.yml
 
+docs-serve-open: ## Serve documentation and open in default browser
+	@(sleep 2 && uv run python -m webbrowser "http://127.0.0.1:8000") &
+	uv run mkdocs serve --config-file=config/mkdocs.yml
+
 docs-check: ## Check documentation for issues
 	uv run mkdocs build --config-file=config/mkdocs.yml --strict
 

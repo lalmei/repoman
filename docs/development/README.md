@@ -182,30 +182,31 @@ docs-check: ## Check documentation for issues
 
 ## 📁 Project Structure
 
-```
-repoman/
-├── src/repoman/           # Source code
-│   ├── __init__.py
-│   ├── cli/              # Command-line interface
-│   ├── utils/            # Utility functions
-│   └── _version.py       # Version management
-├── tests/                # Test suite
-│   ├── conftest.py       # Pytest configuration
-│   ├── test_cli/         # CLI tests
-│   ├── test_utils/       # Utility tests
-│   ├── test_input/       # Input processing tests
-│   └── test_version.py   # Version tests
-├── docs/                 # Documentation
-│   └── development/      # Development documentation
-├── config/               # Configuration files
-│   ├── pytest.ini       # Pytest configuration
-│   ├── ruff.toml        # Ruff configuration
-│   └── mypy.ini         # MyPy configuration
-├── pyproject.toml        # Project configuration
-├── uv.lock              # Dependency lock file
-├── Makefile             # Development automation
-└── README.md            # Project overview
-```
+File trees use Font Awesome icons for file types (see [The template](../template.md)).
+
+:fontawesome-solid-folder: **repoman/**
+
+- :fontawesome-solid-folder: **src/repoman/** — Source code
+  - :fontawesome-brands-python: `__init__.py`
+  - :fontawesome-solid-folder: **cli/** — Command-line interface
+  - :fontawesome-solid-folder: **utils/** — Utility functions
+  - :fontawesome-brands-python: `_version.py`
+- :fontawesome-solid-folder: **tests/** — Test suite
+  - :fontawesome-brands-python: `conftest.py` — Pytest configuration
+  - :fontawesome-solid-folder: **test_cli/** — CLI tests
+  - :fontawesome-solid-folder: **test_utils/** — Utility tests
+  - :fontawesome-solid-folder: **test_input/** — Input processing tests
+  - :fontawesome-brands-python: `test_version.py`
+- :fontawesome-solid-folder: **docs/** — Documentation
+  - :fontawesome-solid-folder: **development/** — Development documentation
+- :fontawesome-solid-folder: **config/** — Configuration files
+  - :fontawesome-solid-file-code: `pytest.ini`
+  - :fontawesome-solid-file-code: `ruff.toml`
+  - :fontawesome-solid-file-code: `mypy.ini`
+- :fontawesome-solid-file-code: `pyproject.toml` — Project configuration
+- :fontawesome-solid-file-code: `uv.lock` — Dependency lock file
+- :fontawesome-solid-file-code: `Makefile` — Development automation
+- :fontawesome-solid-file-lines: `README.md` — Project overview
 
 ## 🔧 Development Workflow
 
@@ -371,19 +372,20 @@ The project uses **MkDocs** with the **Material theme** for documentation. This 
 
 ### Documentation Structure
 
-```
-docs/
-├── index.md                    # Homepage
-├── cli.md                      # CLI reference (subcommands and options)
-├── make-commands.md            # Make targets reference
-├── development/                # Development documentation
-│   ├── README.md               # This development guide
-│   ├── testing.md              # Comprehensive testing guide
-│   └── instantiated-template-coverage-plan.md
-├── css/                        # Custom CSS (material.css, mkdocstrings.css)
-├── js/                         # Custom JavaScript (e.g. feedback.js)
-└── .overrides/                 # Material theme overrides (partials, etc.)
-```
+:fontawesome-solid-folder: **docs/**
+
+- :fontawesome-solid-file-lines: `index.md` — Homepage
+- :fontawesome-solid-file-lines: `cli.md` — CLI reference (subcommands and options)
+- :fontawesome-solid-file-lines: `make-commands.md` — Make targets reference
+- :fontawesome-solid-file-lines: `template.md` — The template (instantiated layout)
+- :fontawesome-solid-file-lines: `roadmap.md` — Potential roadmap
+- :fontawesome-solid-folder: **development/** — Development documentation
+  - :fontawesome-solid-file-lines: `README.md` — This development guide
+  - :fontawesome-solid-file-lines: `testing.md` — Comprehensive testing guide
+  - :fontawesome-solid-file-lines: `instantiated-template-coverage-plan.md`
+- :fontawesome-brands-css3-alt: **css/** — Custom CSS (material.css, mkdocstrings.css)
+- :fontawesome-brands-js: **js/** — Custom JavaScript (e.g. feedback.js)
+- :fontawesome-solid-folder: **.overrides/** — Material theme overrides (partials, etc.)
 
 MkDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
 
@@ -730,7 +732,7 @@ Create `.vscode/settings.json`:
 - **[CLI Reference](../cli.md)**: Subcommands and options for `repoman`
 - **[Make commands](../make-commands.md)**: Full list of make targets
 - **[Testing Guide](testing.md)**: Comprehensive testing documentation
-- **[Project README](../../README.md)**: Project overview and usage
+- **Project README** (repo root): Project overview and usage
 - **[uv Documentation](https://docs.astral.sh/uv/)**: uv package manager guide
 - **[Pytest Documentation](https://docs.pytest.org/)**: Testing framework guide
 - **[Ruff Documentation](https://docs.astral.sh/ruff/)**: Linting and formatting guide

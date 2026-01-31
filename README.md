@@ -19,6 +19,8 @@ uv run python -m repoman create my-new-project
 
 - **CLI Reference**: [docs/cli.md](docs/cli.md) — subcommands and options
 - **Make Commands**: [docs/make-commands.md](docs/make-commands.md) — development targets
+- **Template reference**: [docs/template.md](docs/template.md) — what the template is and what it generates
+- **Roadmap**: [docs/roadmap.md](docs/roadmap.md) — potential future directions
 - **Development Guide**: [docs/development/README.md](docs/development/README.md)
 - **Testing Guide**: [docs/development/testing.md](docs/development/testing.md)
 - **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
