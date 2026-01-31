@@ -1,0 +1,25 @@
+"""Ready and health check response models."""
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ReadyResponse(BaseModel):
+    """Ready response model.
+
+    Attributes:
+        status: Status string (e.g. "ok").
+    """
+
+    model_config = ConfigDict()
+    status: str = Field()
+
+
+class HealthCheckResponse(BaseModel):
+    """Health check response model.
+
+    Attributes:
+        healthcheck: Health check message (e.g. "Everything OK!").
+    """
+
+    model_config = ConfigDict()
+    healthcheck: str | None = Field(default=None)

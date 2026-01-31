@@ -78,9 +78,9 @@ The test suite uses two utility modules for template instantiation and CI comman
 
 Runs make commands in instantiated template projects with output streaming and capture.
 
-| Component | Purpose |
-|-----------|---------|
-| `CommandResult` | Dataclass with `returncode`, `stdout`, `stderr`, `command` for assertions |
+| Component                                                | Purpose                                                                                                                          |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `CommandResult`                                          | Dataclass with `returncode`, `stdout`, `stderr`, `command` for assertions                                                        |
 | `run_make_command(project_dir, command, env?, timeout?)` | Executes `make <command>` in `project_dir`; checks for `uv` in PATH; streams output while capturing; optional timeout in seconds |
 
 **Used by:** `conftest.py` (setup, format, fix), `test_template/test_ci.py` (format-check, lint, check-types, test), `test_utils/test_ci_runner.py` (unit tests).
@@ -89,11 +89,11 @@ Runs make commands in instantiated template projects with output streaming and c
 
 Instantiates templates and cleans up artifacts for isolated, reproducible tests.
 
-| Component | Purpose |
-|-----------|---------|
-| `instantiate_template(output_dir, template_path?, project_name?, copier_data?, answers_file?, force?)` | Runs Copier to instantiate the template; returns path to project directory |
-| `cleanup_project_artifacts(project_dir)` | Removes .venv, dist, build, site, egg-info, caches so tests don't leave artifacts |
-| `_slugify` (private) | Internal helper to compute package names for Copier data; mirrors `repoman.extensions.slugify` so tests stay self-contained |
+| Component                                                                                              | Purpose                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `instantiate_template(output_dir, template_path?, project_name?, copier_data?, answers_file?, force?)` | Runs Copier to instantiate the template; returns path to project directory                                                  |
+| `cleanup_project_artifacts(project_dir)`                                                               | Removes .venv, dist, build, site, egg-info, caches so tests don't leave artifacts                                           |
+| `_slugify` (private)                                                                                   | Internal helper to compute package names for Copier data; mirrors `repoman.extensions.slugify` so tests stay self-contained |
 
 **Used by:** `conftest.py` (fixtures `instantiated_template`, `setup_template`), `test_template/test_ci.py` (instantiation and cleanup tests).
 

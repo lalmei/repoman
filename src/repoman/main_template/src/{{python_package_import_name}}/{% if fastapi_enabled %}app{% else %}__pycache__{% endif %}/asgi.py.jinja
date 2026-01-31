@@ -1,0 +1,73 @@
+"""Application implementation - ASGI."""
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from {{python_package_import_name}}.app.exceptions import (
+    HTTPException,
+    http_exception_handler,
+)
+from {{python_package_import_name}}.app.router import root_api_router
+from {{python_package_import_name}}.app.utils import AiohttpClient
+from {{python_package_import_name}}.config import Config
+from {{python_package_import_name}}.utils.logging import get_logger_console
+
+logger, _ = get_logger_console(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Lifespan context manager for FastAPI application.
+
+    Handles startup and shutdown events. On startup, stores config in app.state
+    and initializes the AiohttpClient. On shutdown, gracefully closes the AiohttpClient.
+
+    Args:
+        app: The FastAPI application instance.
+
+    Yields:
+        None
+    """
+    logger.debug("Execute FastAPI startup event handler.")
+    config = Config()
+    app.state.config = config
+    AiohttpClient.get_aiohttp_client(config.fastapi_config)
+    yield
+
+    logger.debug("Execute FastAPI shutdown event handler.")
+    await AiohttpClient.close_aiohttp_client()
+
+
+def get_application(config: Config | None = None) -> FastAPI:
+    """Initialize and configure the FastAPI application.
+
+    Creates the FastAPI application, sets metadata, includes routers,
+    registers exception handlers, and assigns the lifespan context manager.
+
+    Args:
+        config: Configuration object. If None, Config() is used.
+
+    Returns:
+        Configured FastAPI application instance.
+    """
+    if config is None:
+        config = Config()
+    logger.debug("Initialize FastAPI application node.")
+    fc = config.fastapi_config
+    app = FastAPI(
+        title=config.app_name,
+        description=config.app_description,
+        version=config.app_version,
+        debug=fc.debug,
+        docs_url=fc.docs_url,
+        lifespan=lifespan,
+    )
+    logger.debug("Add application routes.")
+    app.include_router(root_api_router)
+    logger.debug("Register global exception handler for custom HTTPException.")
+    app.add_exception_handler(HTTPException, http_exception_handler)
+
+    return app
+
