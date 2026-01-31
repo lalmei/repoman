@@ -179,10 +179,10 @@ def run_make_command(
 
             start_time = time.time()
 
-        def _raise_timeout_error() -> None:
-            """Raise TimeoutExpired exception after draining output queues."""
+        def _timeout_expired() -> subprocess.TimeoutExpired:
+            """Build TimeoutExpired after killing process and draining output queues."""
             process.kill()
-            # Drain queues before raising
+            # Drain queues before building exception
             while not stdout_queue.empty():
                 line = stdout_queue.get()
                 if line is not None:
@@ -193,14 +193,14 @@ def run_make_command(
                     stderr_lines.append(line)
             stdout = "".join(stdout_lines)
             stderr = "".join(stderr_lines)
-            raise subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)
+            return subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)
 
         while not (stdout_done and stderr_done):
             # Check timeout if specified
             if timeout:
                 elapsed = time.time() - start_time
                 if elapsed >= timeout:
-                    _raise_timeout_error()
+                    raise _timeout_expired()  # noqa: TRY301
 
             # Read from stdout queue (non-blocking)
             try:
