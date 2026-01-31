@@ -24,7 +24,9 @@ checkpoint.dir := $(shell find . -type d -name .ipynb_checkpoints)
 mypy.cache.dir := $(shell find . -type d -name ".mypy_cache")
 pytest.cache.dir := $(shell find . -type d -name ".pytest_cache" )
 
+{% if python_notebooks %}
 notebooks := $(shell find ./notebooks -type f -name "*.ipynb" || :)
+{% endif %}
 
 deployments.dir := deployment
 uv.project.enviroment := .venv
@@ -52,6 +54,9 @@ include make_cmds/quality.mk
 include make_cmds/tests.mk
 include make_cmds/documentation.mk
 include make_cmds/build.mk
+{% if python_notebooks %}
+include make_cmds/notebooks.mk
+{% endif %}
 
 ##############
 # Versioning #

@@ -110,6 +110,7 @@ def instantiate_template(
         "copyright_date": "2025",
         "insiders": False,
         "public_release": False,
+        "python_notebooks": False,
     }
 
     # Merge answers file data first (if provided), then provided copier_data (highest priority)
