@@ -1,0 +1,7 @@
+#######################
+#     Notebooks       #
+#######################
+
+.PHONY: kernel
+kernel: ## Register the project environment as a Jupyter kernel (display name: {{ project_name }}).
+	uv run python -m ipykernel install --user --name "{{ python_package_distribution_name }}" --display-name "{{ project_name }}"

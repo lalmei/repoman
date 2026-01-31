@@ -33,6 +33,9 @@ python_distribution_name: test-project
 # Container Configuration
 container_registry: ""
 
+# Notebooks
+python_notebooks: false
+
 # FastAPI application
 fastapi_enabled: true
 fastapi_docs_url: "/docs"

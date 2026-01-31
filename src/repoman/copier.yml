@@ -146,6 +146,11 @@ container_registry:
   help: Container registry URL for Docker images (e.g., Azure Container Registry name or Docker Hub)
   default: "docker.io"
 
+python_notebooks:
+  type: bool
+  help: Include Jupyter notebooks support (notebooks folder and ipykernel)
+  default: false
+
 # FastAPI application (when fastapi_enabled)
 fastapi_enabled:
   type: bool

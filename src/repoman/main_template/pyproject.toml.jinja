@@ -70,9 +70,11 @@ default-groups = ["maintain", "ci", "docs"]
 [dependency-groups]
 
 dev = [
+    {%- if python_notebooks %}
     "ipykernel>=6.29.5",
     "glob2==0.6",
     "ipywidgets>=8.1.5",
+    {%- endif %}
 ]
 
 ml = [
@@ -81,7 +83,9 @@ ml = [
 
 maintain = [
     "bump2version>=1.0.1",
+    {%- if python_notebooks %}
     "nb-clean>=4.0.1",
+    {%- endif %}
     "monkeytype>=23.3.0",
 ]
 ci = [
