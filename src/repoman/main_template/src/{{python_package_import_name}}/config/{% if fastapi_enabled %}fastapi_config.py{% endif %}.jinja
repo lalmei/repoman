@@ -1,4 +1,4 @@
-{% if fastapi_enabled %}"""FastAPI application configuration.
+"""FastAPI application configuration.
 
 This class uses pydantic-settings to define and load FastAPI-specific
 environment variables. Supports loading from .env files and fastapi_config.json.
@@ -50,6 +50,3 @@ class FastAPIConfig(BaseSettings):
             dotenv_settings,
         file_secret_settings,
     )
-{% else %}
-"""FastAPI configuration (disabled). Enable FastAPI in copier answers to use this module."""
-{% endif %}
