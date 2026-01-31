@@ -1,0 +1,18 @@
+{% if fastapi_enabled %}
+"""Configuration for FastAPI application tests."""
+
+import pytest
+from fastapi.testclient import TestClient
+
+from {{ python_package_import_name }}.app import get_application
+
+
+@pytest.fixture(scope="module")
+def client() -> TestClient:
+    """Provide a TestClient for the FastAPI application."""
+    app = get_application()
+    with TestClient(app) as test_client:
+        yield test_client
+{% else %}
+# Placeholder - fastapi disabled, no app tests
+{% endif %}

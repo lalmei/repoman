@@ -1,0 +1,74 @@
+{% if fastapi_enabled %}
+"""Tests for HTTPException and exception handler."""
+
+import asyncio
+import json
+from unittest.mock import MagicMock
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from {{ python_package_import_name }}.app.exceptions import (
+    HTTPException,
+    http_exception_handler,
+)
+
+
+def test_http_exception_init_and_repr() -> None:
+    """Test HTTPException initialization and __repr__."""
+    exc = HTTPException(404, "Not found")
+    assert exc.status_code == 404
+    assert exc.content == "Not found"
+    assert exc.headers is None
+
+    exc_with_headers = HTTPException(500, {"error": "msg"}, headers={"X-Custom": "value"})
+    assert exc_with_headers.headers == {"X-Custom": "value"}
+
+    repr_str = repr(exc)
+    assert "HTTPException" in repr_str
+    assert "404" in repr_str
+
+
+def test_http_exception_handler_returns_json_response() -> None:
+    """Test that http_exception_handler returns JSONResponse for HTTPException."""
+    mock_request = MagicMock()
+    exc = HTTPException(418, {"message": "I'm a teapot"})
+
+    response = asyncio.run(http_exception_handler(mock_request, exc))
+
+    assert response.status_code == 418
+    assert response.body is not None
+    body = json.loads(response.body.decode())
+    assert body["message"] == "I'm a teapot"
+
+
+def test_http_exception_handler_re_raises_non_http_exception() -> None:
+    """Test that http_exception_handler re-raises non-HTTPException."""
+    mock_request = MagicMock()
+
+    async def run_handler() -> None:
+        await http_exception_handler(mock_request, ValueError("oops"))
+
+    with pytest.raises(ValueError, match="oops"):
+        asyncio.run(run_handler())
+
+
+def test_http_exception_handler_integration() -> None:
+    """Test exception handler via an app route that raises HTTPException."""
+    # Create minimal app with route that raises our HTTPException
+    app = FastAPI()
+
+    @app.get("/raise")
+    def raise_http_exc() -> None:
+        raise HTTPException(403, {"forbidden": True})
+
+    app.add_exception_handler(HTTPException, http_exception_handler)
+
+    with TestClient(app) as test_client:
+        response = test_client.get("/raise")
+        assert response.status_code == 403
+        assert response.json() == {"forbidden": True}
+{% else %}
+# Placeholder - fastapi disabled
+{% endif %}

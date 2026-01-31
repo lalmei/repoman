@@ -114,6 +114,20 @@ class TestProgressBarUpdate:
         finally:
             pb.stop()
 
+    def test_update_before_start_progress_none(self) -> None:
+        """Test update when use_progress_bar is True but start() was never called."""
+        pb = ProgressBar(use_progress_bar=True)
+        # Call update before start - progress and task are None
+        pb.update(
+            current_batch=1,
+            loss=0.5,
+            acc=90.0,
+            epoch=1,
+            batch_time=0.1,
+        )
+        assert pb.progress is None
+        assert pb.task is None
+
 
 class TestProgressBarStop:
     """Test ProgressBar stop method."""

@@ -1,0 +1,12 @@
+"""Tests for _internal module."""
+
+from rich.console import Console
+
+from {{ python_package_import_name }}._internal import debug
+
+
+def test_internal_debug_export() -> None:
+    """Test that _internal exports debug and it is callable."""
+    assert callable(debug)
+    console = Console()
+    debug(console)  # Should not raise
