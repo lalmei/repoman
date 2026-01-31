@@ -1,0 +1,29 @@
+"""Tests for integer utility functions."""
+
+import pytest
+
+from {{ python_package_import_name }}.utils.integer import is_int
+
+
+class TestIsInt:
+    """Test is_int function."""
+
+    def test_is_int_positive(self) -> None:
+        """Test is_int with positive integer strings."""
+        assert is_int("0") is True
+        assert is_int("1") is True
+        assert is_int("42") is True
+        assert is_int("999") is True
+
+    def test_is_int_negative(self) -> None:
+        """Test is_int with negative integer strings."""
+        assert is_int("-1") is True
+        assert is_int("-42") is True
+
+    def test_is_int_not_integer(self) -> None:
+        """Test is_int with non-integer strings."""
+        assert is_int("") is False
+        assert is_int("1.0") is False
+        assert is_int("abc") is False
+        assert is_int("12.34") is False
+        assert is_int("1e10") is False
