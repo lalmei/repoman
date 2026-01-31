@@ -1,7 +1,6 @@
 """Tests for theme utilities."""
 
 from typing import Any
-
 import pytest
 from rich.theme import Theme
 
@@ -14,6 +13,7 @@ class TestThemeCreation:
 
     def test_create_theme_with_valid_colors(self) -> None:
         """Test that _create_theme creates a valid Theme object."""
+
         class MockColors:
             def __init__(self):
                 self.rosewater = type("Color", (), {"hex": "#f5e0dc"})()
