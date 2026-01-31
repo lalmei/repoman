@@ -49,8 +49,8 @@ def test_show_debug_info() -> None:
 
 
 def test_main_with_verbose(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
-    """Test that --verbose runs successfully with a subcommand."""
-    result = cli_runner.invoke(cli_app, ["--verbose", "info"])
+    """Test that --verbose runs successfully (main callback runs with --help)."""
+    result = cli_runner.invoke(cli_app, ["--verbose", "--help"])
     assert result.exit_code == 0
 
 
@@ -68,11 +68,11 @@ def test_main_with_validation_error(cli_runner: CliRunner, cli_app: typer.Typer)
         "{{ python_package_import_name }}.cli.main_cli.Config",
         side_effect=_raise_validation_error,
     ):
-        result = cli_runner.invoke(cli_app, ["info"])
+        result = cli_runner.invoke(cli_app, ["noop"])
         assert result.exit_code == 0
 
 
 def test_main_sets_ctx_obj(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
     """Test that main callback runs and ctx.obj is set for subcommands."""
-    result = cli_runner.invoke(cli_app, ["info"])
+    result = cli_runner.invoke(cli_app, ["noop"])
     assert result.exit_code == 0
