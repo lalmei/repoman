@@ -44,9 +44,9 @@ def parse_coverage_percent(stdout: str) -> float | None:
         The total line coverage percentage as a float, or None if not found.
     """
     for line in reversed(stdout.splitlines()):
-        line = line.strip()
-        if line.startswith("TOTAL"):
-            match = re.search(r"(\d+(?:\.\d+)?)\s*%\s*$", line)
+        stripped = line.strip()
+        if stripped.startswith("TOTAL"):
+            match = re.search(r"(\d+(?:\.\d+)?)\s*%\s*$", stripped)
             if match:
                 return float(match.group(1))
             return None
