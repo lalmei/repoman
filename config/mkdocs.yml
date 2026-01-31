@@ -15,15 +15,31 @@ watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLI
 nav:
 - Home:
   - Overview: index.md
-  - CLI reference: cli.md
-  - Make commands: make-commands.md
-  - The template: template.md
-  - Roadmap: roadmap.md
+  - Getting started:
+    - Installation: getting-started/installation.md
+    - Quick start: getting-started/quickstart.md
+  - Concepts:
+    - What is repoman: concepts/overview.md
+    - Copier and answers: concepts/copier-and-answers.md
+    - Generated project: concepts/generated-project.md
+    - The template: template.md
+  - Guides:
+    - Creating a project: guides/creating-a-project.md
+    - Updating a project: guides/updating-a-project.md
+    - Adding a CLI command: guides/adding-a-cli-command.md
+    - Configuration: guides/configuration.md
+  - Reference:
+    - CLI reference: cli.md
+    - Make commands: make-commands.md
+    - Template reference: template.md
+    - Roadmap: roadmap.md
+    - Troubleshooting: reference/troubleshooting.md
 
 - Repoman SDK reference:
   - repoman: reference/
 - Development:
   - Development Guide: development/README.md
+  - Contributing: development/contributing.md
   - Testing: development/testing.md
   - Instantiated template coverage plan: development/instantiated-template-coverage-plan.md
   - Coverage report: coverage.md
