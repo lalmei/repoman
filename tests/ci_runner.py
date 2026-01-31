@@ -2,6 +2,7 @@
 
 import os
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,29 @@ class CommandResult:
     stdout: str
     stderr: str
     command: str
+
+
+def parse_coverage_percent(stdout: str) -> float | None:
+    """Parse the total line coverage percentage from pytest-cov term report stdout.
+
+    Looks for the TOTAL line in pytest-cov's term or term-missing output
+    (e.g. "TOTAL                353    20    94%" or "TOTAL ... 94.12%")
+    and returns the coverage percentage as a float (0-100).
+
+    Args:
+        stdout: Captured stdout from a run that produced coverage (e.g. make test-coverage).
+
+    Returns:
+        The total line coverage percentage as a float, or None if not found.
+    """
+    for line in reversed(stdout.splitlines()):
+        stripped = line.strip()
+        if stripped.startswith("TOTAL"):
+            match = re.search(r"(\d+(?:\.\d+)?)\s*%\s*$", stripped)
+            if match:
+                return float(match.group(1))
+            return None
+    return None
 
 
 def run_make_command(

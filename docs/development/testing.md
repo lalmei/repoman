@@ -8,6 +8,7 @@ This directory contains the comprehensive test suite for the repoman project, de
 
 - **✅ All Tests Passing**: 143/143 tests (100% success rate)
 - **📊 Coverage**: 93.89% overall coverage (excellent improvement from 79.17%)
+- **📊 Instantiated template coverage**: 55.78% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 55.78% -->
 - **⚡ Performance**: Full suite runs in ~1.30s
 - **🔧 Test Isolation**: Perfect - no dependencies between tests
 - **🚀 Parallel Execution**: Successfully tested with 8 workers
@@ -57,6 +58,14 @@ tests/
 │   └── test_extensions.py   # Jinja2 extensions tests
 └── test_version.py          # Version and debug utilities tests
 ```
+
+## Instantiated template test coverage
+
+Repoman runs tests on an **instantiated** copy of the main template to ensure the generated project’s CI (format-check, lint, check-types, test) works. We also run tests **with coverage** on that instantiated project so you can see and track how much of the generated code is covered.
+
+- **What runs**: The test `test_instantiated_template_test_coverage` runs `make test-coverage-report` in the instantiated project. That runs pytest with coverage (term-missing and html reports). The template provides `test-coverage-report` (no fail-under) so the run always succeeds and we can read the coverage value.
+- **Visibility**: The full coverage report (term-missing) is streamed in repoman’s pytest output when you run the template CI tests.
+- **Programmatic value**: We parse the total line coverage % from the report and log it (e.g. “Instantiated template line coverage: 38.81%”). The same value is recorded in **Test Suite Health** above as “Instantiated template coverage”; update it by running `make update-instantiated-template-coverage` (see below).
 
 ## Quick Start
 
