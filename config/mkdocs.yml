@@ -17,6 +17,8 @@ nav:
   - Overview: index.md
   - CLI reference: cli.md
   - Make commands: make-commands.md
+  - The template: template.md
+  - Roadmap: roadmap.md
 
 - Repoman SDK reference:
   - repoman: reference/
