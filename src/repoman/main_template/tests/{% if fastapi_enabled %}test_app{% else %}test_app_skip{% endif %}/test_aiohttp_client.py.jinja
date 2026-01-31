@@ -1,0 +1,128 @@
+{% if fastapi_enabled %}
+"""Tests for AiohttpClient utility."""
+
+import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from {{ python_package_import_name }}.app.utils import AiohttpClient
+
+
+@pytest.fixture(autouse=True)
+def reset_aiohttp_client() -> None:
+    """Reset AiohttpClient state before each test."""
+    AiohttpClient.aiohttp_client = None
+    yield
+    AiohttpClient.aiohttp_client = None
+
+
+def test_get_aiohttp_client_creates_session() -> None:
+    """Test that get_aiohttp_client creates a ClientSession on first call."""
+    mock_session = MagicMock()
+    with (
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.TCPConnector"
+        ),
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.ClientSession",
+            return_value=mock_session,
+        ),
+    ):
+        client = AiohttpClient.get_aiohttp_client()
+        assert client is mock_session
+
+
+def test_get_aiohttp_client_returns_same_session() -> None:
+    """Test that subsequent calls return the same session."""
+    mock_session = MagicMock()
+    with (
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.TCPConnector"
+        ),
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.ClientSession",
+            return_value=mock_session,
+        ),
+    ):
+        client1 = AiohttpClient.get_aiohttp_client()
+        client2 = AiohttpClient.get_aiohttp_client()
+        assert client1 is client2
+
+
+def test_get_aiohttp_client_with_config() -> None:
+    """Test get_aiohttp_client uses provided fastapi_config."""
+    mock_config = MagicMock()
+    mock_config.aiohttp_timeout = 5
+    mock_config.aiohttp_pool_size = 50
+
+    with (
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.ClientSession"
+        ),
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.ClientTimeout"
+        ) as mock_timeout,
+        patch(
+            "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.TCPConnector"
+        ) as mock_connector,
+    ):
+        AiohttpClient.get_aiohttp_client(mock_config)
+
+        mock_timeout.assert_called_once_with(total=5)
+        mock_connector.assert_called_once_with(
+            family=2,  # AF_INET
+            limit_per_host=50,
+        )
+
+
+def test_close_aiohttp_client() -> None:
+    """Test close_aiohttp_client closes session and sets to None."""
+    mock_session = AsyncMock()
+    AiohttpClient.aiohttp_client = mock_session
+
+    asyncio.run(AiohttpClient.close_aiohttp_client())
+
+    mock_session.close.assert_called_once()
+    assert AiohttpClient.aiohttp_client is None
+
+
+def test_close_aiohttp_client_when_none() -> None:
+    """Test close_aiohttp_client when no session exists does nothing."""
+    AiohttpClient.aiohttp_client = None
+    asyncio.run(AiohttpClient.close_aiohttp_client())
+    assert AiohttpClient.aiohttp_client is None
+
+
+@pytest.mark.parametrize(
+    ("method", "args", "kwargs"),
+    [
+        ("get", ("https://example.com",), {}),
+        ("post", ("https://example.com",), {"data": {"k": "v"}}),
+        ("put", ("https://example.com",), {"data": {"k": "v"}}),
+        ("delete", ("https://example.com",), {}),
+        ("patch", ("https://example.com",), {"data": {"k": "v"}}),
+    ],
+)
+def test_http_methods(method: str, args: tuple, kwargs: dict) -> None:
+    """Test GET, POST, PUT, DELETE, PATCH methods delegate to session."""
+
+    async def _mock_request(*_args: object, **_kwargs: object) -> MagicMock:
+        return MagicMock()
+
+    mock_session = MagicMock()
+    getattr(mock_session, method).return_value = _mock_request()
+
+    with patch(
+        "{{ python_package_import_name }}.app.utils.aiohttp_client.aiohttp.ClientSession"
+    ), patch.object(
+        AiohttpClient, "get_aiohttp_client", return_value=mock_session
+    ):
+        http_method = getattr(AiohttpClient, method)
+        result = asyncio.run(http_method(*args, **kwargs))
+
+        getattr(mock_session, method).assert_called_once()
+        assert result is not None
+{% else %}
+# Placeholder - fastapi disabled
+{% endif %}

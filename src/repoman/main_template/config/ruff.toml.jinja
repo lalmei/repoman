@@ -68,7 +68,9 @@ ignore = [
     "ARG005",  # Unused lambda argument
     "FBT001",  # Boolean positional arg in function definition
     "PLR2004",  # Magic value used in comparison
+    "PLC0415",  # Import inside function (lazy imports in tests)
     "S101",  # Use of assert detected
+    "TC002",  # Import in type-checking block (typer used at runtime)
 ]
 "src/**/app/**/*.py" = [
     "FBT001",  # Boolean positional (aiohttp API uses raise_for_status)

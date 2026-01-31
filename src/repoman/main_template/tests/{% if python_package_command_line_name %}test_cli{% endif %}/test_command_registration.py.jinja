@@ -1,7 +1,12 @@
 """Tests for dynamic command registration."""
 {% if python_package_command_line_name %}
+import tempfile
+from pathlib import Path
+
 import typer
 from typer.testing import CliRunner
+
+from {{ python_package_import_name }}.cli.register import _register_commands
 
 
 def test_dynamic_command_discovery(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
@@ -23,4 +28,29 @@ def test_cli_commands_registered(cli_runner: CliRunner, cli_app: typer.Typer) ->
     # Should succeed and show help
     assert result.exit_code == 0, "CLI should be accessible"
     assert "Usage:" in result.output or "Commands:" in result.output, "Help output should be shown"
+
+
+def test_register_commands_with_custom_path() -> None:
+    """Test _register_commands uses custom path when provided."""
+    app = typer.Typer()
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp)
+        # Empty dir - no command modules, should not raise
+        _register_commands(app, path=path)
+
+
+def test_register_skips_module_without_app() -> None:
+    """Test that modules without app attribute are skipped."""
+    # noapp module has no app - register should skip it without error
+    app = typer.Typer()
+    _register_commands(app)
+    # Should not raise; noapp is skipped
+
+
+def test_register_handles_import_error() -> None:
+    """Test that ImportError from a command module is caught and skipped."""
+    # badimport module raises ImportError - register should catch and continue
+    app = typer.Typer()
+    _register_commands(app)
+    # Should not raise; badimport is skipped
 {% endif %}

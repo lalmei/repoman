@@ -1,0 +1,9 @@
+"""Tests for configuration."""
+
+from {{ python_package_import_name }}.config import Config
+
+
+def test_config_defaults() -> None:
+    """Test Config has expected default values."""
+    config = Config()
+    assert config.log_format == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

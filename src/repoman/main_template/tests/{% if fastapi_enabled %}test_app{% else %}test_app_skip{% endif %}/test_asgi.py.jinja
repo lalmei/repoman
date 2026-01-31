@@ -1,0 +1,52 @@
+{% if fastapi_enabled %}
+"""Tests for ASGI application and lifespan."""
+
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from {{ python_package_import_name }}.app.asgi import get_application
+from {{ python_package_import_name }}.config import Config
+
+
+def test_get_application_returns_fastapi_app() -> None:
+    """Test that get_application returns a FastAPI instance with metadata."""
+    app = get_application()
+    assert isinstance(app, FastAPI)
+    assert app.title == "{{ python_package_import_name }}"
+    assert app.version is not None
+    assert app.description is not None
+
+
+def test_get_application_with_custom_config() -> None:
+    """Test that get_application accepts optional config parameter."""
+    config = Config()
+    app = get_application(config=config)
+    assert isinstance(app, FastAPI)
+    assert app.title == config.app_name
+
+
+def test_lifespan_startup_stores_config(client: TestClient) -> None:
+    """Test that lifespan startup stores config in app.state."""
+    # Make a request to trigger lifespan startup
+    response = client.get("/api/healthcheck")
+    assert response.status_code == 200
+    assert hasattr(client.app.state, "config")
+    assert client.app.state.config is not None
+
+
+def test_lifespan_shutdown_closes_aiohttp_client() -> None:
+    """Test that lifespan shutdown closes the AiohttpClient."""
+    with patch(
+        "{{ python_package_import_name }}.app.asgi.AiohttpClient.close_aiohttp_client",
+        new_callable=AsyncMock,
+    ) as mock_close:
+        app = get_application()
+        with TestClient(app):
+            pass  # Exit triggers shutdown
+        mock_close.assert_called_once()
+{% else %}
+# Placeholder - fastapi disabled
+{% endif %}

@@ -1,0 +1,70 @@
+{% if fastapi_enabled %}
+"""Tests for error and ready view models."""
+
+from {{ python_package_import_name }}.app.views import (
+    ErrorModel,
+    ErrorResponse,
+    HealthCheckResponse,
+    ReadyResponse,
+)
+
+
+def test_error_model() -> None:
+    """Test ErrorModel creation and serialization."""
+    model = ErrorModel(code=404, message="Not found")
+    assert model.code == 404
+    assert model.message == "Not found"
+    assert model.details is None
+    assert model.status is None
+
+    model_with_details = ErrorModel(
+        code=400,
+        message="Bad request",
+        details=[{"field": "name", "issue": "required"}],
+        status="Bad Request",
+    )
+    assert model_with_details.details == [{"field": "name", "issue": "required"}]
+    assert model_with_details.status == "Bad Request"
+
+
+def test_error_response() -> None:
+    """Test ErrorResponse creation and serialization."""
+    response = ErrorResponse(code=500, message="Internal error")
+    assert response.error.code == 500
+    assert response.error.message == "Internal error"
+
+    # Verify JSON serialization
+    data = response.model_dump()
+    assert "error" in data
+    assert data["error"]["code"] == 500
+    assert data["error"]["message"] == "Internal error"
+
+
+def test_error_response_defaults() -> None:
+    """Test ErrorResponse with default/empty values."""
+    response = ErrorResponse()
+    assert response.error.code == 0
+    assert response.error.message == ""
+
+
+def test_ready_response() -> None:
+    """Test ReadyResponse model."""
+    response = ReadyResponse(status="ok")
+    assert response.status == "ok"
+    assert response.model_dump() == {"status": "ok"}
+
+
+def test_health_check_response() -> None:
+    """Test HealthCheckResponse model."""
+    response = HealthCheckResponse(healthcheck="Everything OK!")
+    assert response.healthcheck == "Everything OK!"
+    assert response.model_dump() == {"healthcheck": "Everything OK!"}
+
+
+def test_health_check_response_default() -> None:
+    """Test HealthCheckResponse with default None."""
+    response = HealthCheckResponse()
+    assert response.healthcheck is None
+{% else %}
+# Placeholder - fastapi disabled
+{% endif %}

@@ -195,3 +195,12 @@ def test_set_up_logger_console_creation_not_in_pytest() -> None:
 
         assert logger is not None
         assert logger.name == "test_logger_not_pytest"
+
+
+def test_get_logger_console_invalid_log_level() -> None:
+    """Test get_logger_console with invalid log_level falls back to INFO."""
+    logger, _ = get_logger_console("test_invalid_level", log_level="INVALID")
+    assert isinstance(logger, Logger)
+    assert logger.level == INFO
+
+

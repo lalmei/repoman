@@ -28,3 +28,5 @@ filterwarnings =
   # Ignore unraisable exception warnings from copier library
   ignore:Exception ignored in.*:pytest.PytestUnraisableExceptionWarning
   ignore:.*unclosed scandir iterator.*:ResourceWarning
+  # pydantic-settings json_file without JsonConfigSettingsSource
+  ignore:Config key.*json_file.*:UserWarning
