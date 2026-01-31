@@ -97,30 +97,42 @@ The project includes a comprehensive Makefile that automates common development 
 
 #### Available Make Commands
 
+Run `make help` for the authoritative list. Summary:
+
 ```bash
 # Testing
-make test              # Run all tests
-make test-coverage     # Run tests with coverage report
-make test-fast         # Run fast tests only
-make test-unit         # Run unit tests only
-make test-cli          # Run CLI tests only
-make test-utils        # Run utility tests only
+make test                    # Run all tests
+make test-coverage           # Run tests with coverage report
+make test-unit               # Run unit tests only
+make test-utils              # Run utility tests only
+make test-cli                # Run CLI tests only
+make test-isolated           # Run isolated tests only
+make test-fast               # Run fast tests (skip slow ones)
+make test-single FILE=path  # Run a single test file (e.g. FILE=tests/test_utils/test_theme.py)
+make test-function TEST=path # Run a specific test (e.g. TEST=tests/test_cli/test_cli.py::test_version)
 
 # Code Quality
-make lint              # Run linting (ruff)
-make format            # Format code (ruff format)
-make format-check      # Check if code is formatted correctly
-make fix               # Auto-fix linting issues
+make format                  # Format code (ruff)
+make lint                    # Lint code (ruff)
+make format-check            # Check if code is formatted correctly
+make fix                     # Auto-fix linting issues
+make check-types             # Type check (mypy)
+make type-check              # Alias for check-types
+make check                   # Run all quality checks (format-check, lint, check-types)
 
 # Documentation
-make docs              # Build documentation
-make docs-serve        # Serve documentation locally
-make docs-check        # Check documentation for issues
+make docs                    # Build documentation
+make docs-serve              # Serve documentation locally (e.g. http://localhost:8000)
+make docs-check              # Check documentation for issues (strict build)
 
-# Development
-make clean             # Clean build artifacts
-make help              # Show all available commands
+# Other
+make clean                   # Clean cache and build files
+make help                    # Print all targets
+make update-instantiated-template-coverage  # Update coverage % in docs/development/testing.md
+make setup-cursor            # Copy cursor config from config/cursor to .cursor
 ```
+
+See [Make commands](../make-commands.md) for the full reference.
 
 #### Makefile Structure
 
@@ -362,18 +374,18 @@ The project uses **MkDocs** with the **Material theme** for documentation. This 
 ```
 docs/
 ├── index.md                    # Homepage
-├── changelog.md               # Project changelog
-├── credits.md                 # Project credits
-├── license.md                 # License information
-├── code_of_conduct.md         # Code of conduct
-├── development/               # Development documentation
-│   ├── README.md             # This development guide
-│   └── testing.md            # Comprehensive testing guide
-├── css/                      # Custom CSS styles
-├── js/                       # Custom JavaScript
-├── images/                   # Documentation images
-└── .overrides/               # Material theme overrides
+├── cli.md                      # CLI reference (subcommands and options)
+├── make-commands.md            # Make targets reference
+├── development/                # Development documentation
+│   ├── README.md               # This development guide
+│   ├── testing.md              # Comprehensive testing guide
+│   └── instantiated-template-coverage-plan.md
+├── css/                        # Custom CSS (material.css, mkdocstrings.css)
+├── js/                         # Custom JavaScript (e.g. feedback.js)
+└── .overrides/                 # Material theme overrides (partials, etc.)
 ```
+
+MkDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
 
 ### MkDocs Configuration
 
@@ -715,6 +727,8 @@ Create `.vscode/settings.json`:
 
 ## 📖 Additional Resources
 
+- **[CLI Reference](../cli.md)**: Subcommands and options for `repoman`
+- **[Make commands](../make-commands.md)**: Full list of make targets
 - **[Testing Guide](testing.md)**: Comprehensive testing documentation
 - **[Project README](../../README.md)**: Project overview and usage
 - **[uv Documentation](https://docs.astral.sh/uv/)**: uv package manager guide

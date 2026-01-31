@@ -104,12 +104,8 @@ def run_make_command(
     full_command = ["make", command]
     command_str = " ".join(full_command)
 
-    logger.info(
-        f"Running command: {command_str} in {project_dir} (uv found at {uv_path})"
-    )
-    console.print(
-        f"[blue]→[/blue] Running: [bold]{command_str}[/bold] in {project_dir}"
-    )
+    logger.info(f"Running command: {command_str} in {project_dir} (uv found at {uv_path})")
+    console.print(f"[blue]→[/blue] Running: [bold]{command_str}[/bold] in {project_dir}")
 
     # Prepare environment - ensure PATH includes uv if it's in a custom location
     process_env = dict(os.environ)
@@ -197,9 +193,7 @@ def run_make_command(
                     stderr_lines.append(line)
             stdout = "".join(stdout_lines)
             stderr = "".join(stderr_lines)
-            raise subprocess.TimeoutExpired(
-                full_command, timeout, output=stdout, stderr=stderr
-            )  # noqa: TRY301 - Exception must be raised here to be caught by outer handler; abstracted to inner function for clarity
+            raise subprocess.TimeoutExpired(full_command, timeout, output=stdout, stderr=stderr)
 
         while not (stdout_done and stderr_done):
             # Check timeout if specified
@@ -262,13 +256,9 @@ def run_make_command(
         logger.debug(f"Command completed with return code {returncode}")
 
         if returncode == 0:
-            console.print(
-                f"[green]✓[/green] Command succeeded: [bold]{command_str}[/bold]"
-            )
+            console.print(f"[green]✓[/green] Command succeeded: [bold]{command_str}[/bold]")
         else:
-            console.print(
-                f"[red]✗[/red] Command failed (exit {returncode}): [bold]{command_str}[/bold]"
-            )
+            console.print(f"[red]✗[/red] Command failed (exit {returncode}): [bold]{command_str}[/bold]")
 
         return CommandResult(
             returncode=returncode,
