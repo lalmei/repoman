@@ -8,19 +8,17 @@ This directory contains the comprehensive test suite for the repoman project, de
 
 - **✅ All Tests Passing**: 143/143 tests (100% success rate)
 - **📊 Coverage**: 93.89% overall coverage (excellent improvement from 79.17%)
-- **📊 Instantiated template coverage**: 94.64% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 94.64% -->
+- **📊 Instantiated template coverage**: 55.78% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 55.78% -->
 - **⚡ Performance**: Full suite runs in ~1.30s
 - **🔧 Test Isolation**: Perfect - no dependencies between tests
 - **🚀 Parallel Execution**: Successfully tested with 8 workers
 
 ### Recent Achievements
 
-- **Fixed 19 failing tests** that were previously broken
 - **Eliminated all interactive prompts** during test execution
 - **Resolved resource warnings** and unclosed file handles
 - **Implemented comprehensive security validation** with 18 attack vectors tested
-- **Added 24 new tests** for `_version.py` module (99% coverage)
-- **Created 43 new tests** for `extensions.py` module (100% coverage)
+
 - **Optimized test configuration** for better performance and reliability
 
 ### Module Coverage Status

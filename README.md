@@ -17,6 +17,8 @@ uv run python -m repoman create my-new-project
 
 ## Documentation
 
+- **CLI Reference**: [docs/cli.md](docs/cli.md) — subcommands and options
+- **Make Commands**: [docs/make-commands.md](docs/make-commands.md) — development targets
 - **Development Guide**: [docs/development/README.md](docs/development/README.md)
 - **Testing Guide**: [docs/development/testing.md](docs/development/testing.md)
 - **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -28,7 +30,25 @@ uv run python -m repoman create my-new-project
 - **CLI Interface**: Easy-to-use command-line interface
 - **Rich Output**: Beautiful terminal output with themes
 
+## CLI
+
+Repoman provides three main commands:
+
+- **`create`** — Create a new project from the template (`uv run repoman create my-project`)
+- **`update`** — Update an existing project with the latest template
+- **`generator add`** — Add a new CLI command to a repoman-generated project
+
+Run `uv run repoman --help` for global options. See [CLI reference](docs/cli.md) for full options and examples.
+
 ## Development
+
+Run `make help` for all make targets. Common targets:
+
+- **Testing**: `make test`, `make test-coverage`, `make test-unit`, `make test-cli`, etc.
+- **Code quality**: `make format`, `make lint`, `make fix`, `make check`
+- **Documentation**: `make docs`, `make docs-serve`
+
+See [Make commands](docs/make-commands.md) for the full list.
 
 ### Running Tests
 
