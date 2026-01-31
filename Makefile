@@ -106,6 +106,9 @@ docs-serve: ## Serve documentation locally
 docs-check: ## Check documentation for issues
 	uv run mkdocs build --config-file=config/mkdocs.yml --strict
 
+update-instantiated-template-coverage: ## Update instantiated template coverage %% in docs/development/testing.md
+	uv run python scripts/update_instantiated_template_coverage.py
+
 #######################
 #      Setup          #
 #######################
