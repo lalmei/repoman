@@ -1,0 +1,36 @@
+{% if include_health_endpoints %}"""Application implementation - Health check controller."""
+
+from fastapi import APIRouter
+
+from {{python_package_import_name}}.app.views import HealthCheckResponse
+from {{python_package_import_name}}.utils.logging import get_logger_console
+
+router = APIRouter()
+logger, _ = get_logger_console(__name__)
+
+
+@router.get(
+    "/healthcheck",
+    tags=["health check"],
+    response_model=HealthCheckResponse,
+    summary="Simple health check.",
+    status_code=200,
+)
+async def healthcheck() -> HealthCheckResponse:
+    """Run basic application health check.
+
+    If the application is up and running then this endpoint will return
+    a simple response with healthcheck status.
+
+    Returns:
+        HealthCheckResponse: Response with healthcheck "Everything OK!".
+    """
+    logger.info("Started GET /healthcheck")
+    return HealthCheckResponse(healthcheck="Everything OK!")
+{% else %}
+"""Health check controller (health endpoints disabled)."""
+
+from fastapi import APIRouter
+
+router = APIRouter()
+{% endif %}

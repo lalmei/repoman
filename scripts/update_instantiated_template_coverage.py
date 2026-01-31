@@ -8,10 +8,10 @@ Or use the Makefile target:
     make update-instantiated-template-coverage
 """
 
-from pathlib import Path
 import re
 import sys
 import tempfile
+from pathlib import Path
 
 # Project root is parent of scripts/
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -68,7 +68,11 @@ def main() -> int:
             updated = True
             break
     if not updated:
-        print("error: could not find instantiated-template-coverage line in", DOC_PATH, file=sys.stderr)
+        print(
+            "error: could not find instantiated-template-coverage line in",
+            DOC_PATH,
+            file=sys.stderr,
+        )
         return 1
     DOC_PATH.write_text("\n".join(lines) + "\n")
     print(f"Updated instantiated template coverage to {new_value}% in {DOC_PATH}")

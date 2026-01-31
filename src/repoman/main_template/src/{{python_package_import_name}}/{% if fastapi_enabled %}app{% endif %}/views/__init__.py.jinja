@@ -1,0 +1,11 @@
+"""Application implementation - views (response models)."""
+
+from {{python_package_import_name}}.app.views.error import ErrorModel, ErrorResponse
+from {{python_package_import_name}}.app.views.ready import HealthCheckResponse, ReadyResponse
+
+__all__: list[str] = [
+    "ErrorModel",
+    "ErrorResponse",
+    "HealthCheckResponse",
+    "ReadyResponse",
+]
