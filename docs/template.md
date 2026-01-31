@@ -165,7 +165,7 @@ After you run `repoman create my-project` (with typical defaults, e.g. CLI + Fas
       - :fontawesome-brands-python: `__init__.py`
       - :fontawesome-brands-python: `main_cli.py`
       - :fontawesome-brands-python: `register.py`
-      - :fontawesome-solid-folder: **commands/** (info, etc.)
+      - :fontawesome-solid-folder: **commands/** (user-defined subcommands)
     - :fontawesome-solid-folder: **app/** (if FastAPI enabled)
       - :fontawesome-brands-python: `__init__.py`
       - :fontawesome-brands-python: `asgi.py`
@@ -194,7 +194,7 @@ Generated projects that have a CLI can add new subcommands without editing repom
 - **Command:** `repoman generator add <command_name>`
 - **What it does:** Uses the **command template** under `src/repoman/extentions/command_template/` (note: the directory is spelled “extentions” in the codebase). It creates a new command module under `src/{{ package }}/cli/commands/<command_name>/` and a test file under `tests/test_cli/test_<command_name>.py`.
 
-So the generated project’s CLI stays extensible by adding commands that follow the same pattern as the built-in ones (e.g. info).
+So the generated project’s CLI stays extensible by adding commands that follow the same pattern (e.g. user-added subcommands).
 
 ## Custom Jinja extensions
 

@@ -7,6 +7,18 @@ from typer.testing import CliRunner
 {% if python_package_command_line_name %}
 from {{ python_package_import_name }}.cli import cli
 
+# Register a test-only subcommand so tests can invoke a subcommand without template-provided commands
+_noop_app = Typer()
+
+
+@_noop_app.callback(invoke_without_command=True)
+def _noop_callback() -> None:
+    """No-op subcommand for testing main callback and ctx.obj."""
+    pass
+
+
+cli.add_typer(_noop_app, name="noop")
+
 
 @pytest.fixture(scope="session")
 def cli_runner() -> CliRunner:

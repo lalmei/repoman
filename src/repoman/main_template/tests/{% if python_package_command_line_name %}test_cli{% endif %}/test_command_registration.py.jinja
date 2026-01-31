@@ -43,16 +43,52 @@ def test_register_commands_with_custom_path() -> None:
 
 def test_register_skips_module_without_app() -> None:
     """Test that modules without app attribute are skipped."""
-    # noapp module has no app - register should skip it without error
     app = typer.Typer()
-    _register_commands(app)
-    # Should not raise; noapp is skipped
+    # Fake a commands dir that lists one module "noapp"
+    mock_noapp_dir = MagicMock()
+    mock_noapp_dir.name = "noapp"
+    mock_noapp_dir.is_dir.return_value = True
+    mock_noapp_dir.__truediv__.return_value = MagicMock(exists=MagicMock(return_value=True))
+    mock_commands_dir = MagicMock()
+    mock_commands_dir.iterdir.return_value = [mock_noapp_dir]
+    mock_parent = MagicMock()
+    mock_parent.__truediv__.return_value = mock_commands_dir
+    mock_file_path = MagicMock()
+    mock_file_path.parent = mock_parent
+    module_without_app = types.ModuleType("noapp")
+    assert not hasattr(module_without_app, "app")
+    register_module = "{{ python_package_import_name }}.cli.register"
+    with (
+        patch(f"{register_module}.Path", return_value=mock_file_path),
+        patch(f"{register_module}.importlib.import_module", return_value=module_without_app),
+    ):
+        _register_commands(app)
+    # Should not raise; noapp is skipped (no app attribute)
 
 
 def test_register_handles_import_error() -> None:
     """Test that ImportError from a command module is caught and skipped."""
-    # badimport module raises ImportError - register should catch and continue
     app = typer.Typer()
-    _register_commands(app)
+    # Fake a commands dir that lists one module "badimport"
+    mock_badimport_dir = MagicMock()
+    mock_badimport_dir.name = "badimport"
+    mock_badimport_dir.is_dir.return_value = True
+    mock_badimport_dir.__truediv__.return_value = MagicMock(exists=MagicMock(return_value=True))
+    mock_commands_dir = MagicMock()
+    mock_commands_dir.iterdir.return_value = [mock_badimport_dir]
+    mock_parent = MagicMock()
+    mock_parent.__truediv__.return_value = mock_commands_dir
+    mock_file_path = MagicMock()
+    mock_file_path.parent = mock_parent
+    def import_module_side_effect(name: str) -> types.ModuleType:
+        if name.endswith(".badimport"):
+            raise ImportError("Simulated import error for testing")
+        return types.ModuleType(name.split(".")[-1])
+    register_module = "{{ python_package_import_name }}.cli.register"
+    with (
+        patch(f"{register_module}.Path", return_value=mock_file_path),
+        patch(f"{register_module}.importlib.import_module", side_effect=import_module_side_effect),
+    ):
+        _register_commands(app)
     # Should not raise; badimport is skipped
 {% endif %}
