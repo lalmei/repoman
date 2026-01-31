@@ -3,6 +3,7 @@
 import logging
 import os
 import tempfile
+import warnings
 from logging import DEBUG, INFO, Logger
 from pathlib import Path
 from unittest.mock import patch
@@ -105,7 +106,9 @@ class TestAttachRotatingFileHandler:
         with tempfile.TemporaryDirectory() as temp_dir:
             log_file = Path(temp_dir) / "test.log"
 
-            result_logger = _attach_rotating_file_handler(logger, str(log_file))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)
+                result_logger = _attach_rotating_file_handler(logger, str(log_file))
 
             assert result_logger is logger
 
