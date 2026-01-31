@@ -64,10 +64,8 @@ def main() -> int:
     updated = False
     for i, line in enumerate(lines):
         if MARKER_LINE in line:
-            new_line = PERCENT_PATTERN.sub(new_value, line)
-            if new_line != line:
-                lines[i] = new_line
-                updated = True
+            lines[i] = PERCENT_PATTERN.sub(new_value, line)
+            updated = True
             break
     if not updated:
         print("error: could not find instantiated-template-coverage line in", DOC_PATH, file=sys.stderr)
