@@ -40,6 +40,7 @@ The following sections group targets by purpose.
 |--------|-------------|
 | `make docs` | Build documentation (include the [coverage report](coverage.md) by running `make test-coverage` first) |
 | `make docs-serve` | Serve documentation locally (e.g. http://localhost:8000) |
+| `make docs-serve-open` | Serve documentation and open in the default browser |
 | `make docs-check` | Check documentation for issues (strict build) |
 
 ## Other
