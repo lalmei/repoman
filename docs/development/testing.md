@@ -44,12 +44,21 @@ This directory contains the comprehensive test suite for the repoman project, de
 ```
 tests/
 ├── __init__.py              # Package initialization
+├── ci_runner.py             # CI command runner (run_make_command, CommandResult)
 ├── conftest.py              # Pytest configuration and fixtures
+├── template_testing.py      # Template instantiation helpers (instantiate_template, cleanup_project_artifacts)
+├── fixtures/                # Test fixtures (e.g. default_copier_answers.yml)
+├── test_template/           # Template/CI integration tests
+│   ├── __init__.py
+│   ├── conftest.py
+│   └── test_ci.py           # CI commands on instantiated template
 ├── test_utils/              # Utility function tests
 │   ├── __init__.py
 │   ├── conftest.py          # Test-specific configuration
 │   ├── test_theme.py        # Theme utility tests
-│   └── test_logging.py      # Logging utility tests
+│   ├── test_logging.py      # Logging utility tests
+│   ├── test_ci_runner.py    # Unit tests for ci_runner
+│   └── test_template_testing.py  # Unit tests for template_testing
 ├── test_cli/                # CLI command tests
 │   ├── __init__.py
 │   ├── test_cli.py          # Main CLI tests
@@ -58,6 +67,35 @@ tests/
 │   └── test_extensions.py   # Jinja2 extensions tests
 └── test_version.py          # Version and debug utilities tests
 ```
+
+See [Test Utilities Reference](#test-utilities-reference) for `ci_runner` and `template_testing`.
+
+## Test Utilities Reference
+
+The test suite uses two utility modules for template instantiation and CI command execution. These are part of the test infrastructure, not the repoman library.
+
+### ci_runner.py
+
+Runs make commands in instantiated template projects with output streaming and capture.
+
+| Component | Purpose |
+|-----------|---------|
+| `CommandResult` | Dataclass with `returncode`, `stdout`, `stderr`, `command` for assertions |
+| `run_make_command(project_dir, command, env?, timeout?)` | Executes `make <command>` in `project_dir`; checks for `uv` in PATH; streams output while capturing; optional timeout in seconds |
+
+**Used by:** `conftest.py` (setup, format, fix), `test_template/test_ci.py` (format-check, lint, check-types, test), `test_utils/test_ci_runner.py` (unit tests).
+
+### template_testing.py
+
+Instantiates templates and cleans up artifacts for isolated, reproducible tests.
+
+| Component | Purpose |
+|-----------|---------|
+| `instantiate_template(output_dir, template_path?, project_name?, copier_data?, answers_file?, force?)` | Runs Copier to instantiate the template; returns path to project directory |
+| `cleanup_project_artifacts(project_dir)` | Removes .venv, dist, build, site, egg-info, caches so tests don't leave artifacts |
+| `_slugify` (private) | Internal helper to compute package names for Copier data; mirrors `repoman.extensions.slugify` so tests stay self-contained |
+
+**Used by:** `conftest.py` (fixtures `instantiated_template`, `setup_template`), `test_template/test_ci.py` (instantiation and cleanup tests).
 
 ## Instantiated template test coverage
 

@@ -1,4 +1,7 @@
-"""Utilities for running CI commands in instantiated templates."""
+"""Utilities for running CI commands in instantiated templates.
+
+See docs/development/testing.md#test-utilities-reference for full reference.
+"""
 
 import os
 import queue
