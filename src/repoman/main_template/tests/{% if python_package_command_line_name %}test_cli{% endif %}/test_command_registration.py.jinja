@@ -1,7 +1,9 @@
 """Tests for dynamic command registration."""
 {% if python_package_command_line_name %}
 import tempfile
+import types
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import typer
 from typer.testing import CliRunner
