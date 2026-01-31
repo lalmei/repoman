@@ -1,0 +1,178 @@
+site_name: "loopr_ml"
+site_description: "ml@loopr"
+repo_url: "https://dev.azure.com/loopr-ai/root/_git/loopriq-solutions"
+repo_name: "loopr-ml"
+
+strict: false
+docs_dir: "../docs"
+site_dir: "../site"
+
+watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/loopr_ml, ../scripts/gen_credits.py]  
+edit_uri: edit/main/docs/
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+- Home:
+  - Overview: index.md
+
+- Deployments: 
+  - Deployment: deployments/deployment.md
+- Hardware:
+  - Pixel Resolution: hardware/measuring.md
+- Annotations:
+  - Dataset: annotations/dataset.md
+# - Projects:
+# - Daimler: projects/daimler.md
+# defer to gen-files + literate-nav
+- loopr_ml SDK reference:
+  - loopr_ml: reference/
+- Development:
+  - Planning and Scope: plan_scope.md
+  - Development Guide: development_guide.md
+  - Code of Conduct: code_of_conduct.md
+  - Coverage report: coverage.md
+  - SOUP Documentation: credits.md
+
+theme:
+  name: material
+  custom_dir: ../docs/.overrides
+  features:
+  - announce.dismiss
+  - content.action.edit
+  - content.action.view
+  - content.code.annotate
+  - content.code.copy
+  - content.tooltips
+  - navigation.footer
+  - navigation.indexes
+  - navigation.sections
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  - search.highlight
+  - search.suggest
+  - toc.follow
+  palette:
+  - media: "(prefers-color-scheme)"
+    toggle:
+      icon: material/brightness-auto
+      name: Switch to light mode
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: teal
+    accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to system preference
+
+extra_css:
+- css/material.css
+- css/mkdocstrings.css
+
+extra_javascript:
+- js/feedback.js
+- https://cdn.jsdelivr.net/npm/vega@5
+- https://cdn.jsdelivr.net/npm/vega-lite@5
+- https://cdn.jsdelivr.net/npm/vega-embed@6
+
+markdown_extensions:
+- attr_list
+- admonition
+- callouts
+- footnotes
+- pymdownx.details
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg
+- pymdownx.magiclink
+- pymdownx.snippets:
+    base_path: [!relative $docs_dir, !relative $config_dir/..]
+    check_paths: true
+
+- pymdownx.superfences:
+    custom_fences:
+      - name: vegalite
+        class: vegalite
+        format: !!python/name:mkdocs_charts_plugin.fences.fence_vegalite
+- pymdownx.tabbed:
+    alternate_style: true
+    slugify: !!python/object/apply:pymdownx.slugs.slugify
+      kwds:
+        case: lower
+- pymdownx.tasklist:
+    custom_checkbox: true
+- toc:
+    permalink: true
+
+
+plugins:
+- search
+# - charts
+- table-reader
+- markdown-exec
+- gen-files:
+    scripts:
+    - ../scripts/gen_ref_nav.py
+- literate-nav:
+    nav_file: SUMMARY.md
+- coverage:
+    html_report_dir: docs/htmlcov
+- mkdocstrings:
+    handlers:
+      python:
+        inventories:
+        - https://docs.python.org/3/objects.inv
+        paths: [../src]
+        options:
+          docstring_options:
+            ignore_init_summary: true
+          docstring_section_style: list
+          filters: ["!^_"]
+          heading_level: 1
+          inherited_members: true
+          merge_init_into_class: true
+          separate_signature: true
+          show_root_heading: true
+          show_root_full_path: false
+          show_signature_annotations: true
+          show_source: true
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          signature_crossrefs: true
+          summary: true
+- git-revision-date-localized:
+    enabled: !ENV [DEPLOY, false]
+    enable_creation_date: true
+    type: timeago
+- minify:
+    minify_html: !ENV [DEPLOY, false]
+- group:
+    enabled: !ENV [MATERIAL_INSIDERS, false]
+    plugins:
+    - typeset
+
+extra:
+
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Let us know how we can improve this page.

@@ -33,11 +33,11 @@ The template uses conditional blocks (`{% if fastapi_enabled %}`, `{% if python_
 
 Covers: `app/asgi.py` (29 statements), `app/__init__.py`, `app/state/__init__.py`
 
-| Test | Purpose |
-|------|---------|
-| `test_get_application_returns_fastapi_app` | Call `get_application()`, assert type and metadata |
-| `test_get_application_with_custom_config` | Pass `config=Config()` to `get_application(config=...)` |
-| `test_lifespan_startup_stores_config` | Use `TestClient` with lifespan, verify `app.state.config` |
+| Test                                           | Purpose                                                           |
+| ---------------------------------------------- | ----------------------------------------------------------------- |
+| `test_get_application_returns_fastapi_app`     | Call `get_application()`, assert type and metadata                |
+| `test_get_application_with_custom_config`      | Pass `config=Config()` to `get_application(config=...)`           |
+| `test_lifespan_startup_stores_config`          | Use `TestClient` with lifespan, verify `app.state.config`         |
 | `test_lifespan_shutdown_closes_aiohttp_client` | Verify `AiohttpClient.close_aiohttp_client` is called on shutdown |
 
 ### 1.3 Health and Ready endpoints
@@ -46,10 +46,10 @@ Covers: `app/asgi.py` (29 statements), `app/__init__.py`, `app/state/__init__.py
 
 Covers: `app/controllers/health_check.py`, `app/controllers/ready.py`, `app/views/ready.py`
 
-| Test | Purpose |
-|------|---------|
+| Test                          | Purpose                                                           |
+| ----------------------------- | ----------------------------------------------------------------- |
 | `test_healthcheck_returns_ok` | `GET /api/healthcheck` → 200, `{"healthcheck": "Everything OK!"}` |
-| `test_ready_returns_ok` | `GET /api/ready` → 200, `{"status": "ok"}` |
+| `test_ready_returns_ok`       | `GET /api/ready` → 200, `{"status": "ok"}`                        |
 
 ### 1.4 Exception handler
 
@@ -57,11 +57,11 @@ Covers: `app/controllers/health_check.py`, `app/controllers/ready.py`, `app/view
 
 Covers: `app/exceptions/http.py`, `app/exceptions/__init__.py`
 
-| Test | Purpose |
-|------|---------|
-| `test_http_exception_init_and_repr` | Create `HTTPException(404, "Not found")`, assert `__repr__` |
-| `test_http_exception_handler_returns_json_response` | Raise `HTTPException` in a route, assert response body/status |
-| `test_http_exception_handler_re_raises_non_http_exception` | Raise `ValueError`, assert it is re-raised (not converted) |
+| Test                                                       | Purpose                                                       |
+| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| `test_http_exception_init_and_repr`                        | Create `HTTPException(404, "Not found")`, assert `__repr__`   |
+| `test_http_exception_handler_returns_json_response`        | Raise `HTTPException` in a route, assert response body/status |
+| `test_http_exception_handler_re_raises_non_http_exception` | Raise `ValueError`, assert it is re-raised (not converted)    |
 
 ### 1.5 Router
 
@@ -69,10 +69,10 @@ Covers: `app/exceptions/http.py`, `app/exceptions/__init__.py`
 
 Covers: `app/router.py`, `app/controllers/__init__.py`, `app/views/__init__.py`
 
-| Test | Purpose |
-|------|---------|
-| `test_root_api_router_has_prefix` | Import router, assert `prefix` from config |
-| `test_health_routes_registered` | `GET /api/healthcheck`, `GET /api/ready` return 200 |
+| Test                              | Purpose                                             |
+| --------------------------------- | --------------------------------------------------- |
+| `test_root_api_router_has_prefix` | Import router, assert `prefix` from config          |
+| `test_health_routes_registered`   | `GET /api/healthcheck`, `GET /api/ready` return 200 |
 
 ### 1.6 AiohttpClient
 
@@ -80,16 +80,16 @@ Covers: `app/router.py`, `app/controllers/__init__.py`, `app/views/__init__.py`
 
 Covers: `app/utils/aiohttp_client.py` (53 statements), `app/utils/__init__.py`
 
-| Test | Purpose |
-|------|---------|
-| `test_get_aiohttp_client_creates_session` | First call creates `ClientSession`, subsequent calls return same |
-| `test_get_aiohttp_client_with_config` | Pass `fastapi_config` and assert timeout/connector used |
-| `test_close_aiohttp_client` | Call `close_aiohttp_client()`, assert session is closed and set to None |
-| `test_get_request` | Mock aiohttp, call `AiohttpClient.get(url)`, assert request made |
-| `test_post_request` | Same for `post` |
-| `test_put_request` | Same for `put` |
-| `test_delete_request` | Same for `delete` |
-| `test_patch_request` | Same for `patch` |
+| Test                                      | Purpose                                                                 |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| `test_get_aiohttp_client_creates_session` | First call creates `ClientSession`, subsequent calls return same        |
+| `test_get_aiohttp_client_with_config`     | Pass `fastapi_config` and assert timeout/connector used                 |
+| `test_close_aiohttp_client`               | Call `close_aiohttp_client()`, assert session is closed and set to None |
+| `test_get_request`                        | Mock aiohttp, call `AiohttpClient.get(url)`, assert request made        |
+| `test_post_request`                       | Same for `post`                                                         |
+| `test_put_request`                        | Same for `put`                                                          |
+| `test_delete_request`                     | Same for `delete`                                                       |
+| `test_patch_request`                      | Same for `patch`                                                        |
 
 **Note:** HTTP methods can be tested via `respx` or `aioresponses` to avoid real network calls.
 
@@ -99,8 +99,8 @@ Covers: `app/utils/aiohttp_client.py` (53 statements), `app/utils/__init__.py`
 
 Covers: `app/views/error.py`, `app/views/__init__.py`
 
-| Test | Purpose |
-|------|---------|
+| Test               | Purpose                                                    |
+| ------------------ | ---------------------------------------------------------- |
 | `test_error_model` | Create `ErrorModel`, `ErrorResponse`, assert serialization |
 
 ---
@@ -115,8 +115,8 @@ Covers: `app/views/error.py`, `app/views/__init__.py`
 
 Covers: `config.py` (root, lines 3–9)
 
-| Test | Purpose |
-|------|---------|
+| Test                   | Purpose                             |
+| ---------------------- | ----------------------------------- |
 | `test_config_defaults` | `Config()` has `log_format` default |
 
 ### 2.2 Internal module
@@ -125,8 +125,8 @@ Covers: `config.py` (root, lines 3–9)
 
 Covers: `_internal/__init__.py`
 
-| Test | Purpose |
-|------|---------|
+| Test                         | Purpose                                             |
+| ---------------------------- | --------------------------------------------------- |
 | `test_internal_debug_export` | `from _internal import debug` works and is callable |
 
 ---
@@ -137,23 +137,23 @@ Covers: `_internal/__init__.py`
 
 ### 3.1 `cli/register.py` (lines 31–59)
 
-| Test | Purpose |
-|------|---------|
-| `test_register_commands_skips_module_without_app` | Module with no `app` attr is skipped |
-| `test_register_commands_handles_duplicate_command_name` | Duplicate name logs warning, skips |
-| `test_register_commands_handles_import_error` | Invalid module logs warning, continues |
-| `test_register_commands_handles_attribute_error` | Bad module structure, continues |
-| `test_register_commands_with_custom_path` | `_register_commands(app, path=...)` uses custom path |
+| Test                                                    | Purpose                                              |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `test_register_commands_skips_module_without_app`       | Module with no `app` attr is skipped                 |
+| `test_register_commands_handles_duplicate_command_name` | Duplicate name logs warning, skips                   |
+| `test_register_commands_handles_import_error`           | Invalid module logs warning, continues               |
+| `test_register_commands_handles_attribute_error`        | Bad module structure, continues                      |
+| `test_register_commands_with_custom_path`               | `_register_commands(app, path=...)` uses custom path |
 
 **File:** Extend `tests/{% if python_package_command_line_name %}test_cli{% endif %}/test_command_registration.py.jinja`
 
 ### 3.2 `cli/main_cli.py` (lines 117–135)
 
-| Test | Purpose |
-|------|---------|
-| `test_main_with_verbose` | `cli --verbose` sets DEBUG level |
+| Test                              | Purpose                                                       |
+| --------------------------------- | ------------------------------------------------------------- |
+| `test_main_with_verbose`          | `cli --verbose` sets DEBUG level                              |
 | `test_main_with_validation_error` | Invalid config → ValidationError, `config` is None in ctx.obj |
-| `test_main_sets_ctx_obj` | `ctx.obj` contains `verbose`, `dry_run`, `theme`, `config` |
+| `test_main_sets_ctx_obj`          | `ctx.obj` contains `verbose`, `dry_run`, `theme`, `config`    |
 
 **File:** Extend `tests/{% if python_package_command_line_name %}test_cli{% endif %}/test_cli.py.jinja`
 
@@ -163,12 +163,12 @@ Covers: `_internal/__init__.py`
 
 **Missing:** lines 135–140, 154–155, 160→159, 167–181
 
-| Test | Purpose |
-|------|---------|
-| `test_get_logger_console_invalid_log_level` | `get_logger_console(log_level="INVALID")` falls back to INFO |
+| Test                                                   | Purpose                                                                      |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `test_get_logger_console_invalid_log_level`            | `get_logger_console(log_level="INVALID")` falls back to INFO                 |
 | `test_get_logger_console_same_name_log_level_mismatch` | `name == package_name` and `log_level != root_logger.level` triggers warning |
-| `test_get_logger_console_no_rich_handler_fallback` | Force no rich handler in root_logger, assert fallback console creation |
-| `test_get_logger_console_console_from_handler` | Branch where handler.get_name() == "rich" returns early |
+| `test_get_logger_console_no_rich_handler_fallback`     | Force no rich handler in root_logger, assert fallback console creation       |
+| `test_get_logger_console_console_from_handler`         | Branch where handler.get_name() == "rich" returns early                      |
 
 **File:** Extend `tests/test_utils/test_logging.py.jinja`
 
@@ -178,8 +178,8 @@ Covers: `_internal/__init__.py`
 
 **Missing:** branch 94→97 (e.g. `progress is None` when `use_progress_bar` is True)
 
-| Test | Purpose |
-|------|---------|
+| Test                                     | Purpose                                                                                      |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `test_update_before_start_progress_none` | Call `update()` before `start()` when `use_progress_bar=True`; no crash, progress stays None |
 
 **File:** Extend `tests/test_utils/test_progress_bar.py.jinja`
@@ -237,20 +237,20 @@ make test-coverage-report
 
 ## Summary Table
 
-| Module | Current | Target | New Tests |
-|--------|---------|--------|-----------|
-| app/asgi.py | 0% | 100% | 4 |
-| app/__init__.py | 0% | 100% | (via asgi) |
-| app/controllers/* | 0% | 100% | 2 |
-| app/exceptions/* | 0% | 100% | 3 |
-| app/router.py | 0% | 100% | 2 |
-| app/utils/aiohttp_client.py | 0% | 100% | 8 |
-| app/views/* | 0% | 100% | 3 |
-| app/state/__init__.py | 100% | 100% | — |
-| config.py | 0% | 100% | 1 |
-| _internal/__init__.py | 0% | 100% | 1 |
-| cli/register.py | 33% | 100% | 5 |
-| cli/main_cli.py | 62% | 100% | 3 |
-| utils/logging.py | 77% | 100% | 4 |
-| utils/progress_bar.py | 98% | 100% | 1 |
-| **TOTAL** | **55.78%** | **100%** | **~37 tests** |
+| Module                      | Current    | Target   | New Tests     |
+| --------------------------- | ---------- | -------- | ------------- |
+| app/asgi.py                 | 0%         | 100%     | 4             |
+| app/**init**.py             | 0%         | 100%     | (via asgi)    |
+| app/controllers/\*          | 0%         | 100%     | 2             |
+| app/exceptions/\*           | 0%         | 100%     | 3             |
+| app/router.py               | 0%         | 100%     | 2             |
+| app/utils/aiohttp_client.py | 0%         | 100%     | 8             |
+| app/views/\*                | 0%         | 100%     | 3             |
+| app/state/**init**.py       | 100%       | 100%     | —             |
+| config.py                   | 0%         | 100%     | 1             |
+| \_internal/**init**.py      | 0%         | 100%     | 1             |
+| cli/register.py             | 33%        | 100%     | 5             |
+| cli/main_cli.py             | 62%        | 100%     | 3             |
+| utils/logging.py            | 77%        | 100%     | 4             |
+| utils/progress_bar.py       | 98%        | 100%     | 1             |
+| **TOTAL**                   | **55.78%** | **100%** | **~37 tests** |
