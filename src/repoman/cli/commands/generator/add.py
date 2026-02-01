@@ -6,11 +6,15 @@ from pathlib import Path
 import jinja2
 import yaml
 from jinja2 import Environment, FileSystemLoader
-from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.text import Text
 from typer import Argument, Exit, Option, Typer
 
+from repoman.cli.messages import (
+    command_created,
+    dry_run_command_add,
+    error_panel,
+    warning_panel,
+)
 from repoman.extensions import CurrentYearExtension, GitExtension, SlugifyExtension
 from repoman.utils.logging import get_logger_console
 
