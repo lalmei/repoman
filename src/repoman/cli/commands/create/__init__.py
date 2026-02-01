@@ -68,7 +68,9 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"]
+        + [f"COM{i}" for i in range(1, 10)]
+        + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -85,11 +87,17 @@ def create(
     project_name: str = Argument(..., help="Name of the project to create"),
     template_path: Annotated[
         str | None,
-        Option("--template", "-t", help="Path to custom template (defaults to main template)"),
+        Option(
+            "--template",
+            "-t",
+            help="Path to custom template (defaults to main template)",
+        ),
     ] = None,
     output_dir: Annotated[
         str | None,
-        Option("--output", "-o", help="Output directory (defaults to current directory)"),
+        Option(
+            "--output", "-o", help="Output directory (defaults to current directory)"
+        ),
     ] = None,
     answers_file: Annotated[
         Path | None,
@@ -101,7 +109,9 @@ def create(
     ] = False,
     dry_run: Annotated[  # noqa: FBT002
         bool,
-        Option("--dry-run", help="Show what would be created without actually creating"),
+        Option(
+            "--dry-run", help="Show what would be created without actually creating"
+        ),
     ] = False,
 ) -> None:
     """Create a new Python project using the repoman template."""
@@ -111,13 +121,7 @@ def create(
     try:
         validate_project_name(project_name)
     except ValueError as e:
-        console.print(
-            Panel(
-                Text(f"Invalid project name: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from None
 
     # Determine template path
@@ -131,18 +135,18 @@ def create(
         template_path_obj = Path(template_path)
 
     # Determine output directory
-    output_dir_obj: Path = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
+    output_dir_obj: Path = (
+        Path.cwd() / project_name
+        if output_dir is None
+        else Path(output_dir) / project_name
+    )
 
     # Check if output directory exists
     if output_dir_obj.exists() and not force:
         console.print(
-            Panel(
-                Text(
-                    f"Output directory {output_dir_obj} already exists. Use --force to overwrite.",
-                    style="yellow",
-                ),
-                title="Warning",
-                border_style="yellow",
+            warning_panel(
+                f"Output directory {output_dir_obj} already exists. Use --force to overwrite.",
+                console=console,
             )
         )
         raise Exit(1) from None
@@ -150,11 +154,7 @@ def create(
         answers_path = Path(answers_file).resolve()
         if not answers_path.exists():
             console.print(
-                Panel(
-                    Text(f"Answers file not found: {answers_path}", style="red"),
-                    title="Error",
-                    border_style="red",
-                )
+                error_panel(f"Answers file not found: {answers_path}", console=console)
             )
             raise Exit(1) from None
         console.print(f"Using answers file: {answers_path}")
@@ -189,26 +189,20 @@ def create(
         "Start developing!",
     ]
 
-    steps_text = "\n".join(f"  {i + 1}. {step}" for i, step in enumerate(next_steps))
+    steps_text = format_next_steps(next_steps, console=console)
 
     if dry_run or ctx.obj.get("dry_run", True):
-        # Convert Path objects to strings for JSON serialization
-        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
-
+        copier_options_serializable = {
+            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
+        }
         console.print(
-            Panel(
-                Group(
-                    Text(
-                        f"Would create project '{project_name}' in {output_dir_obj}\n"
-                        f"Using template: {template_path_obj}\n",
-                        style="blue",
-                    ),
-                    Text("Copier options:", style="blue"),
-                    JSON.from_data(copier_options_serializable, indent=2),
-                    Text(f"\nNext steps:\n{steps_text}", style="blue"),
-                ),
-                title="Dry Run",
-                border_style="blue",
+            dry_run_create(
+                project_name,
+                output_dir_obj,
+                template_path_obj,
+                copier_options_serializable,
+                steps_text,
+                console=console,
             )
         )
         return
@@ -227,42 +221,22 @@ def create(
 
             progress.update(task, description="Project created successfully!")
 
-        # Success message
-        # Convert Path objects to strings for JSON serialization
-        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
-
+        copier_options_serializable = {
+            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
+        }
         console.print(
-            Panel(
-                Group(
-                    Text(
-                        f"Project '{project_name}' created successfully in {output_dir_obj}\n",
-                        style="green",
-                    ),
-                    Text("Copier options used:", style="green"),
-                    JSON.from_data(copier_options_serializable, indent=2),
-                    Text(f"\nNext steps:\n{steps_text}", style="green"),
-                ),
-                title="Success",
-                border_style="green",
+            project_created(
+                project_name,
+                output_dir_obj,
+                copier_options_serializable,
+                steps_text,
+                console=console,
             )
         )
 
     except CopierError as e:
-        console.print(
-            Panel(
-                Text(f"Error creating project: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
     except (OSError, ValueError, RuntimeError) as e:
-        # Catch common file system and runtime errors that might occur during project creation
-        console.print(
-            Panel(
-                Text(f"Unexpected error: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from e

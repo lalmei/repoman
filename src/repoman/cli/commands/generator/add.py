@@ -56,11 +56,15 @@ def validate_command_name(command_name: str) -> bool:
 
     # Check if it's a valid Python identifier
     if not command_name.isidentifier():
-        raise ValueError(f"Command name '{command_name}' is not a valid Python identifier")
+        raise ValueError(
+            f"Command name '{command_name}' is not a valid Python identifier"
+        )
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"]
+        + [f"COM{i}" for i in range(1, 10)]
+        + [f"LPT{i}" for i in range(1, 10)]
     )
     if command_name.upper() in reserved_names:
         raise ValueError(f"Command name is a reserved system name: {command_name}")
@@ -88,7 +92,9 @@ def load_copier_answers(answers_file: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
-def detect_project_structure(project_dir: Path, python_package_import_name: str) -> tuple[Path, Path]:
+def detect_project_structure(
+    project_dir: Path, python_package_import_name: str
+) -> tuple[Path, Path]:
     """Detect the project structure and return paths for commands and tests.
 
     Args:
@@ -106,7 +112,9 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 
     if not commands_dir.exists():
         # Try alternative structure
-        commands_dir = project_dir / "src" / python_package_import_name / "cli" / "commands"
+        commands_dir = (
+            project_dir / "src" / python_package_import_name / "cli" / "commands"
+        )
         if not commands_dir.parent.exists():
             raise ValueError(
                 f"Could not find CLI commands directory. Expected: {commands_dir}\n"
@@ -125,9 +133,13 @@ def add(
         "-d",
         help="Project directory (defaults to current directory)",
     ),
-    answers_file: str | None = Option(None, "--answers", "-a", help="Path to .copier-answers.yml file"),
+    answers_file: str | None = Option(
+        None, "--answers", "-a", help="Path to .copier-answers.yml file"
+    ),
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
-    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
+    dry_run: bool = Option(
+        False, "--dry-run", help="Show what would be created without creating"
+    ),
 ) -> None:
     """Add a new CLI command to your repoman-generated project.
 
@@ -141,31 +153,27 @@ def add(
     try:
         validate_command_name(command_name)
     except ValueError as e:
-        console.print(
-            Panel(
-                Text(f"Invalid command name: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from None
 
     # Determine project directory
-    project_dir_path: Path = Path.cwd() if project_dir is None else Path(project_dir).resolve()
+    project_dir_path: Path = (
+        Path.cwd() if project_dir is None else Path(project_dir).resolve()
+    )
 
     if not project_dir_path.exists():
         console.print(
-            Panel(
-                Text(f"Project directory does not exist: {project_dir_path}", style="red"),
-                title="Error",
-                border_style="red",
+            error_panel(
+                f"Project directory does not exist: {project_dir_path}", console=console
             )
         )
         raise Exit(1) from None
 
     # Determine answers file path
     answers_file_path: Path = (
-        project_dir_path / ".copier-answers.yml" if answers_file is None else Path(answers_file).resolve()
+        project_dir_path / ".copier-answers.yml"
+        if answers_file is None
+        else Path(answers_file).resolve()
     )
 
     # Load copier answers
@@ -173,76 +181,58 @@ def add(
         answers = load_copier_answers(answers_file_path)
     except FileNotFoundError as e:
         console.print(
-            Panel(
-                Text(
-                    f"Could not find copier answers file: {e}\n\n"
-                    "Make sure you're in a repoman-generated project directory,\n"
-                    "or specify the answers file with --answers.",
-                    style="red",
-                ),
-                title="Error",
-                border_style="red",
+            error_panel(
+                f"Could not find copier answers file: {e}\n\n"
+                "Make sure you're in a repoman-generated project directory,\n"
+                "or specify the answers file with --answers.",
+                console=console,
             )
         )
         raise Exit(1) from e
     except yaml.YAMLError as e:
-        console.print(
-            Panel(
-                Text(f"Error parsing YAML file: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
 
     # Extract required context
     python_package_import_name = answers.get("python_package_import_name")
     if not python_package_import_name:
         console.print(
-            Panel(
-                Text(
-                    "Missing 'python_package_import_name' in answers file.\n"
-                    "This is required to determine where to create the command.",
-                    style="red",
-                ),
-                title="Error",
-                border_style="red",
+            error_panel(
+                "Missing 'python_package_import_name' in answers file.\n"
+                "This is required to determine where to create the command.",
+                console=console,
             )
         )
         raise Exit(1) from None
 
-    python_package_command_line_name = answers.get("python_package_command_line_name", python_package_import_name)
+    python_package_command_line_name = answers.get(
+        "python_package_command_line_name", python_package_import_name
+    )
     command_description = answers.get("command_description", f"{command_name} command")
 
     # Detect project structure
     try:
-        commands_dir, tests_dir = detect_project_structure(project_dir_path, python_package_import_name)
-    except ValueError as e:
-        console.print(
-            Panel(
-                Text(str(e), style="red"),
-                title="Error",
-                border_style="red",
-            )
+        commands_dir, tests_dir = detect_project_structure(
+            project_dir_path, python_package_import_name
         )
+    except ValueError as e:
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
 
     # Locate template directory
     # The template directory is literally named "{{command_name}}"
     current_file = Path(__file__)
-    template_base = current_file.parent.parent.parent.parent / "extentions" / "command_template"
+    template_base = (
+        current_file.parent.parent.parent.parent / "extentions" / "command_template"
+    )
     template_dir = template_base / "{{command_name}}"
 
     if not template_dir.exists():
         console.print(
-            Panel(
-                Text(
-                    f"Template directory not found: {template_dir}\n"
-                    "Expected: extentions/command_template/{{command_name}}/",
-                    style="red",
-                ),
-                title="Error",
-                border_style="red",
+            error_panel(
+                f"Template directory not found: {template_dir}\n"
+                "Expected: extentions/command_template/{{command_name}}/",
+                console=console,
             )
         )
         raise Exit(1)
@@ -273,28 +263,20 @@ def add(
     if not force:
         if command_output_file.exists():
             console.print(
-                Panel(
-                    Text(
-                        f"Command file already exists: {command_output_file}\nUse --force to overwrite.",
-                        style="yellow",
-                    ),
-                    title="Warning",
-                    border_style="yellow",
+                warning_panel(
+                    f"Command file already exists: {command_output_file}\nUse --force to overwrite.",
+                    console=console,
                 )
             )
-        raise Exit(1) from None
+            raise Exit(1) from None
         if test_output_file.exists():
             console.print(
-                Panel(
-                    Text(
-                        f"Test file already exists: {test_output_file}\nUse --force to overwrite.",
-                        style="yellow",
-                    ),
-                    title="Warning",
-                    border_style="yellow",
+                warning_panel(
+                    f"Test file already exists: {test_output_file}\nUse --force to overwrite.",
+                    console=console,
                 )
             )
-        raise Exit(1) from None
+            raise Exit(1) from None
 
     # Render templates
     try:
@@ -310,31 +292,24 @@ def add(
         rendered_command = command_template.render(**template_context)
         rendered_test = test_template.render(**template_context)
     except (FileNotFoundError, jinja2.TemplateNotFound, jinja2.TemplateError) as e:
-        console.print(
-            Panel(
-                Text(f"Error rendering templates: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         logger.exception("Template rendering error")
         raise Exit(1) from e
 
     if dry_run:
+        context_lines = (
+            f"Template context:\n"
+            f"  - command_name: {command_name}\n"
+            f"  - python_package_import_name: {python_package_import_name}\n"
+            f"  - python_package_command_line_name: {python_package_command_line_name}"
+        )
         console.print(
-            Panel(
-                Text(
-                    f"Would create command '{command_name}':\n\n"
-                    f"Command: {command_output_file}\n"
-                    f"Test: {test_output_file}\n\n"
-                    f"Template context:\n"
-                    f"  - command_name: {command_name}\n"
-                    f"  - python_package_import_name: {python_package_import_name}\n"
-                    f"  - python_package_command_line_name: {python_package_command_line_name}",
-                    style="blue",
-                ),
-                title="Dry Run",
-                border_style="blue",
+            dry_run_command_add(
+                command_name,
+                command_output_file,
+                test_output_file,
+                context_lines,
+                console=console,
             )
         )
         return
@@ -358,33 +333,20 @@ def add(
 
             progress.update(task, description="Command created successfully!")
 
-        # Success message
-        console.print(
-            Panel(
-                Text(
-                    f"Command '{command_name}' created successfully!\n\n"
-                    f"Created files:\n"
-                    f"  - {command_output_file.relative_to(project_dir_path)}\n"
-                    f"  - {test_output_file.relative_to(project_dir_path)}\n\n"
-                    f"Next steps:\n"
-                    f"  1. Review and customize the generated command\n"
-                    f"  2. Implement the command functionality\n"
-                    f"  3. Write tests for your command\n"
-                    f"  4. The command will be automatically registered by the CLI",
-                    style="green",
-                ),
-                title="Success",
-                border_style="green",
-            )
+        body_text = (
+            f"Command '{command_name}' created successfully!\n\n"
+            f"Created files:\n"
+            f"  - {command_output_file.relative_to(project_dir_path)}\n"
+            f"  - {test_output_file.relative_to(project_dir_path)}\n\n"
+            f"Next steps:\n"
+            f"  1. Review and customize the generated command\n"
+            f"  2. Implement the command functionality\n"
+            f"  3. Write tests for your command\n"
+            f"  4. The command will be automatically registered by the CLI"
         )
+        console.print(command_created(command_name, body_text, console=console))
 
     except (OSError, PermissionError) as e:
-        console.print(
-            Panel(
-                Text(f"Error creating files: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         logger.exception("File creation error")
         raise Exit(1) from e
