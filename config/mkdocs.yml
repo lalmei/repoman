@@ -23,15 +23,16 @@ nav:
     - Copier and answers: concepts/copier-and-answers.md
     - Generated project: concepts/generated-project.md
     - The template: template.md
+    - Template prompts: template-prompts.md
+    - Template structure: template-structure.md
   - Guides:
     - Creating a project: guides/creating-a-project.md
     - Updating a project: guides/updating-a-project.md
     - Adding a CLI command: guides/adding-a-cli-command.md
-    - Configuration: guides/configuration.md
+    - Project configuration: guides/configuration.md
   - Reference:
     - CLI reference: cli.md
     - Make commands: make-commands.md
-    - Template reference: template.md
     - Roadmap: roadmap.md
     - Troubleshooting: reference/troubleshooting.md
 
@@ -39,8 +40,20 @@ nav:
   - repoman: reference/
 - Development:
   - Development Guide: development/README.md
+  - Tools: development/tools.md
+  - Code Quality: development/code-quality.md
+  - Documentation: development/documentation.md
+  - CI: development/ci.md
+  - Debugging: development/debugging.md
+  - Performance tips: development/performance-tips.md
+  - Package management: development/package-management.md
+  - Development configuration: development/configuration.md
+  - Additional resources: development/additional-resources.md
   - Contributing: development/contributing.md
   - Testing: development/testing.md
+  - Testing fixtures: development/testing-fixtures.md
+  - Testing troubleshooting: development/testing-troubleshooting.md
+  - Testing best practices: development/testing-best-practices.md
   - Instantiated template coverage plan: development/instantiated-template-coverage-plan.md
   - Coverage report: coverage.md
 

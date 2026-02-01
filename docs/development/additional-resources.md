@@ -17,7 +17,7 @@
 
 If you encounter issues:
 
-1. **Check the troubleshooting section** in the [Testing Guide](testing-troubleshooting.md)
+1. **Check the troubleshooting section** in [Testing Troubleshooting](testing-troubleshooting.md)
 2. **Search existing issues** in the project repository
 3. **Create a new issue** with detailed information about the problem
 4. **Ask in the project discussions** or community channels
