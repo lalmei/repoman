@@ -2,7 +2,9 @@
 
 import re
 from pathlib import Path
+from typing import Annotated
 
+import yaml
 from copier import run_copy
 from copier.errors import CopierError
 from rich.console import Group
