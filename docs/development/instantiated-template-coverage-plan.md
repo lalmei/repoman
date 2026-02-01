@@ -119,18 +119,6 @@ Covers: `config.py` (root, lines 3–9)
 | ---------------------- | ----------------------------------- |
 | `test_config_defaults` | `Config()` has `log_format` default |
 
-### 2.2 Internal module
-
-**File:** `tests/test_internal.py.jinja` (new)
-
-Covers: `_internal/__init__.py`
-
-| Test                         | Purpose                                             |
-| ---------------------------- | --------------------------------------------------- |
-| `test_internal_debug_export` | `from _internal import debug` works and is callable |
-
----
-
 ## Phase 3: CLI Gaps
 
 **Partially covered: `cli/register.py` 33%, `cli/main_cli.py` 62%**
@@ -189,7 +177,7 @@ Covers: `_internal/__init__.py`
 ## Implementation Order
 
 1. **Phase 1** – FastAPI tests (largest coverage gain)
-2. **Phase 2** – Config and internal (small, quick)
+2. **Phase 2** – Config (small, quick)
 3. **Phase 4** – Logging (clear missing branches)
 4. **Phase 5** – Progress bar (single branch)
 5. **Phase 3** – CLI (requires careful mocking)
@@ -248,9 +236,8 @@ make test-coverage-report
 | app/views/\*                | 0%         | 100%     | 3             |
 | app/state/**init**.py       | 100%       | 100%     | —             |
 | config.py                   | 0%         | 100%     | 1             |
-| \_internal/**init**.py      | 0%         | 100%     | 1             |
 | cli/register.py             | 33%        | 100%     | 5             |
 | cli/main_cli.py             | 62%        | 100%     | 3             |
 | utils/logging.py            | 77%        | 100%     | 4             |
 | utils/progress_bar.py       | 98%        | 100%     | 1             |
-| **TOTAL**                   | **55.78%** | **100%** | **~37 tests** |
+| **TOTAL**                   | **55.78%** | **100%** | **~36 tests** |

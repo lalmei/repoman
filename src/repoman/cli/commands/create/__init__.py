@@ -78,16 +78,26 @@ app = Typer(add_completion=True)
 def create(
     ctx: Context,
     project_name: str = Argument(..., help="Name of the project to create"),
-    template_path: str | None = Option(
-        None,
-        "--template",
-        "-t",
-        help="Path to custom template (defaults to main template)",
-    ),
-    output_dir: str | None = Option(None, "--output", "-o", help="Output directory (defaults to current directory)"),
-    answers_file: str | None = Option(None, "--answers", "-a", help="Path to answers file"),
-    force: bool = Option(False, "--force", "-f", help="Force overwrite of existing files"),
-    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without actually creating"),
+    template_path: Annotated[
+        str | None,
+        Option("--template", "-t", help="Path to custom template (defaults to main template)"),
+    ] = None,
+    output_dir: Annotated[
+        str | None,
+        Option("--output", "-o", help="Output directory (defaults to current directory)"),
+    ] = None,
+    answers_file: Annotated[
+        Path | None,
+        Option("--answers", "-a", help="Path to answers file"),
+    ] = None,
+    force: Annotated[  # noqa: FBT002
+        bool,
+        Option("--force", "-f", help="Force overwrite of existing files"),
+    ] = False,
+    dry_run: Annotated[  # noqa: FBT002
+        bool,
+        Option("--dry-run", help="Show what would be created without actually creating"),
+    ] = False,
 ) -> None:
     """Create a new Python project using the repoman template."""
     logger, console = get_logger_console()
@@ -110,7 +120,7 @@ def create(
     if template_path is None:
         # Use the main template included with repoman
         current_file = Path(__file__)
-        template_path_obj = current_file.parent.parent.parent.parent / "main_template"
+        template_path_obj = current_file.parent.parent.parent.parent
         logger.info(f"Using main template at {template_path_obj}")
     else:
         template_path_obj = Path(template_path)
@@ -131,25 +141,40 @@ def create(
             )
         )
         raise Exit(1) from None
-
-    # Prepare copier options
-    copier_options = {
-        "src_path": str(template_path_obj),
-        "dst_path": str(output_dir_obj),
-        "answers_file": answers_file,
-        "overwrite": force,  # Make copier non-interactive by using force flag
-        "quiet": True,  # Suppress interactive output
-        "data": {
-            "project_name": project_name,
-            "repository_provider": "github",
-            "ci": "github",
-            "author_username": "user",
-            "project_description": f"Project {project_name}",
-            "copyright_license": "MIT",
-            "insiders": False,
-            "public_release": False,
-        },
-    }
+    if answers_file is not None:
+        answers_path = Path(answers_file).resolve()
+        if not answers_path.exists():
+            console.print(
+                Panel(
+                    Text(f"Answers file not found: {answers_path}", style="red"),
+                    title="Error",
+                    border_style="red",
+                )
+            )
+            raise Exit(1) from None
+        console.print(f"Using answers file: {answers_path}")
+        with open(answers_path) as f:
+            answers_data = yaml.safe_load(f) or {}
+        # CLI project_name overrides the answers file so the created project name matches
+        answers_data["project_name"] = project_name
+        # Copier expects answers_file relative to dst_path (project root). We pass the
+        # loaded content as data; Copier will write answers to dst_path/.copier-answers.yml
+        copier_options = {
+            "src_path": str(template_path_obj),
+            "dst_path": str(output_dir_obj),
+            "data": answers_data,
+            "answers_file": ".copier-answers.yml",
+            "overwrite": True,
+            "defaults": True,
+            "quiet": False,
+            "unsafe": True,
+        }
+    else:
+        # Prepare copier options
+        copier_options = {
+            "src_path": str(template_path_obj),
+            "dst_path": str(output_dir_obj),
+        }
 
     # Prepare next steps (used in both dry-run and success messages)
     next_steps = [

@@ -7,7 +7,7 @@ _subdirectory: main_template/
 _templates_suffix: .jinja
 _preserve_symlinks: true
 _jinja_extensions:
-- copier_templates_extensions.TemplateExtensionLoader
+- copier_template_extensions.TemplateExtensionLoader
 - extensions.py:CurrentYearExtension
 - extensions.py:GitExtension
 - extensions.py:SlugifyExtension
@@ -20,11 +20,11 @@ _skip_if_exists:
 ci:
   type: str
   help: Your repository URL
-  default: "github"
+  default: "github.com"
   choices:
-  - github
-  - gitlab
-  - azure
+  - github.com
+  - gitlab.com
+  - azure.com
 
 project_name:
   type: str
@@ -47,15 +47,16 @@ author_email:
 author_username:
   type: str
   help: Your username (e.g. on GitHub)
-  default: lalmei 
+  default: "lalmei"
 
 repository_provider:
   type: str
   help: Your repository provider
   default: github
-  - github.com
-  - gitlab.com
-  - azure.com
+  choices:
+  - github
+  - gitlab
+  - azure
 
 repository_namespace:
   type: str
