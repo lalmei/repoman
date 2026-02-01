@@ -88,11 +88,7 @@ def dry_run_update(
     Panel
         Blue-bordered Panel suitable for console.print().
     """
-    template_line = (
-        f"Using template: {template_path}\n"
-        if template_path
-        else "Template: (from answers file)\n"
-    )
+    template_line = f"Using template: {template_path}\n" if template_path else "Template: (from answers file)\n"
     vcs_line = f"VCS ref: {vcs_ref}\n" if vcs_ref else ""
     summary = Text(
         f"Would update project in {project_dir}\nUsing answers file: {answers_path}\n{template_line}{vcs_line}",

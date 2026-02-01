@@ -122,9 +122,7 @@ def project_updated(
     )
 
 
-def command_created(
-    command_name: str, body_text: str, console: Console | None = None
-) -> Panel:
+def command_created(command_name: str, body_text: str, console: Console | None = None) -> Panel:
     """Build a green success Panel for command creation (generator add).
 
     Parameters
@@ -143,9 +141,5 @@ def command_created(
     """
     use_unicode = supports_unicode_markdown(console)
     prefix = "✓ " if use_unicode else ""
-    content = (
-        Text(f"{prefix}{body_text}", style="green")
-        if prefix
-        else Text(body_text, style="green")
-    )
+    content = Text(f"{prefix}{body_text}", style="green") if prefix else Text(body_text, style="green")
     return Panel(content, title="Success", border_style="green")
