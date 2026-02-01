@@ -4,13 +4,15 @@ from pathlib import Path
 
 from copier import Worker
 from copier.errors import CopierError
-from rich.console import Group
-from rich.json import JSON
-from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.text import Text
 from typer import Argument, Context, Exit, Option, Typer
 
+from repoman.cli.messages import (
+    dry_run_update,
+    error_panel,
+    format_next_steps,
+    project_updated,
+)
 from repoman.utils.logging import get_logger_console
 
 app = Typer(add_completion=True)
@@ -48,13 +50,9 @@ def update(
     # Validate conflict mode
     if conflict not in ["inline", "rej"]:
         console.print(
-            Panel(
-                Text(
-                    f"Invalid conflict mode: {conflict}. Must be 'inline' or 'rej'.",
-                    style="red",
-                ),
-                title="Error",
-                border_style="red",
+            error_panel(
+                f"Invalid conflict mode: {conflict}. Must be 'inline' or 'rej'.",
+                console=console,
             )
         )
         raise Exit(1) from None
@@ -64,23 +62,11 @@ def update(
 
     # Validate project directory exists
     if not project_dir_obj.exists():
-        console.print(
-            Panel(
-                Text(f"Project directory does not exist: {project_dir_obj}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(f"Project directory does not exist: {project_dir_obj}", console=console))
         raise Exit(1) from None
 
     if not project_dir_obj.is_dir():
-        console.print(
-            Panel(
-                Text(f"Project path is not a directory: {project_dir_obj}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(f"Project path is not a directory: {project_dir_obj}", console=console))
         raise Exit(1) from None
 
     # Determine answers file path
@@ -93,16 +79,12 @@ def update(
     # Validate answers file exists (required for copier update)
     if not answers_file_path.exists():
         console.print(
-            Panel(
-                Text(
-                    f"Copier answers file not found: {answers_file_path}\n\n"
-                    "The .copier-answers.yml file is required for updating projects.\n"
-                    "Make sure you're in a repoman-generated project directory,\n"
-                    "or specify the answers file with --answers.",
-                    style="red",
-                ),
-                title="Error",
-                border_style="red",
+            error_panel(
+                f"Copier answers file not found: {answers_file_path}\n\n"
+                "The .copier-answers.yml file is required for updating projects.\n"
+                "Make sure you're in a repoman-generated project directory,\n"
+                "or specify the answers file with --answers.",
+                console=console,
             )
         )
         raise Exit(1) from None
@@ -113,13 +95,9 @@ def update(
         template_path_obj = Path(template_path).resolve()
         if not template_path_obj.exists():
             console.print(
-                Panel(
-                    Text(
-                        f"Template path does not exist: {template_path_obj}",
-                        style="red",
-                    ),
-                    title="Error",
-                    border_style="red",
+                error_panel(
+                    f"Template path does not exist: {template_path_obj}",
+                    console=console,
                 )
             )
             raise Exit(1) from None
@@ -154,34 +132,21 @@ def update(
         "Commit the changes",
     ]
 
-    steps_text = "\n".join(f"  {i + 1}. {step}" for i, step in enumerate(next_steps))
+    steps_text = format_next_steps(next_steps, console=console)
 
     if dry_run or ctx.obj.get("dry_run", False):
-        # Convert Path objects to strings for JSON serialization
         copier_options_serializable = {
             k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items() if v is not None
         }
-
         console.print(
-            Panel(
-                Group(
-                    Text(
-                        f"Would update project in {project_dir_obj}\n"
-                        f"Using answers file: {answers_file_path}\n"
-                        + (
-                            f"Using template: {template_path_obj}\n"
-                            if template_path_obj
-                            else "Template: (from answers file)\n"
-                        )
-                        + (f"VCS ref: {vcs_ref}\n" if vcs_ref else ""),
-                        style="blue",
-                    ),
-                    Text("Copier options:", style="blue"),
-                    JSON.from_data(copier_options_serializable, indent=2),
-                    Text(f"\nNext steps:\n{steps_text}", style="blue"),
-                ),
-                title="Dry Run",
-                border_style="blue",
+            dry_run_update(
+                project_dir_obj,
+                answers_file_path,
+                template_path_obj,
+                vcs_ref,
+                copier_options_serializable,
+                steps_text,
+                console=console,
             )
         )
         return
@@ -202,44 +167,21 @@ def update(
 
             progress.update(task, description="Project updated successfully!")
 
-        # Success message
-        # Convert Path objects to strings for JSON serialization
         copier_options_serializable = {
             k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items() if v is not None
         }
-
         console.print(
-            Panel(
-                Group(
-                    Text(
-                        f"Project updated successfully in {project_dir_obj}\n",
-                        style="green",
-                    ),
-                    Text("Copier options used:", style="green"),
-                    JSON.from_data(copier_options_serializable, indent=2),
-                    Text(f"\nNext steps:\n{steps_text}", style="green"),
-                ),
-                title="Success",
-                border_style="green",
+            project_updated(
+                project_dir_obj,
+                copier_options_serializable,
+                steps_text,
+                console=console,
             )
         )
 
     except CopierError as e:
-        console.print(
-            Panel(
-                Text(f"Error updating project: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
     except (OSError, ValueError, RuntimeError) as e:
-        # Catch common file system and runtime errors that might occur during project update
-        console.print(
-            Panel(
-                Text(f"Unexpected error: {e}", style="red"),
-                title="Error",
-                border_style="red",
-            )
-        )
+        console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
