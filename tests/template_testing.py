@@ -96,7 +96,7 @@ def instantiate_template(
         "python_package_distribution_name": python_package_distribution_name,
         "python_package_import_name": python_package_import_name,
         "python_package_command_line_name": python_package_command_line_name,
-        "repository_provider": "github.com",
+        "repository_provider": "github",
         "repository_namespace": "testuser",
         "repository_name": python_package_distribution_name,
         "ci": "github",
