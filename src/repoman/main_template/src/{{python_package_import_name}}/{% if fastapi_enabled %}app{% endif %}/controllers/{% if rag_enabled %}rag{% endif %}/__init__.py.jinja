@@ -1,0 +1,6 @@
+{% if fastapi_enabled and rag_enabled %}"""RAG API controller."""
+
+from {{python_package_import_name}}.app.controllers.rag.routes import router
+
+__all__: list[str] = ["router"]
+{% endif %}

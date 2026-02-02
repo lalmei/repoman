@@ -1,0 +1,22 @@
+{% if rag_enabled %}"""RAG core (types, ports, pipeline)."""
+
+from {{python_package_import_name}}.rag.core.types import (
+    Chunk,
+    Citation,
+    Document,
+    IngestResult,
+    QueryFilters,
+    RAGAnswer,
+    RetrievedChunk,
+)
+
+__all__: list[str] = [
+    "Chunk",
+    "Citation",
+    "Document",
+    "IngestResult",
+    "QueryFilters",
+    "RAGAnswer",
+    "RetrievedChunk",
+]
+{% endif %}

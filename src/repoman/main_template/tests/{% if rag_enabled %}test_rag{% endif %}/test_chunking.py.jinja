@@ -1,0 +1,45 @@
+{% if rag_enabled %}"""Unit tests for chunking (deterministic)."""
+
+import pytest
+
+from {{python_package_import_name}}.rag.core.pipeline.ingest import chunk_text
+
+
+def test_chunk_text_empty() -> None:
+    """Empty or whitespace returns empty list."""
+    assert chunk_text("", 10, 2) == []
+    assert chunk_text("   ", 10, 2) == []
+
+
+def test_chunk_text_single_chunk() -> None:
+    """Text shorter than chunk_size returns one chunk."""
+    text = "hello world"
+    assert chunk_text(text, chunk_size=20, chunk_overlap=0) == ["hello world"]
+
+
+def test_chunk_text_no_overlap() -> None:
+    """Chunking with zero overlap is deterministic."""
+    text = "abcdefghijklmnop"  # 16 chars
+    result = chunk_text(text, chunk_size=5, chunk_overlap=0)
+    assert result == ["abcde", "fghij", "klmno", "p"]
+
+
+def test_chunk_text_with_overlap() -> None:
+    """Chunking with overlap is deterministic."""
+    text = "abcdefghijklmnop"
+    result = chunk_text(text, chunk_size=5, chunk_overlap=2)
+    assert len(result) >= 3
+    assert result[0] == "abcde"
+    assert result[1] == "defgh"
+    assert "".join(result).replace(" ", "") == text.replace(" ", "")
+
+
+def test_chunk_text_invalid_args() -> None:
+    """Invalid chunk_size or overlap raises."""
+    with pytest.raises(ValueError):
+        chunk_text("hello", 0, 0)
+    with pytest.raises(ValueError):
+        chunk_text("hello", 5, 5)
+    with pytest.raises(ValueError):
+        chunk_text("hello", 5, -1)
+{% endif %}

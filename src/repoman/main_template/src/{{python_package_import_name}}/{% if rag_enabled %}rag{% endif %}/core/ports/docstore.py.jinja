@@ -1,0 +1,48 @@
+{% if rag_enabled %}"""Docstore port: store and get chunks by id."""
+
+from abc import ABC, abstractmethod
+
+from {{python_package_import_name}}.rag.core.types import Chunk
+
+
+class DocstorePort(ABC):
+    """Abstract interface for document store (chunks by id)."""
+
+    @abstractmethod
+    def put(self, chunks: list[Chunk]) -> None:
+        """Store chunks.
+
+        Args:
+            chunks: Chunks to store.
+        """
+        ...
+
+    @abstractmethod
+    def get(self, chunk_id: str) -> Chunk | None:
+        """Get a chunk by id.
+
+        Args:
+            chunk_id: Chunk id.
+
+        Returns:
+            Chunk if found, else None.
+        """
+        ...
+
+    @abstractmethod
+    def get_many(self, chunk_ids: list[str]) -> list[Chunk | None]:
+        """Get multiple chunks by id.
+
+        Args:
+            chunk_ids: Chunk ids.
+
+        Returns:
+            List of Chunk or None in same order as chunk_ids.
+        """
+        ...
+
+    @abstractmethod
+    def list_corpus_ids(self) -> list[str]:
+        """List known corpus ids."""
+        ...
+{% endif %}

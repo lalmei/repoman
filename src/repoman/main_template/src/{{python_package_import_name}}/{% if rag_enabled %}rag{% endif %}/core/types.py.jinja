@@ -1,0 +1,70 @@
+{% if rag_enabled %}"""Core types for RAG (chunks, documents, answers, filters)."""
+
+from dataclasses import dataclass
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+
+@dataclass(frozen=True)
+class Chunk:
+    """A text chunk with optional metadata and corpus id."""
+
+    id: str
+    text: str
+    corpus_id: str
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class Document:
+    """Source document (e.g. file path or URI) for ingestion."""
+
+    source: str
+    corpus_id: str
+    text: str
+    metadata: dict[str, Any] | None = None
+
+
+class RetrievedChunk(BaseModel):
+    """Chunk returned from retrieval with score."""
+
+    id: str = Field(description="Chunk id.")
+    text: str = Field(description="Chunk text.")
+    corpus_id: str = Field(description="Corpus id.")
+    score: float = Field(description="Retrieval or rerank score.")
+    metadata: dict[str, Any] | None = Field(default=None, description="Optional metadata.")
+
+
+class Citation(BaseModel):
+    """Citation pointing to a retrieved chunk."""
+
+    chunk_id: str = Field(description="Chunk id.")
+    text: str = Field(description="Cited text snippet.")
+    score: float = Field(description="Relevance score.")
+    corpus_id: str = Field(description="Corpus id.")
+
+
+class RAGAnswer(BaseModel):
+    """Answer from RAG pipeline with citations."""
+
+    text: str = Field(description="Generated answer text.")
+    citations: list[Citation] = Field(default_factory=list, description="Cited chunks.")
+    query: str = Field(description="Original query.")
+
+
+class IngestResult(BaseModel):
+    """Result of an ingest operation."""
+
+    corpus_id: str = Field(description="Corpus id.")
+    chunks_ingested: int = Field(description="Number of chunks ingested.")
+    source: str = Field(description="Source path or identifier.")
+    success: bool = Field(description="Whether ingest succeeded.")
+
+
+class QueryFilters(BaseModel):
+    """Optional filters for query (e.g. corpus_id)."""
+
+    corpus_id: str | None = Field(default=None, description="Restrict to this corpus.")
+    metadata: dict[str, Any] | None = Field(default=None, description="Metadata filters.")
+{% endif %}

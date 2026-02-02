@@ -1,0 +1,22 @@
+{% if rag_enabled %}"""Stub LLM adapter (placeholder or echo context)."""
+
+from {{python_package_import_name}}.rag.core.ports import LLMPort
+
+
+class StubLLM(LLMPort):
+    """Stub LLM: returns a placeholder or echoes context (no real LLM)."""
+
+    def __init__(self, echo_context: bool = False) -> None:
+        """Stub LLM.
+
+        Args:
+            echo_context: If True, return first 500 chars of context; else placeholder.
+        """
+        self._echo_context = echo_context
+
+    def generate(self, prompt: str) -> str:
+        """Return placeholder or truncated context."""
+        if self._echo_context and prompt:
+            return prompt[:500] + "..." if len(prompt) > 500 else prompt
+        return "[Stub LLM] Answer would be generated here. Configure a real LLM adapter for production."
+{% endif %}

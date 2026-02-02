@@ -1,0 +1,43 @@
+{% if rag_enabled %}"""Vector index port: add vectors and search by vector."""
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+from {{python_package_import_name}}.rag.core.types import Chunk
+
+
+class VectorIndexPort(ABC):
+    """Abstract interface for vector index (add and search)."""
+
+    @abstractmethod
+    def add(self, chunk_ids: list[str], vectors: list[list[float]], corpus_id: str) -> None:
+        """Add vectors with chunk ids and corpus id.
+
+        Args:
+            chunk_ids: Ids for each vector.
+            vectors: Embedding vectors.
+            corpus_id: Corpus identifier.
+        """
+        ...
+
+    @abstractmethod
+    def search(
+        self,
+        query_vector: list[float],
+        top_k: int,
+        corpus_id: str | None = None,
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> list[tuple[str, float]]:
+        """Search for nearest neighbours.
+
+        Args:
+            query_vector: Query embedding.
+            top_k: Number of results.
+            corpus_id: Optional corpus filter.
+            metadata_filter: Optional metadata filter.
+
+        Returns:
+            List of (chunk_id, score) ordered by relevance.
+        """
+        ...
+{% endif %}

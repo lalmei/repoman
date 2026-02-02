@@ -1,0 +1,101 @@
+{% if rag_enabled %}"""Ingest pipeline: load text, chunk, embed, write to vector index and docstore."""
+
+import hashlib
+import uuid
+from pathlib import Path
+
+from {{python_package_import_name}}.rag.core.ports import EmbedderPort, VectorIndexPort, DocstorePort
+from {{python_package_import_name}}.rag.core.types import Chunk, Document, IngestResult
+
+
+def chunk_text(
+    text: str,
+    chunk_size: int,
+    chunk_overlap: int,
+) -> list[str]:
+    """Split text into overlapping chunks (deterministic for tests).
+
+    Args:
+        text: Full text.
+        chunk_size: Max characters per chunk.
+        chunk_overlap: Overlap between chunks.
+
+    Returns:
+        List of chunk text strings.
+    """
+    if chunk_size <= 0 or chunk_overlap < 0 or chunk_overlap >= chunk_size:
+        raise ValueError("chunk_size > 0, 0 <= chunk_overlap < chunk_size")
+    if not text.strip():
+        return []
+    chunks: list[str] = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        if chunk.strip():
+            chunks.append(chunk)
+        start = end - chunk_overlap
+    return chunks
+
+
+def run_ingest(
+    document: Document,
+    embedder: EmbedderPort,
+    vector_index: VectorIndexPort,
+    docstore: DocstorePort,
+    chunk_size: int = 512,
+    chunk_overlap: int = 64,
+) -> IngestResult:
+    """Run ingest: chunk document, embed, add to index and docstore.
+
+    Args:
+        document: Source document.
+        embedder: Embedder implementation.
+        vector_index: Vector index implementation.
+        docstore: Docstore implementation.
+        chunk_size: Chunk size in characters.
+        chunk_overlap: Overlap between chunks.
+
+    Returns:
+        IngestResult with count and success.
+    """
+    text_chunks = chunk_text(document.text, chunk_size, chunk_overlap)
+    if not text_chunks:
+        return IngestResult(
+            corpus_id=document.corpus_id,
+            chunks_ingested=0,
+            source=document.source,
+            success=True,
+        )
+    chunk_ids = [str(uuid.uuid4()) for _ in text_chunks]
+    chunks = [
+        Chunk(id=cid, text=t, corpus_id=document.corpus_id, metadata=document.metadata)
+        for cid, t in zip(chunk_ids, text_chunks)
+    ]
+    vectors = embedder.embed_batch(text_chunks)
+    docstore.put(chunks)
+    vector_index.add(chunk_ids, vectors, document.corpus_id)
+    return IngestResult(
+        corpus_id=document.corpus_id,
+        chunks_ingested=len(chunks),
+        source=document.source,
+        success=True,
+    )
+
+
+def load_document_from_path(path: Path | str, corpus_id: str) -> Document:
+    """Load a document from a file path.
+
+    Args:
+        path: File path.
+        corpus_id: Corpus id.
+
+    Returns:
+        Document with text from file.
+    """
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(str(p))
+    text = p.read_text(encoding="utf-8", errors="replace")
+    return Document(source=str(p), corpus_id=corpus_id, text=text)
+{% endif %}

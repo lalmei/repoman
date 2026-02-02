@@ -1,0 +1,86 @@
+{% if rag_enabled %}"""RAG service facade: query and ingest."""
+
+from pathlib import Path
+
+from {{python_package_import_name}}.rag.core.types import (
+    Document,
+    IngestResult,
+    QueryFilters,
+    RAGAnswer,
+)
+from {{python_package_import_name}}.rag.core.pipeline import (
+    run_rag,
+    run_ingest,
+    load_document_from_path,
+)
+from {{python_package_import_name}}.rag.wiring.container import RAGContainer
+
+
+class RAGService:
+    """Facade exposing query and ingest using container and pipeline."""
+
+    def __init__(self, container: RAGContainer) -> None:
+        self._container = container
+
+    def query(
+        self,
+        text: str,
+        filters: QueryFilters | None = None,
+        top_k: int = 5,
+        rerank_top_k: int | None = None,
+    ) -> RAGAnswer:
+        """Run RAG query: retrieve + generate answer with citations.
+
+        Args:
+            text: Query text.
+            filters: Optional filters (e.g. corpus_id).
+            top_k: Number of chunks to retrieve.
+            rerank_top_k: Number after rerank (default top_k).
+
+        Returns:
+            RAGAnswer with text and citations.
+        """
+        return run_rag(
+            query=text,
+            embedder=self._container.embedder,
+            vector_index=self._container.vector_index,
+            docstore=self._container.docstore,
+            llm=self._container.llm,
+            build_prompt=self._container.build_prompt,
+            top_k=top_k,
+            filters=filters,
+            reranker=self._container.reranker,
+            rerank_top_k=rerank_top_k or top_k,
+        )
+
+    def ingest(self, path: Path | str, corpus_id: str = "default") -> IngestResult:
+        """Ingest a document from path.
+
+        Args:
+            path: File path to ingest.
+            corpus_id: Corpus id.
+
+        Returns:
+            IngestResult with count and success.
+        """
+        doc = load_document_from_path(path, corpus_id=corpus_id)
+        return run_ingest(
+            document=doc,
+            embedder=self._container.embedder,
+            vector_index=self._container.vector_index,
+            docstore=self._container.docstore,
+            chunk_size=self._container.get_config().chunk_size,
+            chunk_overlap=self._container.get_config().chunk_overlap,
+        )
+
+    def health(self) -> dict[str, bool]:
+        """Return which providers are configured and ready (for /rag/health)."""
+        cfg = self._container.get_config()
+        return {
+            "embedder": True,
+            "vector_index": cfg.vector_store == "faiss",
+            "docstore": True,
+            "reranker": True,
+            "llm": cfg.llm_provider == "stub",
+        }
+{% endif %}

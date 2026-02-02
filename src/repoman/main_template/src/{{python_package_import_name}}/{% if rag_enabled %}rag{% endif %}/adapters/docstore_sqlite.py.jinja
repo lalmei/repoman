@@ -1,0 +1,66 @@
+{% if rag_enabled %}"""SQLite docstore adapter."""
+
+import json
+import sqlite3
+from pathlib import Path
+
+from {{python_package_import_name}}.rag.core.ports import DocstorePort
+from {{python_package_import_name}}.rag.core.types import Chunk
+
+
+class SQLiteDocstore(DocstorePort):
+    """SQLite-backed docstore (stdlib sqlite3)."""
+
+    def __init__(self, path: str = ":memory:") -> None:
+        """Open or create SQLite DB.
+
+        Args:
+            path: DB path; :memory: for in-memory.
+        """
+        self._path = path
+        self._conn = sqlite3.connect(path)
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS chunks (
+                id TEXT PRIMARY KEY,
+                text TEXT NOT NULL,
+                corpus_id TEXT NOT NULL,
+                metadata TEXT
+            )
+            """
+        )
+        self._conn.commit()
+
+    def put(self, chunks: list[Chunk]) -> None:
+        """Store chunks."""
+        for c in chunks:
+            meta = json.dumps(c.metadata) if c.metadata else None
+            self._conn.execute(
+                "INSERT OR REPLACE INTO chunks (id, text, corpus_id, metadata) VALUES (?, ?, ?, ?)",
+                (c.id, c.text, c.corpus_id, meta),
+            )
+        self._conn.commit()
+
+    def get(self, chunk_id: str) -> Chunk | None:
+        """Get chunk by id."""
+        row = self._conn.execute(
+            "SELECT id, text, corpus_id, metadata FROM chunks WHERE id = ?",
+            (chunk_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        meta = json.loads(row[3]) if row[3] else None
+        return Chunk(id=row[0], text=row[1], corpus_id=row[2], metadata=meta)
+
+    def get_many(self, chunk_ids: list[str]) -> list[Chunk | None]:
+        """Get multiple chunks in order."""
+        result: list[Chunk | None] = []
+        for cid in chunk_ids:
+            result.append(self.get(cid))
+        return result
+
+    def list_corpus_ids(self) -> list[str]:
+        """List distinct corpus ids."""
+        rows = self._conn.execute("SELECT DISTINCT corpus_id FROM chunks").fetchall()
+        return [r[0] for r in rows]
+{% endif %}

@@ -3,6 +3,7 @@
 # Template note: These imports are kept for potential future use in template expansions
 # They may be used conditionally based on template variables or in extended configurations
 import json  # noqa: F401 - Reserved for future JSON config file handling
+import os  # noqa: F401 - Used for RAG_CONFIG_PATH when rag_enabled
 from pathlib import Path  # noqa: F401 - Reserved for future path-based config loading
 
 from pydantic import Field, field_validator, model_validator  # noqa: F401 - Reserved for future field validation
@@ -15,6 +16,8 @@ from pydantic_settings import (
 
 from {{python_package_import_name}}._version import get_version
 {% if fastapi_enabled %}from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
+{% endif %}
+{% if rag_enabled %}from {{python_package_import_name}}.rag.infra.config import RAGConfig
 {% endif %}
 
 
@@ -40,4 +43,11 @@ class Config(BaseSettings):
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 {% if fastapi_enabled %}
     fastapi_config: FastAPIConfig = FastAPIConfig()
+{% endif %}
+{% if rag_enabled %}
+    rag_config: "RAGConfig" = Field(
+        default_factory=lambda: RAGConfig.from_yaml_path(
+            Path(os.environ.get("RAG_CONFIG_PATH", str(Path(__file__).resolve().parent.parent.parent.parent / "config" / "rag.yml")))
+        )
+    )
 {% endif %}
