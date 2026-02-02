@@ -106,12 +106,12 @@ def test_supports_unicode_markdown_encoding_defaults_to_terminal_true() -> None:
 # --- dry_run ---
 
 
-def test_dry_run_create_returns_panel() -> None:
+def test_dry_run_create_returns_panel(tmp_path: Path) -> None:
     """dry_run_create returns a Panel with expected content."""
     panel = dry_run_create(
         "proj",
-        Path("/out"),
-        Path("/tmpl"),
+        tmp_path / "out",
+        tmp_path / "tmpl",
         {"key": "value"},
         "next steps",
         _console=None,
@@ -120,11 +120,11 @@ def test_dry_run_create_returns_panel() -> None:
     assert panel.border_style == "blue"
 
 
-def test_dry_run_update_with_template_path_none() -> None:
+def test_dry_run_update_with_template_path_none(tmp_path: Path) -> None:
     """dry_run_update with template_path None returns Panel (uses 'from answers file' branch)."""
     panel = dry_run_update(
-        Path("/proj"),
-        Path("/answers.yml"),
+        tmp_path / "proj",
+        tmp_path / "answers.yml",
         None,
         None,
         {},
@@ -135,12 +135,12 @@ def test_dry_run_update_with_template_path_none() -> None:
     assert panel.border_style == "blue"
 
 
-def test_dry_run_update_with_vcs_ref() -> None:
+def test_dry_run_update_with_vcs_ref(tmp_path: Path) -> None:
     """dry_run_update with vcs_ref returns Panel (covers vcs_line branch)."""
     panel = dry_run_update(
-        Path("/proj"),
-        Path("/a.yml"),
-        Path("/t"),
+        tmp_path / "proj",
+        tmp_path / "a.yml",
+        tmp_path / "t",
         "v1.0",
         {},
         "steps",
@@ -150,12 +150,12 @@ def test_dry_run_update_with_vcs_ref() -> None:
     assert panel.border_style == "blue"
 
 
-def test_dry_run_command_add_returns_panel() -> None:
+def test_dry_run_command_add_returns_panel(tmp_path: Path) -> None:
     """dry_run_command_add returns a Panel with command name and paths."""
     panel = dry_run_command_add(
         "mycmd",
-        Path("/cmd.py"),
-        Path("/test_cmd.py"),
+        tmp_path / "cmd.py",
+        tmp_path / "test_cmd.py",
         "context",
         _console=None,
     )
@@ -168,29 +168,25 @@ def test_dry_run_command_add_returns_panel() -> None:
 
 def test_format_next_steps_unicode(monkeypatch: pytest.MonkeyPatch) -> None:
     """format_next_steps with unicode support uses bullet."""
-    from repoman.cli.messages import success
-
-    monkeypatch.setattr(success, "supports_unicode_markdown", lambda c: True)
+    monkeypatch.setattr(success_messages, "supports_unicode_markdown", lambda c: True)
     out = format_next_steps(["a", "b"], console=Console())
     assert "•" in out
-    assert "a" in out and "b" in out
+    assert "a" in out
+    assert "b" in out
 
 
 def test_format_next_steps_no_unicode(monkeypatch: pytest.MonkeyPatch) -> None:
     """format_next_steps without unicode support uses numbered lines."""
-    from repoman.cli.messages import success
-
-    monkeypatch.setattr(success, "supports_unicode_markdown", lambda c: False)
+    monkeypatch.setattr(success_messages, "supports_unicode_markdown", lambda c: False)
     out = format_next_steps(["a", "b"], console=Console())
     assert "1." in out or "2." in out
-    assert "a" in out and "b" in out
+    assert "a" in out
+    assert "b" in out
 
 
 def test_command_created_with_unicode(monkeypatch: pytest.MonkeyPatch) -> None:
     """command_created with unicode support adds prefix."""
-    from repoman.cli.messages import success
-
-    monkeypatch.setattr(success, "supports_unicode_markdown", lambda c: True)
+    monkeypatch.setattr(success_messages, "supports_unicode_markdown", lambda c: True)
     panel = command_created("cmd", "body", console=Console())
     assert panel.title == "Success"
     assert "✓" in str(panel.renderable) or "body" in str(panel.renderable)
@@ -198,23 +194,21 @@ def test_command_created_with_unicode(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_command_created_without_unicode(monkeypatch: pytest.MonkeyPatch) -> None:
     """command_created without unicode uses plain body."""
-    from repoman.cli.messages import success
-
-    monkeypatch.setattr(success, "supports_unicode_markdown", lambda c: False)
+    monkeypatch.setattr(success_messages, "supports_unicode_markdown", lambda c: False)
     panel = command_created("cmd", "body text", console=Console())
     assert panel.title == "Success"
     assert "body text" in str(panel.renderable)
 
 
-def test_project_created_returns_panel() -> None:
+def test_project_created_returns_panel(tmp_path: Path) -> None:
     """project_created returns a green Panel."""
-    panel = project_created("p", Path("/out"), {}, "steps", console=Console())
+    panel = project_created("p", tmp_path / "out", {}, "steps", console=Console())
     assert panel.title == "Success"
     assert panel.border_style == "green"
 
 
-def test_project_updated_returns_panel() -> None:
+def test_project_updated_returns_panel(tmp_path: Path) -> None:
     """project_updated returns a green Panel."""
-    panel = project_updated(Path("/out"), {}, "steps", console=Console())
+    panel = project_updated(tmp_path / "out", {}, "steps", console=Console())
     assert panel.title == "Success"
     assert panel.border_style == "green"
