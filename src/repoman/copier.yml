@@ -188,3 +188,9 @@ aiohttp_pool_size:
   help: HTTP client connection pool size
   default: 100
 
+# RAG (retrieval-augmented generation)
+rag_enabled:
+  type: bool
+  help: Include RAG (retrieval-augmented generation) modules and CLI/API
+  default: false
+

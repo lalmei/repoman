@@ -27,3 +27,79 @@ uv tool install {{ python_package_distribution_name }}
 {%- else -%}
 This project is available to sponsors only, through my Insiders program. See Insiders [explanation](https://{{ repository_namespace }}.github.io/{{ repository_name }}/insiders/) and [installation instructions](https://{{ repository_namespace }}.github.io/{{ repository_name }}/insiders/installation/).
 {%- endif %}
+{% if rag_enabled %}
+
+## RAG quickstart
+
+This project includes optional RAG (retrieval-augmented generation) modules. Install RAG dependencies and use the CLI or API.
+
+### Install RAG dependencies
+
+```bash
+uv sync --group rag
+```
+
+### CLI
+
+Ingest a document, then run a query:
+
+```bash
+{{ python_package_command_line_name }} rag ingest path/to/document.txt --corpus-id my_corpus
+{{ python_package_command_line_name }} rag query "Your question here" --top-k 5
+```
+
+### API
+
+{% if fastapi_enabled %}
+Start the app and call the RAG endpoints:
+
+```bash
+# Health: which providers are configured
+curl http://localhost:8000{{ fastapi_api_prefix }}/rag/health
+
+# Query
+curl -X POST http://localhost:8000{{ fastapi_api_prefix }}/rag/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Your question?", "top_k": 5}'
+
+# Ingest (optional; can be disabled via config)
+curl -X POST http://localhost:8000{{ fastapi_api_prefix }}/rag/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"path": "/path/to/file.txt", "corpus_id": "default"}'
+```
+{% endif %}
+
+### RAG architecture (ASCII)
+
+```
+                    +------------------+
+                    |  FastAPI / Typer |
+                    +--------+---------+
+                             |
+                             v
+                    +------------------+
+                    |   RAGService     |
+                    +--------+---------+
+                             |
+         +-------------------+-------------------+
+         v                   v                   v
+  +-------------+   +---------------+   +----------------+
+  |  Ingest     |   |  Retrieve     |   |  Generate      |
+  |  Pipeline   |   |  Pipeline     |   |  Pipeline      |
+  +------+------+   +-------+-------+   +--------+-------+
+         |                  |                    |
+         v                  v                    v
+  +-------------+   +---------------+   +----------------+
+  | Chunker     |   | Embedder      |   | LLM (stub)     |
+  | Embedder    |   | VectorIndex   |   | PromptBuilder  |
+  | VectorIndex |   | Reranker     |   +----------------+
+  | Docstore    |   | Docstore      |
+  +-------------+   +---------------+
+         |                  |
+         v                  v
+  +-------------+   +---------------+   +----------------+
+  | FAISS       |   | SQLite        |   | sentence-      |
+  | (adapter)   |   | (adapter)     |   | transformers   |
+  +-------------+   +---------------+   +----------------+
+```
+{% endif %}

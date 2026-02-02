@@ -1,0 +1,65 @@
+{% if rag_enabled %}"""Retrieve pipeline: embed query, search, optional rerank."""
+
+from typing import Any
+
+from {{python_package_import_name}}.rag.core.ports import EmbedderPort, VectorIndexPort, DocstorePort, RerankerPort
+from {{python_package_import_name}}.rag.core.types import QueryFilters, RetrievedChunk
+
+
+def run_retrieve(
+    query: str,
+    embedder: EmbedderPort,
+    vector_index: VectorIndexPort,
+    docstore: DocstorePort,
+    top_k: int = 5,
+    filters: QueryFilters | None = None,
+    reranker: RerankerPort | None = None,
+    rerank_top_k: int | None = None,
+) -> list[RetrievedChunk]:
+    """Run retrieval: embed query, search, optionally rerank.
+
+    Args:
+        query: Query text.
+        embedder: Embedder implementation.
+        vector_index: Vector index implementation.
+        docstore: Docstore implementation.
+        top_k: Number of results from vector search (before rerank).
+        filters: Optional query filters.
+        reranker: Optional reranker; if set, rerank and return rerank_top_k.
+        rerank_top_k: Number of results after rerank (default top_k).
+
+    Returns:
+        List of RetrievedChunk ordered by relevance.
+    """
+    filters = filters or QueryFilters()
+    query_vector = embedder.embed(query)
+    search_top_k = top_k if reranker is None else max(top_k, rerank_top_k or top_k)
+    corpus_id = filters.corpus_id
+    metadata_filter = filters.metadata
+    hits = vector_index.search(
+        query_vector,
+        top_k=search_top_k,
+        corpus_id=corpus_id,
+        metadata_filter=metadata_filter,
+    )
+    if not hits:
+        return []
+    chunk_ids = [cid for cid, _ in hits]
+    chunks = docstore.get_many(chunk_ids)
+    candidates: list[RetrievedChunk] = []
+    for (cid, score), ch in zip(hits, chunks):
+        if ch is not None:
+            candidates.append(
+                RetrievedChunk(
+                    id=ch.id,
+                    text=ch.text,
+                    corpus_id=ch.corpus_id,
+                    score=score,
+                    metadata=ch.metadata,
+                )
+            )
+    if reranker is not None:
+        k = rerank_top_k or top_k
+        candidates = reranker.rerank(query, candidates, top_k=k)
+    return candidates
+{% endif %}

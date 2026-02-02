@@ -1,0 +1,77 @@
+{% if rag_enabled %}"""RAG wiring: build concrete implementations from config."""
+
+from pathlib import Path
+from typing import Any
+
+from {{python_package_import_name}}.rag.adapters import (
+    SentenceTransformersEmbedder,
+    FAISSVectorIndex,
+    SQLiteDocstore,
+    SentenceTransformersReranker,
+    StubLLM,
+)
+from {{python_package_import_name}}.rag.core.ports import (
+    EmbedderPort,
+    VectorIndexPort,
+    DocstorePort,
+    RerankerPort,
+    LLMPort,
+)
+from {{python_package_import_name}}.rag.infra.config import RAGConfig
+from {{python_package_import_name}}.rag.prompts import build_rag_answer_prompt
+
+
+class RAGContainer:
+    """Container that builds RAG ports from RAGConfig."""
+
+    def __init__(self, config: RAGConfig) -> None:
+        self._config = config
+        self._embedder: EmbedderPort | None = None
+        self._vector_index: VectorIndexPort | None = None
+        self._docstore: DocstorePort | None = None
+        self._reranker: RerankerPort | None = None
+        self._llm: LLMPort | None = None
+
+    @property
+    def embedder(self) -> EmbedderPort:
+        """Lazy-init embedder."""
+        if self._embedder is None:
+            self._embedder = SentenceTransformersEmbedder(model_name=self._config.embedder_model)
+        return self._embedder
+
+    @property
+    def vector_index(self) -> VectorIndexPort:
+        """Lazy-init vector index (FAISS)."""
+        if self._vector_index is None:
+            self._vector_index = FAISSVectorIndex()
+        return self._vector_index
+
+    @property
+    def docstore(self) -> DocstorePort:
+        """Lazy-init docstore (SQLite)."""
+        if self._docstore is None:
+            self._docstore = SQLiteDocstore(path=self._config.docstore_path)
+        return self._docstore
+
+    @property
+    def reranker(self) -> RerankerPort | None:
+        """Lazy-init reranker (sentence-transformers)."""
+        if self._reranker is None:
+            self._reranker = SentenceTransformersReranker(model_name=self._config.reranker_model)
+        return self._reranker
+
+    @property
+    def llm(self) -> LLMPort:
+        """Lazy-init LLM (stub)."""
+        if self._llm is None:
+            self._llm = StubLLM(echo_context=False)
+        return self._llm
+
+    def build_prompt(self, query: str, context: str) -> str:
+        """Build RAG answer prompt (query + context)."""
+        return build_rag_answer_prompt(query=query, context=context)
+
+    def get_config(self) -> RAGConfig:
+        """Return RAG config."""
+        return self._config
+{% endif %}

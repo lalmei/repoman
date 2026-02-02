@@ -1,0 +1,70 @@
+{% if python_package_command_line_name and rag_enabled %}"""RAG CLI: ingest and query."""
+
+from pathlib import Path
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from typer import Argument, Option, Typer
+
+from {{python_package_import_name}}.config import Config
+from {{python_package_import_name}}.rag import RAGContainer, RAGService
+from {{python_package_import_name}}.utils.theme.theme import set_theme
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+def _get_rag_service() -> RAGService:
+    """Build RAGService from config (CLI use)."""
+    config = Config()
+    if not hasattr(config, "rag_config"):
+        raise RuntimeError("RAG not configured; enable rag_enabled and install rag dependencies.")
+    container = RAGContainer(config.rag_config)
+    return RAGService(container)
+
+
+@app.command()
+def ingest(
+    path: str = Argument(..., help="Path to file or directory to ingest"),
+    corpus_id: str = Option("default", "--corpus-id", "-c", help="Corpus id"),
+    theme: str = Option("dark", "--theme", help="Theme: light or dark"),
+) -> None:
+    """Ingest a document from path into the RAG index."""
+    console = Console(theme=set_theme(theme))
+    try:
+        service = _get_rag_service()
+        result = service.ingest(path=path, corpus_id=corpus_id)
+        msg = Text(
+            f"Ingested {result.chunks_ingested} chunks from {result.source} (corpus: {result.corpus_id})",
+            style="green",
+        )
+        console.print(Panel(msg, title="Success", border_style="green"))
+    except FileNotFoundError as e:
+        console.print(Panel(Text(str(e), style="red"), title="Error", border_style="red"))
+        raise SystemExit(1) from e
+    except Exception as e:
+        console.print(Panel(Text(str(e), style="red"), title="Error", border_style="red"))
+        raise SystemExit(1) from e
+
+
+@app.command()
+def query(
+    question: str = Argument(..., help="Question to ask"),
+    top_k: int = Option(5, "--top-k", "-k", help="Number of chunks to retrieve"),
+    theme: str = Option("dark", "--theme", help="Theme: light or dark"),
+) -> None:
+    """Run a RAG query and print answer with citations."""
+    console = Console(theme=set_theme(theme))
+    try:
+        service = _get_rag_service()
+        answer = service.query(text=question, top_k=top_k)
+        console.print(Panel(Text(answer.text, style="green"), title="Answer", border_style="green"))
+        if answer.citations:
+            cite_lines = [f"  - [{c.chunk_id}] (score={c.score:.3f}) {c.text[:80]}..." for c in answer.citations]
+            console.print(Panel("\n".join(cite_lines), title="Citations", border_style="blue"))
+    except Exception as e:
+        console.print(Panel(Text(str(e), style="red"), title="Error", border_style="red"))
+        raise SystemExit(1) from e
+{% else %}
+"""RAG CLI (disabled). Enable rag_enabled in copier to use."""
+{% endif %}

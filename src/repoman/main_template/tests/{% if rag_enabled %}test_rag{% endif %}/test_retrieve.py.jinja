@@ -1,0 +1,51 @@
+{% if rag_enabled %}"""Unit tests for retrieval (fake vector index + docstore)."""
+
+import pytest
+
+from {{python_package_import_name}}.rag.core.types import Chunk, QueryFilters, RetrievedChunk
+from {{python_package_import_name}}.rag.core.pipeline.retrieve import run_retrieve
+from {{python_package_import_name}}.rag.core.pipeline.ingest import run_ingest
+from {{python_package_import_name}}.rag.core.types import Document
+from tests.test_rag.conftest import FakeEmbedder, FakeVectorIndex, FakeDocstore
+
+
+def test_retrieve_empty_index() -> None:
+    """Empty index returns no chunks."""
+    embedder = FakeEmbedder()
+    vector_index = FakeVectorIndex()
+    docstore = FakeDocstore()
+    result = run_retrieve(
+        query="anything",
+        embedder=embedder,
+        vector_index=vector_index,
+        docstore=docstore,
+        top_k=5,
+    )
+    assert result == []
+
+
+def test_retrieve_after_ingest() -> None:
+    """Ingest then retrieve returns expected chunks."""
+    embedder = FakeEmbedder()
+    vector_index = FakeVectorIndex()
+    docstore = FakeDocstore()
+    doc = Document(source="test", corpus_id="c1", text="first chunk content here")
+    run_ingest(
+        document=doc,
+        embedder=embedder,
+        vector_index=vector_index,
+        docstore=docstore,
+        chunk_size=100,
+        chunk_overlap=0,
+    )
+    result = run_retrieve(
+        query="first chunk content",
+        embedder=embedder,
+        vector_index=vector_index,
+        docstore=docstore,
+        top_k=5,
+    )
+    assert len(result) >= 1
+    assert all(isinstance(r, RetrievedChunk) for r in result)
+    assert result[0].corpus_id == "c1"
+{% endif %}

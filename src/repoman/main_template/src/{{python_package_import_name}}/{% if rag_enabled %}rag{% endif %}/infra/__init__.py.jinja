@@ -1,0 +1,6 @@
+{% if rag_enabled %}"""RAG infrastructure (config)."""
+
+from {{python_package_import_name}}.rag.infra.config import RAGConfig
+
+__all__: list[str] = ["RAGConfig"]
+{% endif %}

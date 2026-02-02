@@ -1,0 +1,48 @@
+{% if rag_enabled %}"""Integration test: ingest -> query roundtrip on a tiny fixture."""
+
+from pathlib import Path
+
+import pytest
+
+pytest.importorskip("sentence_transformers")
+pytest.importorskip("faiss")
+
+from {{python_package_import_name}}.rag import RAGContainer, RAGService
+from {{python_package_import_name}}.rag.infra.config import RAGConfig
+
+
+@pytest.fixture
+def rag_config() -> RAGConfig:
+    """RAG config with in-memory docstore for tests."""
+    return RAGConfig(
+        docstore_path=":memory:",
+        chunk_size=50,
+        chunk_overlap=10,
+        embedder_model="all-MiniLM-L6-v2",
+        reranker_model="cross-encoder/ms-marco-MiniLM-L-6-v2",
+    )
+
+
+@pytest.fixture
+def sample_file(tmp_path: Path) -> Path:
+    """Create a tiny text file for ingestion."""
+    p = tmp_path / "sample.txt"
+    p.write_text(
+        "RAG stands for Retrieval-Augmented Generation. "
+        "It combines retrieval with generation for better answers."
+    )
+    return p
+
+
+def test_ingest_then_query_roundtrip(rag_config: RAGConfig, sample_file: Path) -> None:
+    """Ingest a file then query; assert answer has citations."""
+    container = RAGContainer(rag_config)
+    service = RAGService(container)
+    result = service.ingest(path=str(sample_file), corpus_id="test")
+    assert result.success
+    assert result.chunks_ingested >= 1
+    answer = service.query(text="What does RAG stand for?", top_k=3)
+    assert answer.query == "What does RAG stand for?"
+    assert len(answer.text) > 0
+    assert len(answer.citations) >= 1
+{% endif %}

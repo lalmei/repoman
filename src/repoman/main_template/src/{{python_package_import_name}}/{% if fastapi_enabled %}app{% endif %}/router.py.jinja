@@ -11,6 +11,9 @@ from fastapi import APIRouter
 {% if include_health_endpoints %}
 from {{python_package_import_name}}.app.controllers import health_check, ready
 {% endif %}
+{% if fastapi_enabled and rag_enabled %}
+from {{python_package_import_name}}.app.controllers import rag
+{% endif %}
 from {{python_package_import_name}}.config import Config
 
 
@@ -25,6 +28,9 @@ def _get_root_api_router() -> APIRouter:
 {% if include_health_endpoints %}
     router.include_router(ready.router, tags=["ready"])
     router.include_router(health_check.router, tags=["health check"])
+{% endif %}
+{% if fastapi_enabled and rag_enabled %}
+    router.include_router(rag.router)
 {% endif %}
     return router
 

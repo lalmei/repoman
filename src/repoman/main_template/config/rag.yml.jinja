@@ -1,0 +1,11 @@
+{% if rag_enabled %}# RAG configuration (overridable via RAG_* env vars)
+vector_store: faiss
+docstore_path: ":memory:"
+embedder_model: all-MiniLM-L6-v2
+reranker_model: cross-encoder/ms-marco-MiniLM-L-6-v2
+llm_provider: stub
+chunk_size: 512
+chunk_overlap: 64
+ingest_enabled: true
+{% else %}# RAG config (disabled). Enable rag_enabled in copier to use.
+{% endif %}

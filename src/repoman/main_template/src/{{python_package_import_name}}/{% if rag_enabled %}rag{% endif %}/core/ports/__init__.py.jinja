@@ -1,0 +1,16 @@
+{% if rag_enabled %}"""RAG ports (abstract interfaces)."""
+
+from {{python_package_import_name}}.rag.core.ports.embedder import EmbedderPort
+from {{python_package_import_name}}.rag.core.ports.vector_index import VectorIndexPort
+from {{python_package_import_name}}.rag.core.ports.docstore import DocstorePort
+from {{python_package_import_name}}.rag.core.ports.reranker import RerankerPort
+from {{python_package_import_name}}.rag.core.ports.llm import LLMPort
+
+__all__: list[str] = [
+    "EmbedderPort",
+    "VectorIndexPort",
+    "DocstorePort",
+    "RerankerPort",
+    "LLMPort",
+]
+{% endif %}
