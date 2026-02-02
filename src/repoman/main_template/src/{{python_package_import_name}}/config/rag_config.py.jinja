@@ -1,0 +1,75 @@
+{% if rag_enabled %}"""RAG application configuration.
+
+This class uses pydantic-settings to define and load RAG-specific
+environment variables. Supports loading from .env files and rag_config.json.
+"""
+
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import (
+    BaseSettings,
+    JsonConfigSettingsSource,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
+
+
+class RAGConfig(BaseSettings):
+    """RAG configuration: providers, paths, model names.
+
+    This class uses pydantic and pydantic-settings to define and load RAG-specific
+    environment variables. It supports loading from .env and .env.prod files
+    (lowest to highest priority), and from rag_config.json.
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix="RAG_",
+        env_file=(".env", ".env.dev", ".env.prod"),
+        env_file_encoding="utf-8",
+        json_file="rag_config.json",
+        extra="ignore",
+    )
+
+    config_path: Path | None = Field(
+        default=None,
+        description="Path to RAG YAML config file (optional; env + rag_config.json are primary).",
+    )
+    vector_store: str = Field(default="faiss", description="Vector store: faiss or qdrant.")
+    docstore_path: str = Field(default=":memory:", description="Docstore path; :memory: or file path for SQLite.")
+    embedder_model: str = Field(
+        default="all-MiniLM-L6-v2",
+        description="Sentence-transformers model for embeddings.",
+    )
+    reranker_model: str = Field(
+        default="cross-encoder/ms-marco-MiniLM-L-6-v2",
+        description="Cross-encoder model for reranking.",
+    )
+    llm_provider: str = Field(default="stub", description="LLM provider: stub or future adapters.")
+    chunk_size: int = Field(default=512, description="Default chunk size in characters.")
+    chunk_overlap: int = Field(default=64, description="Overlap between chunks.")
+    ingest_enabled: bool = Field(
+        default=True,
+        description="Whether POST /rag/ingest is enabled (can disable in prod).",
+    )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Customise settings sources to support JSON file loading."""
+        return (
+            init_settings,
+            JsonConfigSettingsSource(settings_cls),
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )
+{% else %}
+"""RAG configuration (disabled). Enable RAG in copier answers to use this module."""
+{% endif %}
