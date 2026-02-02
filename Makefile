@@ -55,6 +55,9 @@ test-isolated: clean ## Run isolated tests only
 test-fast: clean ## Run fast tests (skip slow ones)
 	uv run pytest -c=config/pytest.ini -m "not slow" $(test.python)
 
+test-parallel: clean ## Run all tests in parallel (faster; use -n 0 for debugging)
+	uv run pytest -c=config/pytest.ini -n auto $(test.python)
+
 test-single: clean ## Run a single test file (usage: make test-single FILE=tests/test_utils/test_theme.py)
 	@if [ -z "$(FILE)" ]; then \
 		echo "Usage: make test-single FILE=tests/test_utils/test_theme.py"; \

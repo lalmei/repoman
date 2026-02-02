@@ -26,3 +26,8 @@ test-coverage-report: clean ## Run tests with coverage report (no fail-under; fo
 test-fast: clean ## Run fast tests (skip slow ones)
 	@$(call i, Running fast tests)
 	uv run pytest -c=config/pytest.ini -m "not slow" tests/
+
+.PHONY: test-parallel
+test-parallel: clean ## Run all tests in parallel (faster; use -n 0 for debugging)
+	@$(call i, Running tests in parallel)
+	uv run pytest -c=config/pytest.ini -n auto tests/

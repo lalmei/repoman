@@ -779,7 +779,7 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
         )
     )
 
-    commands_dir, tests_dir = _create_test_project_structure(tmp_path)
+    _commands_dir, _tests_dir = _create_test_project_structure(tmp_path)
 
     # Create template directory structure
     template_base = Path(__file__).parent.parent.parent / "src" / "repoman" / "extentions" / "command_template"
@@ -817,7 +817,14 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
 
         result = cli_runner.invoke(
             cli_app,
-            ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
+            [
+                "generator",
+                "add",
+                "--project-dir",
+                str(tmp_path),
+                "--force",
+                "testcommand",
+            ],
             input="",
         )
 
@@ -868,7 +875,14 @@ def test_generator_add_file_creation_permission_error(cli_runner: CliRunner, cli
 
         result = cli_runner.invoke(
             cli_app,
-            ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
+            [
+                "generator",
+                "add",
+                "--project-dir",
+                str(tmp_path),
+                "--force",
+                "testcommand",
+            ],
             input="",
         )
 

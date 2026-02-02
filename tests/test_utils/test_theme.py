@@ -249,7 +249,7 @@ class TestThemeErrorHandling:
 
         # Should raise StyleSyntaxError for malformed colors
         colors = MalformedColors()
-        with pytest.raises(Exception, match=".*"):  # Rich will raise StyleSyntaxError
+        with pytest.raises(Exception, match=r".*"):  # Rich will raise StyleSyntaxError
             _create_theme(colors)
 
     def test_create_theme_with_missing_color_attributes(self) -> None:
@@ -398,7 +398,7 @@ class TestThemeErrorHandling:
 
         # Should raise Exception for corrupted color data
         colors = CorruptedColors()
-        with pytest.raises(Exception, match=".*"):  # Rich will raise various errors
+        with pytest.raises(Exception, match=r".*"):  # Rich will raise various errors
             _create_theme(colors)
 
     def test_theme_creation_under_memory_pressure(self) -> None:

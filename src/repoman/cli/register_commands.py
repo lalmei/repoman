@@ -14,7 +14,7 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
     Scans all subdirectories in the commands directory and registers any that have an 'app'
     attribute defined in their __init__.py file.
     """
-    logger, console = get_logger_console()
+    logger, _console = get_logger_console()
 
     # Get the cli directory path
     cli_dir = Path(__file__).parent / "commands" if path is None else path

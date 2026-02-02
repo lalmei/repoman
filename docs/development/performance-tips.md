@@ -9,8 +9,9 @@ make test-fast
 # Run specific test categories
 make test-unit
 
-# Use parallel test execution
-uv run pytest -n auto tests/
+# Use parallel test execution (opt-in; not default for easier debugging)
+make test-parallel
+# or: uv run pytest -n auto tests/
 ```
 
 ## Efficient Testing

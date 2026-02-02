@@ -113,7 +113,7 @@ def main(
         help="check model version", callback=_version_callback)
 
     """
-    logger, console = get_logger_console()
+    logger, _console = get_logger_console()
 
     config: Config | None = None
     try:
