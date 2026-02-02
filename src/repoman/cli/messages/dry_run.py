@@ -15,7 +15,7 @@ def dry_run_create(
     template_path: Path | str,
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
-    console: Console | None = None,
+    _console: Console | None = None,
 ) -> Panel:
     """Build a blue dry-run Panel for project creation.
 
@@ -31,8 +31,8 @@ def dry_run_create(
         Copier options safe for JSON serialization.
     next_steps_text : str
         Preformatted next steps (e.g. from format_next_steps).
-    console : Console | None
-        Rich Console; when supported, may use Unicode in summary.
+    _console : Console | None
+        Reserved for API consistency with other message helpers; unused.
 
     Returns:
     -------
@@ -62,7 +62,7 @@ def dry_run_update(
     vcs_ref: str | None,
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
-    console: Console | None = None,
+    _console: Console | None = None,
 ) -> Panel:
     """Build a blue dry-run Panel for project update.
 
@@ -80,15 +80,19 @@ def dry_run_update(
         Copier options safe for JSON serialization.
     next_steps_text : str
         Preformatted next steps (e.g. from format_next_steps).
-    console : Console | None
-        Rich Console; when supported, may use Unicode in summary.
+    _console : Console | None
+        Reserved for API consistency with other message helpers; unused.
 
     Returns:
     -------
     Panel
         Blue-bordered Panel suitable for console.print().
     """
-    template_line = f"Using template: {template_path}\n" if template_path else "Template: (from answers file)\n"
+    template_line = (
+        f"Using template: {template_path}\n"
+        if template_path
+        else "Template: (from answers file)\n"
+    )
     vcs_line = f"VCS ref: {vcs_ref}\n" if vcs_ref else ""
     summary = Text(
         f"Would update project in {project_dir}\nUsing answers file: {answers_path}\n{template_line}{vcs_line}",
@@ -111,7 +115,7 @@ def dry_run_command_add(
     command_output_file: Path | str,
     test_output_file: Path | str,
     context_lines: str,
-    console: Console | None = None,
+    _console: Console | None = None,
 ) -> Panel:
     """Build a blue dry-run Panel for generator add command.
 
@@ -125,8 +129,8 @@ def dry_run_command_add(
         Path to test file.
     context_lines : str
         Template context summary (e.g. command_name, python_package_import_name, etc.).
-    console : Console | None
-        Rich Console; when supported, may use Unicode.
+    _console : Console | None
+        Reserved for API consistency with other message helpers; unused.
 
     Returns:
     -------

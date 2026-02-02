@@ -25,14 +25,15 @@ def supports_unicode_markdown(console: Console | None) -> bool:
         return False
     try:
         encoding = getattr(console, "encoding", None) or ""
-        name = (encoding if isinstance(encoding, str) else getattr(encoding, "name", "") or "").lower()
+        name = (
+            encoding
+            if isinstance(encoding, str)
+            else getattr(encoding, "name", "") or ""
+        ).lower()
         if not name.startswith("utf"):
             return False
-    except Exception:
+    except (AttributeError, TypeError):
         return False
     if getattr(console, "legacy_windows", False):
         return False
-    # Prefer plain output when not a terminal (e.g. piped or file)
-    if not getattr(console, "is_terminal", True):
-        return False
-    return True
+    return getattr(console, "is_terminal", True)
