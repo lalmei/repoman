@@ -25,13 +25,21 @@ def test_chunk_text_no_overlap() -> None:
 
 
 def test_chunk_text_with_overlap() -> None:
-    """Chunking with overlap is deterministic."""
+    """Chunking with overlap is deterministic; consecutive chunks share overlap chars."""
     text = "abcdefghijklmnop"
-    result = chunk_text(text, chunk_size=5, chunk_overlap=2)
+    chunk_size, chunk_overlap = 5, 2
+    result = chunk_text(text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     assert len(result) >= 3
     assert result[0] == "abcde"
     assert result[1] == "defgh"
-    assert "".join(result).replace(" ", "") == text.replace(" ", "")
+    # Consecutive chunks overlap by chunk_overlap chars where both are long enough
+    for i in range(len(result) - 1):
+        overlap_len = min(chunk_overlap, len(result[i]), len(result[i + 1]))
+        if overlap_len > 0:
+            assert result[i][-overlap_len:] == result[i + 1][:overlap_len]
+    # Full text is covered: first chunk starts at start, last chunk ends at end
+    assert text.startswith(result[0][: chunk_size - chunk_overlap])
+    assert text.endswith(result[-1][-chunk_size + chunk_overlap :] or result[-1])
 
 
 def test_chunk_text_invalid_args() -> None:
