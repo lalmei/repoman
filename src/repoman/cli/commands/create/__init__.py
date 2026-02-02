@@ -68,7 +68,9 @@ def validate_project_name(project_name: str) -> bool:
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"]
+        + [f"COM{i}" for i in range(1, 10)]
+        + [f"LPT{i}" for i in range(1, 10)]
     )
     if project_name.upper() in reserved_names:
         raise ValueError(f"Project name is a reserved system name: {project_name}")
@@ -93,7 +95,9 @@ def create(
     ] = None,
     output_dir: Annotated[
         str | None,
-        Option("--output", "-o", help="Output directory (defaults to current directory)"),
+        Option(
+            "--output", "-o", help="Output directory (defaults to current directory)"
+        ),
     ] = None,
     answers_file: Annotated[
         Path | None,
@@ -105,7 +109,9 @@ def create(
     ] = False,
     dry_run: Annotated[  # noqa: FBT002
         bool,
-        Option("--dry-run", help="Show what would be created without actually creating"),
+        Option(
+            "--dry-run", help="Show what would be created without actually creating"
+        ),
     ] = False,
 ) -> None:
     """Create a new Python project using the repoman template."""
@@ -129,7 +135,11 @@ def create(
         template_path_obj = Path(template_path)
 
     # Determine output directory
-    output_dir_obj: Path = Path.cwd() / project_name if output_dir is None else Path(output_dir) / project_name
+    output_dir_obj: Path = (
+        Path.cwd() / project_name
+        if output_dir is None
+        else Path(output_dir) / project_name
+    )
 
     # Check if output directory exists
     if output_dir_obj.exists() and not force:
@@ -143,7 +153,9 @@ def create(
     if answers_file is not None:
         answers_path = Path(answers_file).resolve()
         if not answers_path.exists():
-            console.print(error_panel(f"Answers file not found: {answers_path}", console=console))
+            console.print(
+                error_panel(f"Answers file not found: {answers_path}", console=console)
+            )
             raise Exit(1) from None
         console.print(f"Using answers file: {answers_path}")
         with open(answers_path) as f:
@@ -180,7 +192,9 @@ def create(
     steps_text = format_next_steps(next_steps, console=console)
 
     if dry_run or ctx.obj.get("dry_run", True):
-        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
+        copier_options_serializable = {
+            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
+        }
         console.print(
             dry_run_create(
                 project_name,
@@ -195,19 +209,27 @@ def create(
 
     # Create the project
     try:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Creating project...", total=None)
+        if answers_file is not None:
+            # Non-interactive: safe to use Progress (no Copier prompts)
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Creating project...", total=None)
 
-            # Run copier
+                # Run copier
+                run_copy(**copier_options)  # type: ignore[arg-type]  # copier accepts dict with mixed types
+
+                progress.update(task, description="Project created successfully!")
+        else:
+            # Interactive: skip Progress to avoid stdin/stdout conflict with Copier prompts
+            console.print("Creating project...")
             run_copy(**copier_options)  # type: ignore[arg-type]  # copier accepts dict with mixed types
 
-            progress.update(task, description="Project created successfully!")
-
-        copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
+        copier_options_serializable = {
+            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()
+        }
         console.print(
             project_created(
                 project_name,
