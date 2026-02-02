@@ -79,9 +79,7 @@ def _debug_info_callback(value: bool) -> None:
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
     ctx: Context,
-    dry_run: bool | None = Option(
-        False, "--dry-run", help="Show changes but do not execute them"
-    ),
+    dry_run: bool | None = Option(False, "--dry-run", help="Show changes but do not execute them"),
     verbose: bool | None = Option(False, "--verbose", "-v", help="verbose mode"),
     version: bool | None = Option(
         None,
@@ -97,9 +95,7 @@ def main(
         callback=_debug_info_callback,
         is_eager=True,
     ),
-    theme: str | None = Option(
-        "dark", "--theme", help="Set the theme, 'light' or 'dark' "
-    ),
+    theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
 ) -> None:
     r"""Welcome to repoman CLI App.
 
@@ -132,9 +128,7 @@ def main(
         logger.debug(Text("Configuration set", style="yellow"))
     except ValidationError:
         logger.exception("Unable to load configuration: ")
-        logger.exception(
-            "Obtained the following validating Errors loading configuration"
-        )
+        logger.exception("Obtained the following validating Errors loading configuration")
         config = None
 
     ctx.obj = {
