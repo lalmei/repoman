@@ -68,7 +68,6 @@ File trees use Font Awesome icons for file types (see [The template](../template
 Generated with `make docs-trees` from `eza --tree`.
 
 <!-- TREE_START:repoman -->
-
 ```
 repoman
 ├── ' .github'
