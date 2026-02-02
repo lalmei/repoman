@@ -41,8 +41,12 @@ def update(
         help="Path to .copier-answers.yml file (defaults to .copier-answers.yml in project_dir)",
     ),
     force: bool = Option(False, "--force", "-f", help="Force overwrite without asking"),
-    dry_run: bool = Option(False, "--dry-run", help="Show what would be updated without making changes"),
-    conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
+    dry_run: bool = Option(
+        False, "--dry-run", help="Show what would be updated without making changes"
+    ),
+    conflict: str = Option(
+        "inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"
+    ),
 ) -> None:
     """Update an existing Python project using the repoman template."""
     logger, console = get_logger_console()
@@ -62,11 +66,19 @@ def update(
 
     # Validate project directory exists
     if not project_dir_obj.exists():
-        console.print(error_panel(f"Project directory does not exist: {project_dir_obj}", console=console))
+        console.print(
+            error_panel(
+                f"Project directory does not exist: {project_dir_obj}", console=console
+            )
+        )
         raise Exit(1) from None
 
     if not project_dir_obj.is_dir():
-        console.print(error_panel(f"Project path is not a directory: {project_dir_obj}", console=console))
+        console.print(
+            error_panel(
+                f"Project path is not a directory: {project_dir_obj}", console=console
+            )
+        )
         raise Exit(1) from None
 
     # Determine answers file path
@@ -136,7 +148,9 @@ def update(
 
     if dry_run or ctx.obj.get("dry_run", False):
         copier_options_serializable = {
-            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items() if v is not None
+            k: str(v) if isinstance(v, Path) else v
+            for k, v in copier_options.items()
+            if v is not None
         }
         console.print(
             dry_run_update(
@@ -146,7 +160,7 @@ def update(
                 vcs_ref,
                 copier_options_serializable,
                 steps_text,
-                console=console,
+                _console=console,
             )
         )
         return
@@ -168,7 +182,9 @@ def update(
             progress.update(task, description="Project updated successfully!")
 
         copier_options_serializable = {
-            k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items() if v is not None
+            k: str(v) if isinstance(v, Path) else v
+            for k, v in copier_options.items()
+            if v is not None
         }
         console.print(
             project_updated(

@@ -56,11 +56,15 @@ def validate_command_name(command_name: str) -> bool:
 
     # Check if it's a valid Python identifier
     if not command_name.isidentifier():
-        raise ValueError(f"Command name '{command_name}' is not a valid Python identifier")
+        raise ValueError(
+            f"Command name '{command_name}' is not a valid Python identifier"
+        )
 
     # Check for reserved names (Windows)
     reserved_names = (
-        ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
+        ["CON", "PRN", "AUX", "NUL"]
+        + [f"COM{i}" for i in range(1, 10)]
+        + [f"LPT{i}" for i in range(1, 10)]
     )
     if command_name.upper() in reserved_names:
         raise ValueError(f"Command name is a reserved system name: {command_name}")
@@ -88,7 +92,9 @@ def load_copier_answers(answers_file: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
-def detect_project_structure(project_dir: Path, python_package_import_name: str) -> tuple[Path, Path]:
+def detect_project_structure(
+    project_dir: Path, python_package_import_name: str
+) -> tuple[Path, Path]:
     """Detect the project structure and return paths for commands and tests.
 
     Args:
@@ -106,7 +112,9 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 
     if not commands_dir.exists():
         # Try alternative structure
-        commands_dir = project_dir / "src" / python_package_import_name / "cli" / "commands"
+        commands_dir = (
+            project_dir / "src" / python_package_import_name / "cli" / "commands"
+        )
         if not commands_dir.parent.exists():
             raise ValueError(
                 f"Could not find CLI commands directory. Expected: {commands_dir}\n"
@@ -125,9 +133,13 @@ def add(
         "-d",
         help="Project directory (defaults to current directory)",
     ),
-    answers_file: str | None = Option(None, "--answers", "-a", help="Path to .copier-answers.yml file"),
+    answers_file: str | None = Option(
+        None, "--answers", "-a", help="Path to .copier-answers.yml file"
+    ),
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
-    dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
+    dry_run: bool = Option(
+        False, "--dry-run", help="Show what would be created without creating"
+    ),
 ) -> None:
     """Add a new CLI command to your repoman-generated project.
 
@@ -145,15 +157,23 @@ def add(
         raise Exit(1) from None
 
     # Determine project directory
-    project_dir_path: Path = Path.cwd() if project_dir is None else Path(project_dir).resolve()
+    project_dir_path: Path = (
+        Path.cwd() if project_dir is None else Path(project_dir).resolve()
+    )
 
     if not project_dir_path.exists():
-        console.print(error_panel(f"Project directory does not exist: {project_dir_path}", console=console))
+        console.print(
+            error_panel(
+                f"Project directory does not exist: {project_dir_path}", console=console
+            )
+        )
         raise Exit(1) from None
 
     # Determine answers file path
     answers_file_path: Path = (
-        project_dir_path / ".copier-answers.yml" if answers_file is None else Path(answers_file).resolve()
+        project_dir_path / ".copier-answers.yml"
+        if answers_file is None
+        else Path(answers_file).resolve()
     )
 
     # Load copier answers
@@ -185,12 +205,16 @@ def add(
         )
         raise Exit(1) from None
 
-    python_package_command_line_name = answers.get("python_package_command_line_name", python_package_import_name)
+    python_package_command_line_name = answers.get(
+        "python_package_command_line_name", python_package_import_name
+    )
     command_description = answers.get("command_description", f"{command_name} command")
 
     # Detect project structure
     try:
-        commands_dir, tests_dir = detect_project_structure(project_dir_path, python_package_import_name)
+        commands_dir, tests_dir = detect_project_structure(
+            project_dir_path, python_package_import_name
+        )
     except ValueError as e:
         console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
@@ -198,7 +222,9 @@ def add(
     # Locate template directory
     # The template directory is literally named "{{command_name}}"
     current_file = Path(__file__)
-    template_base = current_file.parent.parent.parent.parent / "extentions" / "command_template"
+    template_base = (
+        current_file.parent.parent.parent.parent / "extentions" / "command_template"
+    )
     template_dir = template_base / "{{command_name}}"
 
     if not template_dir.exists():
@@ -283,7 +309,7 @@ def add(
                 command_output_file,
                 test_output_file,
                 context_lines,
-                console=console,
+                _console=console,
             )
         )
         return
