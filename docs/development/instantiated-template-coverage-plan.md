@@ -1,9 +1,11 @@
 # Instantiated Template Test Coverage Plan
 
-**Current coverage:** 55.78%  
+**Current coverage:** 92.70%  
 **Target:** 100%
 
 This document plans the remaining tests needed to achieve 100% test coverage for the **instantiated template**—i.e., the project generated when repoman's main template is instantiated with default answers (`fastapi_enabled: true`, `include_health_endpoints: true`, `python_package_command_line_name: test-project`).
+
+The canonical **current coverage** value is kept in [testing.md](testing.md) and updated by running `make update-instantiated-template-coverage`; this plan's header and summary table are synced to that value when the docs are updated.
 
 ## Overview
 
