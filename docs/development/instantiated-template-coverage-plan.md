@@ -18,9 +18,9 @@ The template uses conditional blocks (`{% if fastapi_enabled %}`, `{% if python_
 
 ---
 
-## Phase 1: FastAPI App Tests (Highest Impact)
+## Phase 1: FastAPI App Tests — Complete ✓
 
-**~200 statements currently at 0% coverage**
+**Status:** Implemented. App modules (asgi, controllers, exceptions, router, utils, views) are at 100% line coverage. Only `app/state/__init__.py` remains at 0%.
 
 ### 1.1 Create `test_app` directory and conftest
 
@@ -109,7 +109,7 @@ Covers: `app/views/error.py`, `app/views/__init__.py`
 
 ## Phase 2: Config and Internal
 
-**~10 statements**
+**Remaining:** ~10 statements (config.py root, app/state/**init**.py)
 
 ### 2.1 Config
 
@@ -123,7 +123,7 @@ Covers: `config.py` (root, lines 3–9)
 
 ## Phase 3: CLI Gaps
 
-**Partially covered: `cli/register.py` 33%, `cli/main_cli.py` 62%**
+**Partially covered: `cli/register.py` 64%, `cli/main_cli.py` 93%**
 
 ### 3.1 `cli/register.py` (lines 31–59)
 
@@ -149,9 +149,9 @@ Covers: `config.py` (root, lines 3–9)
 
 ---
 
-## Phase 4: Logging (76.79% → 100%)
+## Phase 4: Logging (83% → 100%)
 
-**Missing:** lines 135–140, 154–155, 160→159, 167–181
+**Missing:** lines 57→63, 58→57, 63→77, 136→141, 154–155, 160→159, 167–181
 
 | Test                                                   | Purpose                                                                      |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
@@ -166,7 +166,7 @@ Covers: `config.py` (root, lines 3–9)
 
 ## Phase 5: Progress bar (97.62% → 100%)
 
-**Missing:** branch 94→97 (e.g. `progress is None` when `use_progress_bar` is True)
+**Missing:** branch 94→97 (`progress is None` when `use_progress_bar` is True) — test `test_update_before_start_progress_none` exists; branch may still show in report.
 
 | Test                                     | Purpose                                                                                      |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -178,8 +178,8 @@ Covers: `config.py` (root, lines 3–9)
 
 ## Implementation Order
 
-1. **Phase 1** – FastAPI tests (largest coverage gain)
-2. **Phase 2** – Config (small, quick)
+1. **Phase 1** – FastAPI tests — ✓ complete
+2. **Phase 2** – Config and app/state/**init**.py (small, quick)
 3. **Phase 4** – Logging (clear missing branches)
 4. **Phase 5** – Progress bar (single branch)
 5. **Phase 3** – CLI (requires careful mocking)
@@ -227,19 +227,19 @@ make test-coverage-report
 
 ## Summary Table
 
-| Module                      | Current    | Target   | New Tests     |
-| --------------------------- | ---------- | -------- | ------------- |
-| app/asgi.py                 | 0%         | 100%     | 4             |
-| app/**init**.py             | 0%         | 100%     | (via asgi)    |
-| app/controllers/\*          | 0%         | 100%     | 2             |
-| app/exceptions/\*           | 0%         | 100%     | 3             |
-| app/router.py               | 0%         | 100%     | 2             |
-| app/utils/aiohttp_client.py | 0%         | 100%     | 8             |
-| app/views/\*                | 0%         | 100%     | 3             |
-| app/state/**init**.py       | 100%       | 100%     | —             |
-| config.py                   | 0%         | 100%     | 1             |
-| cli/register.py             | 33%        | 100%     | 5             |
-| cli/main_cli.py             | 62%        | 100%     | 3             |
-| utils/logging.py            | 77%        | 100%     | 4             |
-| utils/progress_bar.py       | 98%        | 100%     | 1             |
-| **TOTAL**                   | **55.78%** | **100%** | **~36 tests** |
+| Module                      | Current    | Target   | New Tests / Notes       |
+| --------------------------- | ---------- | -------- | ----------------------- |
+| app/asgi.py                 | 100%       | 100%     | ✓ Done                  |
+| app/**init**.py             | 100%       | 100%     | ✓ Done                  |
+| app/controllers/\*          | 100%       | 100%     | ✓ Done                  |
+| app/exceptions/\*           | 100%       | 100%     | ✓ Done                  |
+| app/router.py               | 100%       | 100%     | ✓ Done                  |
+| app/utils/aiohttp_client.py | 100%       | 100%     | ✓ Done                  |
+| app/views/\*                | 100%       | 100%     | ✓ Done                  |
+| app/state/**init**.py       | 0%         | 100%     | 1                       |
+| config.py                   | 0%         | 100%     | 1                       |
+| cli/register.py             | 64%        | 100%     | ~3 (lines 44–54, 58–59) |
+| cli/main_cli.py             | 93%        | 100%     | ~2 (lines 123–124)      |
+| utils/logging.py            | 83%        | 100%     | 4                       |
+| utils/progress_bar.py       | 98%        | 100%     | 1                       |
+| **TOTAL**                   | **92.70%** | **100%** | Remaining: ~12 tests    |
