@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Stub LLM adapter (placeholder or echo context)."""
+"""Stub LLM adapter (placeholder or echo context)."""
 
 from {{python_package_import_name}}.rag.core.ports import LLMPort
 
@@ -19,4 +19,3 @@ class StubLLM(LLMPort):
         if self._echo_context and prompt:
             return prompt[:500] + "..." if len(prompt) > 500 else prompt
         return "[Stub LLM] Answer would be generated here. Configure a real LLM adapter for production."
-{% endif %}

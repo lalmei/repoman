@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""RAG ports (abstract interfaces)."""
+"""RAG ports (abstract interfaces)."""
 
 from {{python_package_import_name}}.rag.core.ports.embedder import EmbedderPort
 from {{python_package_import_name}}.rag.core.ports.vector_index import VectorIndexPort
@@ -13,4 +13,3 @@ __all__: list[str] = [
     "RerankerPort",
     "LLMPort",
 ]
-{% endif %}

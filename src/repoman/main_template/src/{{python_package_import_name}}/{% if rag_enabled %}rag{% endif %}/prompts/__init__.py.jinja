@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""RAG prompts (builder and templates)."""
+"""RAG prompts (builder and templates)."""
 
 from {{python_package_import_name}}.rag.prompts.builder import (
     build_prompt,
@@ -11,4 +11,3 @@ __all__: list[str] = [
     "build_rag_answer_prompt",
     "get_templates_dir",
 ]
-{% endif %}

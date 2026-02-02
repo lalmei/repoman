@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Generate pipeline: build prompt from context, call LLM, return answer."""
+"""Generate pipeline: build prompt from context, call LLM, return answer."""
 
 from collections.abc import Callable
 
@@ -31,4 +31,3 @@ def run_generate(
         for c in context_chunks
     ]
     return RAGAnswer(text=answer_text, citations=citations, query=query)
-{% endif %}

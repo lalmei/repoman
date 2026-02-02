@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Sentence-transformers embedder adapter."""
+"""Sentence-transformers embedder adapter."""
 
 from {{python_package_import_name}}.rag.core.ports import EmbedderPort
 
@@ -38,4 +38,3 @@ class SentenceTransformersEmbedder(EmbedderPort):
             return []
         vecs = self._model.encode(texts, convert_to_numpy=True)
         return [v.tolist() for v in vecs]
-{% endif %}

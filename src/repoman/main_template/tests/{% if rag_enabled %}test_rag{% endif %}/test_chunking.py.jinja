@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Unit tests for chunking (deterministic)."""
+"""Unit tests for chunking (deterministic)."""
 
 import pytest
 
@@ -42,4 +42,3 @@ def test_chunk_text_invalid_args() -> None:
         chunk_text("hello", 5, 5)
     with pytest.raises(ValueError):
         chunk_text("hello", 5, -1)
-{% endif %}

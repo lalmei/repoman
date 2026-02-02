@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Top-level RAG pipeline: retrieve + generate -> RAGAnswer with citations."""
+"""Top-level RAG pipeline: retrieve + generate -> RAGAnswer with citations."""
 
 from typing import Any, Callable
 
@@ -59,4 +59,3 @@ def run_rag(
         llm=llm,
         build_prompt=build_prompt,
     )
-{% endif %}

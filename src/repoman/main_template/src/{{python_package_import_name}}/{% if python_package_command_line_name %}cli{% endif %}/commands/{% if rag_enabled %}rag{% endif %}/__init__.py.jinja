@@ -1,0 +1,28 @@
+"""RAG CLI: ingest and query."""
+
+from typer import Typer
+
+from {{python_package_import_name}}.config import Config
+from {{python_package_import_name}}.rag import RAGContainer, RAGService
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+def _get_rag_service() -> RAGService:
+    """Build RAGService from config (CLI use)."""
+    config = Config()
+    if not hasattr(config, "rag_config"):
+        raise RuntimeError("RAG not configured; enable rag_enabled and install rag dependencies.")
+    container = RAGContainer(config.rag_config)
+    return RAGService(container)
+
+
+from .ingest import app as ingest_app
+from .query import app as query_app
+
+app.add_typer(ingest_app, name="ingest")
+app.add_typer(query_app, name="query")
+
+
+
+

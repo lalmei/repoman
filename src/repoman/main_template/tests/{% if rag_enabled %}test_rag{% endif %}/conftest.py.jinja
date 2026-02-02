@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Fixtures for RAG tests."""
+"""Fixtures for RAG tests."""
 
 import tempfile
 from pathlib import Path
@@ -78,4 +78,3 @@ class FakeDocstore(DocstorePort):
 
     def list_corpus_ids(self) -> list[str]:
         return list({c.corpus_id for c in self._chunks.values()})
-{% endif %}

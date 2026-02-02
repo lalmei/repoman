@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Core types for RAG (chunks, documents, answers, filters)."""
+"""Core types for RAG (chunks, documents, answers, filters)."""
 
 from dataclasses import dataclass
 from typing import Any
@@ -67,4 +67,3 @@ class QueryFilters(BaseModel):
 
     corpus_id: str | None = Field(default=None, description="Restrict to this corpus.")
     metadata: dict[str, Any] | None = Field(default=None, description="Metadata filters.")
-{% endif %}

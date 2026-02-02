@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Vector index port: add vectors and search by vector."""
+"""Vector index port: add vectors and search by vector."""
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -40,4 +40,3 @@ class VectorIndexPort(ABC):
             List of (chunk_id, score) ordered by relevance.
         """
         ...
-{% endif %}

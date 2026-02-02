@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""RAG wiring: build concrete implementations from config."""
+"""RAG wiring: build concrete implementations from config."""
 
 from pathlib import Path
 from typing import Any
@@ -74,4 +74,3 @@ class RAGContainer:
     def get_config(self) -> RAGConfig:
         """Return RAG config."""
         return self._config
-{% endif %}

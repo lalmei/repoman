@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Integration test: ingest -> query roundtrip on a tiny fixture."""
+"""Integration test: ingest -> query roundtrip on a tiny fixture."""
 
 from pathlib import Path
 
@@ -45,4 +45,3 @@ def test_ingest_then_query_roundtrip(rag_config: RAGConfig, sample_file: Path) -
     assert answer.query == "What does RAG stand for?"
     assert len(answer.text) > 0
     assert len(answer.citations) >= 1
-{% endif %}

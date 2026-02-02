@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""Prompt builder: build prompt string from template name + variables."""
+"""Prompt builder: build prompt string from template name + variables."""
 
 from pathlib import Path
 
@@ -40,4 +40,3 @@ def build_rag_answer_prompt(query: str, context: str) -> str:
         Full prompt string.
     """
     return build_prompt("rag_answer.txt", query=query, context=context)
-{% endif %}

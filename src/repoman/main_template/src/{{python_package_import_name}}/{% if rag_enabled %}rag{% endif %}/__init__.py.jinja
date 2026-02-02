@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""RAG package: core, adapters, prompts, wiring, service."""
+"""RAG package: core, adapters, prompts, wiring, service."""
 
 from {{python_package_import_name}}.rag.service import RAGService
 from {{python_package_import_name}}.rag.wiring import RAGContainer
@@ -23,4 +23,3 @@ __all__: list[str] = [
     "RAGAnswer",
     "RetrievedChunk",
 ]
-{% endif %}

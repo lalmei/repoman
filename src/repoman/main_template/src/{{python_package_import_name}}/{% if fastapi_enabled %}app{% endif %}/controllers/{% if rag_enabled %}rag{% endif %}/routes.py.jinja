@@ -1,4 +1,4 @@
-{% if fastapi_enabled and rag_enabled %}"""RAG API routes: query, ingest, health."""
+"""RAG API routes: query, ingest, health."""
 
 from typing import Any
 
@@ -61,4 +61,3 @@ async def rag_ingest(
     if not path:
         raise HTTPException(status_code=400, detail="path required")
     return service.ingest(path=path, corpus_id=corpus_id)
-{% endif %}

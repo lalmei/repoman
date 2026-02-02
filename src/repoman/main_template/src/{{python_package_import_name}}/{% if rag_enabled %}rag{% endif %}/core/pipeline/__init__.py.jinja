@@ -1,4 +1,4 @@
-{% if rag_enabled %}"""RAG pipeline (ingest, retrieve, generate, rag)."""
+"""RAG pipeline (ingest, retrieve, generate, rag)."""
 
 from {{python_package_import_name}}.rag.core.pipeline.ingest import (
     chunk_text,
@@ -17,4 +17,3 @@ __all__: list[str] = [
     "run_generate",
     "run_rag",
 ]
-{% endif %}
