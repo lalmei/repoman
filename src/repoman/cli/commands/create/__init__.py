@@ -195,17 +195,23 @@ def create(
 
     # Create the project
     try:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Creating project...", total=None)
+        if answers_file is not None:
+            # Non-interactive: safe to use Progress (no Copier prompts)
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Creating project...", total=None)
 
-            # Run copier
+                # Run copier
+                run_copy(**copier_options)  # type: ignore[arg-type]  # copier accepts dict with mixed types
+
+                progress.update(task, description="Project created successfully!")
+        else:
+            # Interactive: skip Progress to avoid stdin/stdout conflict with Copier prompts
+            console.print("Creating project...")
             run_copy(**copier_options)  # type: ignore[arg-type]  # copier accepts dict with mixed types
-
-            progress.update(task, description="Project created successfully!")
 
         copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
         console.print(
