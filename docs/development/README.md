@@ -65,30 +65,159 @@ Welcome to the repoman development environment! This guide will help you set up 
 ## 📁 Project Structure
 
 File trees use Font Awesome icons for file types (see [The template](../template.md)).
+Generated with `make docs-trees` from `eza --tree`.
 
-:fontawesome-solid-folder: **repoman/**
-
-- :fontawesome-solid-folder: **src/repoman/** — Source code
-  - :fontawesome-brands-python: `__init__.py`
-  - :fontawesome-solid-folder: **cli/** — Command-line interface
-  - :fontawesome-solid-folder: **utils/** — Utility functions
-  - :fontawesome-brands-python: `_version.py`
-- :fontawesome-solid-folder: **tests/** — Test suite
-  - :fontawesome-brands-python: `conftest.py` — Pytest configuration
-  - :fontawesome-solid-folder: **test_cli/** — CLI tests
-  - :fontawesome-solid-folder: **test_utils/** — Utility tests
-  - :fontawesome-solid-folder: **test_input/** — Input processing tests
-  - :fontawesome-solid-file-code: `test_version.py`
-- :fontawesome-solid-folder: **docs/** — Documentation
-  - :fontawesome-solid-folder: **development/** — Development documentation
-- :fontawesome-solid-folder: **config/** — Configuration files
-  - :fontawesome-solid-file-code: `pytest.ini`
-  - :fontawesome-solid-file-code: `ruff.toml`
-  - :fontawesome-solid-file-code: `mypy.ini`
-- :fontawesome-solid-file-code: `pyproject.toml` — Project configuration
-- :fontawesome-solid-file-code: `uv.lock` — Dependency lock file
-- :fontawesome-solid-file-code: `Makefile` — Development automation
-- :fontawesome-solid-file-lines: `README.md` — Project overview
+<!-- TREE_START:repoman -->
+```
+repoman
+├── ' .github'
+│   ├── ISSUE_TEMPLATE
+│   │   ├── 1-bug.md
+│   │   ├── 2-feature.md
+│   │   ├── 3-docs.md
+│   │   ├── 4-change.md
+│   │   └── config.yml
+│   └── workflows
+│       ├── ci.yml
+│       └── release.yml
+├── AI_POLICY.md
+├── config
+│   ├── coverage.ini
+│   ├── cursor
+│   │   ├── hooks.json
+│   │   └── rules
+│   │       └── checks.md
+│   ├── mkdocs.yml
+│   ├── mypy.ini
+│   ├── pytest.ini
+│   └── ruff.toml
+├── CONTRIBUTING.md
+├── coverage.xml
+├── docs
+│   ├── cli.md
+│   ├── concepts
+│   │   ├── copier-and-answers.md
+│   │   ├── generated-project.md
+│   │   └── overview.md
+│   ├── css
+│   │   ├── material.css
+│   │   └── mkdocstrings.css
+│   ├── development
+│   │   ├── additional-resources.md
+│   │   ├── ci.md
+│   │   ├── code-quality.md
+│   │   ├── configuration.md
+│   │   ├── contributing.md
+│   │   ├── debugging.md
+│   │   ├── documentation.md
+│   │   ├── instantiated-template-coverage-plan.md
+│   │   ├── package-management.md
+│   │   ├── performance-tips.md
+│   │   ├── README.md
+│   │   ├── testing-best-practices.md
+│   │   ├── testing-fixtures.md
+│   │   ├── testing-troubleshooting.md
+│   │   ├── testing.md
+│   │   └── tools.md
+│   ├── getting-started
+│   │   ├── installation.md
+│   │   └── quickstart.md
+│   ├── guides
+│   │   ├── adding-a-cli-command.md
+│   │   ├── configuration.md
+│   │   ├── creating-a-project.md
+│   │   └── updating-a-project.md
+│   ├── index.md
+│   ├── js
+│   │   └── feedback.js
+│   ├── make-commands.md
+│   ├── reference
+│   │   └── troubleshooting.md
+│   ├── roadmap.md
+│   ├── template-prompts.md
+│   ├── template-structure.md
+│   └── template.md
+├── Makefile
+├── pyproject.toml
+├── README.md
+├── scripts
+│   ├── gen_credits.py
+│   ├── gen_ref_nav.py
+│   ├── gen_tree_docs.py
+│   └── update_instantiated_template_coverage.py
+├── src
+│   └── repoman
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── _version.py
+│       ├── cli
+│       │   ├── __init__.py
+│       │   ├── commands
+│       │   ├── main_cli.py
+│       │   ├── messages
+│       │   └── register_commands.py
+│       ├── config.py
+│       ├── copier.yml
+│       ├── extensions.py
+│       ├── extentions
+│       │   ├── command_template
+│       │   └── routers_template
+│       ├── main_template
+│       │   ├── AI_POLICY.md.jinja
+│       │   ├── CHANGELOG.md.jinja
+│       │   ├── CODE_OF_CONDUCT.md.jinja
+│       │   ├── config
+│       │   ├── CONTRIBUTING.md.jinja
+│       │   ├── docs
+│       │   ├── LICENSE.jinja
+│       │   ├── make_cmds
+│       │   ├── Makefile.jinja
+│       │   ├── pyproject.toml.jinja
+│       │   ├── README.md.jinja
+│       │   ├── scripts
+│       │   ├── src
+│       │   ├── tests
+│       │   ├── "{% if ci == 'azure' %}.azuredevops{% endif %}"
+│       │   ├── "{% if ci == 'github' %}.github{% endif %}"
+│       │   ├── "{% if ci == 'gitlab' %}.gitlab{% endif %}"
+│       │   ├── '{% if python_notebooks %}notebooks{% endif %}'
+│       │   └── {{_copier_conf.answers_file}}.jinja
+│       └── utils
+│           ├── __init__.py
+│           ├── logging.py
+│           └── theme
+├── tests
+│   ├── __init__.py
+│   ├── ci_runner.py
+│   ├── conftest.py
+│   ├── fixtures
+│   │   └── default_copier_answers.yml
+│   ├── template_testing.py
+│   ├── test_cli
+│   │   ├── __init__.py
+│   │   ├── test_cli.py
+│   │   ├── test_command_registration.py
+│   │   ├── test_create.py
+│   │   ├── test_generator.py
+│   │   └── test_update.py
+│   ├── test_input
+│   │   ├── __init__.py
+│   │   └── test_extensions.py
+│   ├── test_template
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   └── test_ci.py
+│   ├── test_utils
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   ├── test_ci_runner.py
+│   │   ├── test_logging.py
+│   │   ├── test_template_testing.py
+│   │   └── test_theme.py
+│   └── test_version.py
+└── uv.lock
+```
+<!-- TREE_END -->
 
 ## 🔧 Development Workflow
 

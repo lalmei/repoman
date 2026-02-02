@@ -13,79 +13,133 @@
 
 ## Generated project layout (high-level)
 
-After you run `repoman create my-project` (with typical defaults, e.g. CLI + FastAPI enabled), the generated tree looks like this at a high level. File trees in this documentation use Font Awesome icons for file types (folders, Python, Markdown, config, etc.).
+After you run `repoman create my-project` (with typical defaults, e.g. CLI + FastAPI enabled), the generated tree looks like this at a high level. Regenerate with `make docs-trees`.
 
 ### Instantiated project file tree
 
-:fontawesome-solid-folder: **my_project/**
-
-- :fontawesome-solid-file-code: `.copier-answers.yml`
-- :fontawesome-solid-file: `.gitignore`
-- :fontawesome-solid-file-lines: `AI_POLICY.md`
-- :fontawesome-solid-file-lines: `CHANGELOG.md`
-- :fontawesome-solid-file-lines: `CODE_OF_CONDUCT.md`
-- :fontawesome-solid-file-lines: `CONTRIBUTING.md`
-- :fontawesome-solid-file: `LICENSE`
-- :fontawesome-solid-file-code: `Makefile`
-- :fontawesome-solid-file-lines: `README.md`
-- :fontawesome-solid-folder: **config/**
-  - :fontawesome-solid-file-code: `coverage.ini`
-  - :fontawesome-solid-file-code: `git-changelog.toml`
-  - :fontawesome-solid-file-code: `mkdocs.yml`
-  - :fontawesome-solid-file-code: `mypy.ini`
-  - :fontawesome-solid-file-code: `pytest.ini`
-  - :fontawesome-solid-file-code: `ruff.toml`
-  - :fontawesome-solid-folder: **vscode/**
-    - :fontawesome-solid-file-code: `launch.json`
-    - :fontawesome-solid-file-code: `settings.json`
-    - :fontawesome-solid-file-code: `tasks.json`
-- :fontawesome-solid-folder: **docs/**
-  - :fontawesome-solid-folder: **.overrides/** (partials, main.html)
-  - :fontawesome-solid-file-lines: `changelog.md`
-  - :fontawesome-solid-file-lines: `contributing.md`
-  - :fontawesome-solid-file-lines: `index.md`
-  - :fontawesome-solid-folder: **reference/** (API)
-  - :fontawesome-brands-css3-alt: `css/` (material.css, mkdocstrings.css)
-  - :fontawesome-brands-js: `js/` (feedback.js)
-- :fontawesome-solid-folder: **make_cmds/**
-  - :fontawesome-solid-file-code: `build.mk`
-  - :fontawesome-solid-file-code: `documentation.mk`
-  - :fontawesome-solid-file-code: `quality.mk`
-  - :fontawesome-solid-file-code: `tests.mk`
-  - :fontawesome-solid-file-code: `uv.mk`
-- :fontawesome-solid-folder: **scripts/**
-  - :fontawesome-brands-python: `colors.py`
-  - :fontawesome-brands-python: `gen_credits.py`
-  - :fontawesome-brands-python: `get_version.py`
-- :fontawesome-solid-folder: **src/**
-  - :fontawesome-solid-folder: **my_project/** (package; name from `python_package_import_name`)
-    - :fontawesome-brands-python: `__init__.py`
-    - :fontawesome-brands-python: `_version.py`
-    - :fontawesome-solid-folder: **config/**
-      - :fontawesome-brands-python: `__init__.py`
-      - :fontawesome-brands-python: `main_config.py`
-      - :fontawesome-brands-python: `fastapi_config.py` (if FastAPI enabled)
-    - :fontawesome-solid-folder: **utils/**
-      - :fontawesome-brands-python: `__init__.py`
-      - :fontawesome-brands-python: `logging.py`
-      - :fontawesome-solid-folder: **theme/** (terminal colors)
-    - :fontawesome-solid-folder: **cli/** (if CLI enabled)
-      - :fontawesome-brands-python: `__init__.py`
-      - :fontawesome-brands-python: `main_cli.py`
-      - :fontawesome-brands-python: `register.py`
-      - :fontawesome-solid-folder: **commands/** (user-defined subcommands)
-    - :fontawesome-solid-folder: **app/** (if FastAPI enabled)
-      - :fontawesome-brands-python: `__init__.py`
-      - :fontawesome-brands-python: `asgi.py`
-      - :fontawesome-solid-folder: **controllers/**, **views/**, **state/**, **exceptions/**, **utils/**
-- :fontawesome-solid-folder: **tests/**
-  - :fontawesome-brands-python: `conftest.py`
-  - :fontawesome-solid-folder: **test_cli/** (if CLI)
-  - :fontawesome-solid-folder: **test_app/** (if FastAPI)
-  - :fontawesome-solid-folder: **unit/**, **smoke/** (from template)
-- :fontawesome-solid-folder: **.github/** (or `.gitlab/` or `.azuredevops/` per `ci` choice)
-  - :fontawesome-solid-folder: **workflows/** (`ci.yml`, `release.yml`)
-  - :fontawesome-solid-folder: **ISSUE_TEMPLATE/** (bug, feature, docs, change)
+<!-- TREE_START:instantiated -->
+```
+my_project
+├── AI_POLICY.md
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── config
+│   ├── coverage.ini
+│   ├── git-changelog.toml
+│   ├── mkdocs.yml
+│   ├── mypy.ini
+│   ├── pytest.ini
+│   ├── ruff.toml
+│   └── vscode
+│       ├── launch.json
+│       ├── settings.json
+│       └── tasks.json
+├── CONTRIBUTING.md
+├── docs
+│   ├── ai_policy.md
+│   ├── changelog.md
+│   ├── code_of_conduct.md
+│   ├── contributing.md
+│   ├── credits.md
+│   ├── css
+│   │   ├── material.css
+│   │   └── mkdocstrings.css
+│   ├── index.md
+│   ├── js
+│   │   └── feedback.js
+│   ├── license.md
+│   └── reference
+│       └── api.md
+├── LICENSE
+├── make_cmds
+│   ├── build.mk
+│   ├── documentation.mk
+│   ├── notebooks.mk
+│   ├── quality.mk
+│   ├── tests.mk
+│   └── uv.mk
+├── Makefile
+├── notebooks
+│   └── example_notebook.ipynb
+├── pyproject.toml
+├── README.md
+├── scripts
+│   ├── colors.py
+│   ├── gen_credits.py
+│   └── get_version.py
+├── src
+│   └── test_project
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── _version.py
+│       ├── app
+│       │   ├── __init__.py
+│       │   ├── asgi.py
+│       │   ├── controllers
+│       │   │   ├── __init__.py
+│       │   │   ├── health_check.py
+│       │   │   └── ready.py
+│       │   ├── exceptions
+│       │   │   ├── __init__.py
+│       │   │   └── http.py
+│       │   ├── router.py
+│       │   ├── state
+│       │   │   ├── __init__.py
+│       │   │   └── app_state.py
+│       │   ├── utils
+│       │   │   ├── __init__.py
+│       │   │   └── aiohttp_client.py
+│       │   └── views
+│       │       ├── __init__.py
+│       │       ├── error.py
+│       │       └── ready.py
+│       ├── cli
+│       │   ├── __init__.py
+│       │   ├── commands
+│       │   │   └── __init__.py
+│       │   ├── main_cli.py
+│       │   └── register.py
+│       ├── config
+│       │   ├── __init__.py
+│       │   ├── fastapi_config.py
+│       │   └── main_config.py
+│       ├── config.py
+│       ├── py.typed
+│       └── utils
+│           ├── __init__.py
+│           ├── integer.py
+│           ├── logging.py
+│           ├── progress_bar.py
+│           └── theme
+│               ├── __init__.py
+│               ├── terminal_colors.py
+│               └── theme.py
+└── tests
+    ├── __init__.py
+    ├── conftest.py
+    ├── test_app
+    │   ├── __init__.py
+    │   ├── conftest.py
+    │   ├── test_aiohttp_client.py
+    │   ├── test_asgi.py
+    │   ├── test_exceptions.py
+    │   ├── test_health_ready.py
+    │   ├── test_router.py
+    │   └── test_views_error.py
+    ├── test_cli
+    │   ├── __init__.py
+    │   ├── test_cli.py
+    │   └── test_command_registration.py
+    ├── test_config.py
+    ├── test_utils
+    │   ├── __init__.py
+    │   ├── test_integer.py
+    │   ├── test_logging.py
+    │   ├── test_progress_bar.py
+    │   └── test_theme.py
+    └── test_version.py
+```
+<!-- TREE_END -->
 
 You can compare this with the output of `repoman create my-project` to see the exact files and structure for your choices.
 

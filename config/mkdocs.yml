@@ -7,7 +7,7 @@ strict: false
 docs_dir: "../docs"
 site_dir: "../site"
 
-watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLICY.md, ../scripts/gen_credits.py]
+watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../src/repoman, ../AI_POLICY.md, ../scripts/gen_credits.py, ../scripts/gen_tree_docs.py]
 # edit_uri: set when repo_url is configured (e.g. edit/main/docs/) for a valid URL
 
 
