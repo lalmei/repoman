@@ -18,9 +18,8 @@ After you run `repoman create my-project` (with typical defaults, e.g. CLI + Fas
 ### Instantiated project file tree
 
 <!-- TREE_START:instantiated -->
-
 ```
-/private/var/folders/db/_mxprfm563qb9dj7h44p7sfc0000gn/T/repoman-tree-cocicv6a/my_project
+my_project
 ├── AI_POLICY.md
 ├── CHANGELOG.md
 ├── CODE_OF_CONDUCT.md
@@ -140,7 +139,6 @@ After you run `repoman create my-project` (with typical defaults, e.g. CLI + Fas
     │   └── test_theme.py
     └── test_version.py
 ```
-
 <!-- TREE_END -->
 
 You can compare this with the output of `repoman create my-project` to see the exact files and structure for your choices.

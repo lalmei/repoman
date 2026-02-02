@@ -146,6 +146,7 @@ def get_instantiated_tree() -> str:
                 project_dir,
                 excludes=REPOMAN_EXCLUDES,
                 depth=5,
+                cwd=project_dir.parent,
             )
         finally:
             cleanup_project_artifacts(project_dir)
