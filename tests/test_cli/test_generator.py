@@ -12,7 +12,9 @@ from typer.testing import CliRunner
 console = Console()
 
 
-def _create_test_project_structure(tmp_path: Path, package_name: str = "test_package") -> tuple[Path, Path]:
+def _create_test_project_structure(
+    tmp_path: Path, package_name: str = "test_package"
+) -> tuple[Path, Path]:
     """Create standard test project directory structure.
 
     Args:
@@ -73,7 +75,9 @@ def test_generator_command_registered(cli_runner: CliRunner, cli_app: Typer) -> 
     result = cli_runner.invoke(cli_app, ["generator", "--help"], input="")
 
     # Should succeed and show help for the generator command
-    assert result.exit_code == 0, "The 'generator' command should be registered and accessible"
+    assert result.exit_code == 0, (
+        "The 'generator' command should be registered and accessible"
+    )
     assert "Usage:" in result.output, "Help output should be shown"
     assert "generator" in result.output.lower(), "Command name should appear in help"
 
@@ -111,7 +115,9 @@ def test_generator_add_command_help(cli_runner: CliRunner, cli_app: Typer) -> No
     assert "--dry-run" in result.output or "--dry_run" in result.output
 
 
-def test_generator_add_missing_required_args(cli_runner: CliRunner, cli_app: Typer) -> None:
+def test_generator_add_missing_required_args(
+    cli_runner: CliRunner, cli_app: Typer
+) -> None:
     """Test that generator add command properly validates required arguments.
 
     This test verifies argument validation:
@@ -133,7 +139,9 @@ def test_generator_add_missing_required_args(cli_runner: CliRunner, cli_app: Typ
     assert "COMMAND_NAME" in result.output or "command_name" in result.output
 
 
-def test_generator_add_invalid_command_name(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_invalid_command_name(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command rejects invalid command names with proper validation.
 
     This test verifies the command name validation logic:
@@ -188,12 +196,16 @@ def test_generator_add_invalid_command_name(cli_runner: CliRunner, cli_app: Type
         )
         console.print(f"Testing '{invalid_name}': {result.output}")
         # Should fail with validation error
-        assert result.exit_code == 1, f"Command name '{invalid_name}' should be rejected"
+        assert result.exit_code == 1, (
+            f"Command name '{invalid_name}' should be rejected"
+        )
         # Rich console output bypasses CliRunner's capture but is visible in pytest's "Captured stdout call"
         # Error message is visible in pytest output
 
 
-def test_generator_add_valid_command_name_validation(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_valid_command_name_validation(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command accepts valid command names.
 
     This test verifies that valid Python identifiers pass validation:
@@ -231,9 +243,15 @@ def test_generator_add_valid_command_name_validation(cli_runner: CliRunner, cli_
     with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
         # Make template directory exist
         def exists_side_effect(path: Path) -> bool:
-            if "extentions/command_template" in str(path) or "{{command_name}}" in str(path):
+            if "extentions/command_template" in str(path) or "{{command_name}}" in str(
+                path
+            ):
                 return True
-            return path == answers_file or "src/test_package/cli/commands" in str(path) or "tests/test_cli" in str(path)
+            return (
+                path == answers_file
+                or "src/test_package/cli/commands" in str(path)
+                or "tests/test_cli" in str(path)
+            )
 
         mock_exists.side_effect = exists_side_effect
 
@@ -268,7 +286,9 @@ def test_generator_add_valid_command_name_validation(cli_runner: CliRunner, cli_
                 )
 
 
-def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_dry_run(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command supports dry-run mode for previewing changes.
 
     This test verifies the --dry-run functionality:
@@ -308,7 +328,10 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
         # Make template directory exist
         def exists_side_effect(path: Path) -> bool:
             path_str = str(path)
-            if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            if (
+                "extentions/command_template" in path_str
+                or "{{command_name}}" in path_str
+            ):
                 return True
             # Check if it's the answers file or project structure paths
             if path == answers_file:
@@ -344,11 +367,15 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
             # Note: This test may fail if template directory structure doesn't exist
             # Verify command succeeded (exit code 0) - Rich output verification visible in pytest output
             # If exit code is 1, it's likely due to missing template directory (acceptable for test environment)
-            assert result.exit_code in (0, 1), f"Unexpected exit code. Output: {result.output}"
+            assert result.exit_code in (0, 1), (
+                f"Unexpected exit code. Output: {result.output}"
+            )
             # Rich Panel output may not be captured in result.output, but is visible in pytest output
 
 
-def test_generator_add_missing_answers_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_missing_answers_file(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles missing .copier-answers.yml file gracefully.
 
     This test verifies error handling when the copier answers file is missing:
@@ -382,7 +409,11 @@ def test_generator_add_missing_answers_file(cli_runner: CliRunner, cli_app: Type
     assert result.exit_code == 1
     # Rich Panel output may not be captured, so check exit code and visible error message
     output_lower = result.output.lower()
-    assert "answers file" in output_lower or ".copier-answers.yml" in output_lower or result.exit_code == 1
+    assert (
+        "answers file" in output_lower
+        or ".copier-answers.yml" in output_lower
+        or result.exit_code == 1
+    )
 
 
 def test_generator_add_missing_python_package_import_name(
@@ -419,7 +450,9 @@ def test_generator_add_missing_python_package_import_name(
     # Rich Panel output may not be captured in result.output, but error message is visible in pytest output
 
 
-def test_generator_add_file_already_exists(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_file_already_exists(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command prevents accidental overwrites without --force flag.
 
     This test verifies file existence checking:
@@ -463,7 +496,10 @@ def test_generator_add_file_already_exists(cli_runner: CliRunner, cli_app: Typer
             # Handle both instance method call (self as first arg) and direct call
             path = self_or_path
             path_str = str(path)
-            if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            if (
+                "extentions/command_template" in path_str
+                or "{{command_name}}" in path_str
+            ):
                 return True
             return (
                 path == answers_file
@@ -484,10 +520,16 @@ def test_generator_add_file_already_exists(cli_runner: CliRunner, cli_app: Typer
         assert result.exit_code == 1
         # Rich Panel output may not be captured, so check exit code and visible error message
         output_lower = result.output.lower()
-        assert "already exists" in output_lower or "Warning" in result.output or result.exit_code == 1
+        assert (
+            "already exists" in output_lower
+            or "Warning" in result.output
+            or result.exit_code == 1
+        )
 
 
-def test_generator_add_empty_command_name(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_empty_command_name(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command rejects empty command names.
 
     This test verifies validation for empty strings (line 33).
@@ -513,7 +555,9 @@ def test_generator_add_empty_command_name(cli_runner: CliRunner, cli_app: Typer,
         assert "empty" in result.output.lower() or "whitespace" in result.output.lower()
 
 
-def test_generator_add_whitespace_only_command_name(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_whitespace_only_command_name(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command rejects whitespace-only command names.
 
     This test verifies validation for whitespace-only strings (line 33).
@@ -539,7 +583,9 @@ def test_generator_add_whitespace_only_command_name(cli_runner: CliRunner, cli_a
         assert "empty" in result.output.lower() or "whitespace" in result.output.lower()
 
 
-def test_generator_add_path_traversal_patterns(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_path_traversal_patterns(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command rejects path traversal patterns.
 
     This test verifies validation for various path traversal attempts (line 45).
@@ -569,13 +615,20 @@ def test_generator_add_path_traversal_patterns(cli_runner: CliRunner, cli_app: T
             ["generator", "add", "--project-dir", str(tmp_path), pattern],
             input="",
         )
-        assert result.exit_code == 1, f"Path traversal pattern '{pattern}' should be rejected"
+        assert result.exit_code == 1, (
+            f"Path traversal pattern '{pattern}' should be rejected"
+        )
         # Rich Panel output may not be captured
         if result.output:
-            assert "path traversal" in result.output.lower() or "invalid" in result.output.lower()
+            assert (
+                "path traversal" in result.output.lower()
+                or "invalid" in result.output.lower()
+            )
 
 
-def test_generator_add_reserved_names(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_reserved_names(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command rejects Windows reserved names.
 
     This test verifies validation for reserved system names (line 62).
@@ -598,13 +651,20 @@ def test_generator_add_reserved_names(cli_runner: CliRunner, cli_app: Typer, tmp
             ["generator", "add", "--project-dir", str(tmp_path), reserved_name],
             input="",
         )
-        assert result.exit_code == 1, f"Reserved name '{reserved_name}' should be rejected"
+        assert result.exit_code == 1, (
+            f"Reserved name '{reserved_name}' should be rejected"
+        )
         # Rich Panel output may not be captured
         if result.output:
-            assert "reserved" in result.output.lower() or "invalid" in result.output.lower()
+            assert (
+                "reserved" in result.output.lower()
+                or "invalid" in result.output.lower()
+            )
 
 
-def test_generator_add_project_structure_not_found(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_project_structure_not_found(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles missing project structure.
 
     This test verifies error handling when commands directory doesn't exist (lines 100-112).
@@ -628,10 +688,15 @@ def test_generator_add_project_structure_not_found(cli_runner: CliRunner, cli_ap
     assert result.exit_code == 1
     # Rich Panel output may not be captured
     if result.output:
-        assert "commands directory" in result.output.lower() or "not found" in result.output.lower()
+        assert (
+            "commands directory" in result.output.lower()
+            or "not found" in result.output.lower()
+        )
 
 
-def test_generator_add_project_directory_not_exists(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_project_directory_not_exists(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles non-existent project directory.
 
     This test verifies error handling when project directory doesn't exist (lines 153-160).
@@ -655,10 +720,15 @@ def test_generator_add_project_directory_not_exists(cli_runner: CliRunner, cli_a
     assert result.exit_code == 1
     # Rich Panel output may not be captured
     if result.output:
-        assert "does not exist" in result.output.lower() or "not found" in result.output.lower()
+        assert (
+            "does not exist" in result.output.lower()
+            or "not found" in result.output.lower()
+        )
 
 
-def test_generator_add_invalid_yaml(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_invalid_yaml(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles invalid YAML in answers file.
 
     This test verifies error handling for YAML parsing errors (lines 184-192).
@@ -677,10 +747,16 @@ def test_generator_add_invalid_yaml(cli_runner: CliRunner, cli_app: Typer, tmp_p
     assert result.exit_code == 1
     # Rich Panel output may not be captured
     if result.output:
-        assert "yaml" in result.output.lower() or "parsing" in result.output.lower() or "error" in result.output.lower()
+        assert (
+            "yaml" in result.output.lower()
+            or "parsing" in result.output.lower()
+            or "error" in result.output.lower()
+        )
 
 
-def test_generator_add_template_not_found(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_template_not_found(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles missing template directory.
 
     This test verifies error handling when template directory doesn't exist (lines 232-244).
@@ -703,7 +779,11 @@ def test_generator_add_template_not_found(cli_runner: CliRunner, cli_app: Typer,
         path_str = str(self)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return False  # Template directory doesn't exist
-        return self == answers_file or "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
+        return (
+            self == answers_file
+            or "src/test_package/cli/commands" in path_str
+            or "tests/test_cli" in path_str
+        )
 
     with patch.object(Path, "exists", exists_side_effect):
         result = cli_runner.invoke(
@@ -714,10 +794,15 @@ def test_generator_add_template_not_found(cli_runner: CliRunner, cli_app: Typer,
         assert result.exit_code == 1
         # Rich Panel output may not be captured, so if output is empty, that's acceptable
         if result.output:
-            assert "template" in result.output.lower() or "not found" in result.output.lower()
+            assert (
+                "template" in result.output.lower()
+                or "not found" in result.output.lower()
+            )
 
 
-def test_generator_add_template_rendering_error(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_template_rendering_error(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles template rendering errors.
 
     This test verifies error handling for template rendering failures (lines 308-317).
@@ -738,7 +823,11 @@ def test_generator_add_template_rendering_error(cli_runner: CliRunner, cli_app: 
         path_str = str(self)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
-        return self == answers_file or "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
+        return (
+            self == answers_file
+            or "src/test_package/cli/commands" in path_str
+            or "tests/test_cli" in path_str
+        )
 
     with (
         patch.object(Path, "exists", exists_side_effect),
@@ -746,7 +835,9 @@ def test_generator_add_template_rendering_error(cli_runner: CliRunner, cli_app: 
     ):
         # Mock template rendering to raise an error
         mock_env_instance = Mock()
-        mock_env_instance.get_template.side_effect = jinja2.TemplateNotFound("template not found")
+        mock_env_instance.get_template.side_effect = jinja2.TemplateNotFound(
+            "template not found"
+        )
         mock_env.return_value = mock_env_instance
 
         result = cli_runner.invoke(
@@ -764,7 +855,9 @@ def test_generator_add_template_rendering_error(cli_runner: CliRunner, cli_app: 
             )
 
 
-def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_file_creation_success(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command successfully creates files.
 
     This test verifies the success path for file creation (lines 338-386).
@@ -779,10 +872,16 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
         )
     )
 
-    commands_dir, tests_dir = _create_test_project_structure(tmp_path)
+    _commands_dir, _tests_dir = _create_test_project_structure(tmp_path)
 
     # Create template directory structure
-    template_base = Path(__file__).parent.parent.parent / "src" / "repoman" / "extentions" / "command_template"
+    template_base = (
+        Path(__file__).parent.parent.parent
+        / "src"
+        / "repoman"
+        / "extentions"
+        / "command_template"
+    )
     template_dir = template_base / "{{command_name}}"
 
     def exists_side_effect(self: Path) -> bool:
@@ -817,7 +916,14 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
 
         result = cli_runner.invoke(
             cli_app,
-            ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
+            [
+                "generator",
+                "add",
+                "--project-dir",
+                str(tmp_path),
+                "--force",
+                "testcommand",
+            ],
             input="",
         )
 
@@ -825,10 +931,15 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
         assert result.exit_code == 0
         # Rich Panel output may not be captured
         if result.output:
-            assert "created successfully" in result.output.lower() or "success" in result.output.lower()
+            assert (
+                "created successfully" in result.output.lower()
+                or "success" in result.output.lower()
+            )
 
 
-def test_generator_add_file_creation_permission_error(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_generator_add_file_creation_permission_error(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
     """Test that generator add command handles file creation permission errors.
 
     This test verifies error handling for OSError/PermissionError (lines 377-386).
@@ -849,7 +960,11 @@ def test_generator_add_file_creation_permission_error(cli_runner: CliRunner, cli
         path_str = str(self)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
-        return self == answers_file or "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
+        return (
+            self == answers_file
+            or "src/test_package/cli/commands" in path_str
+            or "tests/test_cli" in path_str
+        )
 
     with (
         patch.object(Path, "exists", exists_side_effect),
@@ -868,11 +983,21 @@ def test_generator_add_file_creation_permission_error(cli_runner: CliRunner, cli
 
         result = cli_runner.invoke(
             cli_app,
-            ["generator", "add", "--project-dir", str(tmp_path), "--force", "testcommand"],
+            [
+                "generator",
+                "add",
+                "--project-dir",
+                str(tmp_path),
+                "--force",
+                "testcommand",
+            ],
             input="",
         )
 
         assert result.exit_code == 1
         # Rich Panel output may not be captured
         if result.output:
-            assert "error" in result.output.lower() or "permission" in result.output.lower()
+            assert (
+                "error" in result.output.lower()
+                or "permission" in result.output.lower()
+            )

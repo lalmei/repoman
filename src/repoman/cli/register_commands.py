@@ -14,14 +14,16 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
     Scans all subdirectories in the commands directory and registers any that have an 'app'
     attribute defined in their __init__.py file.
     """
-    logger, console = get_logger_console()
+    logger, _console = get_logger_console()
 
     # Get the cli directory path
     cli_dir = Path(__file__).parent / "commands" if path is None else path
 
     # Find all subdirectories in the commands directory that have __init__.py
     command_modules = [
-        d.name for d in cli_dir.iterdir() if d.is_dir() and (d / "__init__.py").exists() and d.name != "__pycache__"
+        d.name
+        for d in cli_dir.iterdir()
+        if d.is_dir() and (d / "__init__.py").exists() and d.name != "__pycache__"
     ]
 
     registered_commands = set()
@@ -36,7 +38,9 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
 
             # Check if the module has an 'app' attribute
             if not hasattr(module, "app"):
-                logger.debug(f"Submodule '{module_name}' does not have an 'app' attribute. Skipping.")
+                logger.debug(
+                    f"Submodule '{module_name}' does not have an 'app' attribute. Skipping."
+                )
 
                 continue
 
@@ -51,9 +55,15 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
 
             app.add_typer(sub_command, name=module_name)
             registered_commands.add(module_name)
-            logger.debug(f"Registered command '{module_name}' from submodule '{module_name}'")
+            logger.debug(
+                f"Registered command '{module_name}' from submodule '{module_name}'"
+            )
 
         except ImportError as e:
-            logger.warning(f"Failed to import submodule '{module_name}': {e}. Skipping.")
+            logger.warning(
+                f"Failed to import submodule '{module_name}': {e}. Skipping."
+            )
         except (AttributeError, TypeError, ValueError) as e:
-            logger.warning(f"Error processing submodule '{module_name}': {e}. Skipping.")
+            logger.warning(
+                f"Error processing submodule '{module_name}': {e}. Skipping."
+            )
