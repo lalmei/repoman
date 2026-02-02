@@ -97,6 +97,9 @@ check: format-check lint check-types ## Run all quality checks (format-check, li
 #######################
 #   Documentation     #
 #######################
+docs-trees: ## Regenerate tree blocks in documentation
+	uv run python scripts/gen_tree_docs.py
+
 docs: ## Build documentation
 	uv run mkdocs build --config-file=config/mkdocs.yml
 

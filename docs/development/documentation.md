@@ -4,20 +4,58 @@ The project uses **MkDocs** with the **Material theme** for documentation. This 
 
 ## Documentation Structure
 
-:fontawesome-solid-folder: **docs/**
+Generated with `make docs-trees` from `eza --tree`.
 
-- :fontawesome-solid-file-lines: `index.md` — Homepage
-- :fontawesome-solid-file-lines: `cli.md` — CLI reference (subcommands and options)
-- :fontawesome-solid-file-lines: `make-commands.md` — Make targets reference
-- :fontawesome-solid-file-lines: `template.md` — The template (instantiated layout)
-- :fontawesome-solid-file-lines: `roadmap.md` — Potential roadmap
-- :fontawesome-solid-folder: **development/** — Development documentation
-  - :fontawesome-solid-file-lines: `README.md` — This development guide
-  - :fontawesome-solid-file-lines: `testing.md` — Comprehensive testing guide
-  - :fontawesome-solid-file-lines: `instantiated-template-coverage-plan.md`
-- :fontawesome-brands-css3-alt: **css/** — Custom CSS (material.css, mkdocstrings.css)
-- :fontawesome-brands-js: **js/** — Custom JavaScript (e.g. feedback.js)
-- :fontawesome-solid-folder: **.overrides/** — Material theme overrides (partials, etc.)
+<!-- TREE_START:docs -->
+
+```
+docs
+├── cli.md
+├── concepts
+│   ├── copier-and-answers.md
+│   ├── generated-project.md
+│   └── overview.md
+├── css
+│   ├── material.css
+│   └── mkdocstrings.css
+├── development
+│   ├── additional-resources.md
+│   ├── ci.md
+│   ├── code-quality.md
+│   ├── configuration.md
+│   ├── contributing.md
+│   ├── debugging.md
+│   ├── documentation.md
+│   ├── instantiated-template-coverage-plan.md
+│   ├── package-management.md
+│   ├── performance-tips.md
+│   ├── README.md
+│   ├── testing-best-practices.md
+│   ├── testing-fixtures.md
+│   ├── testing-troubleshooting.md
+│   ├── testing.md
+│   └── tools.md
+├── getting-started
+│   ├── installation.md
+│   └── quickstart.md
+├── guides
+│   ├── adding-a-cli-command.md
+│   ├── configuration.md
+│   ├── creating-a-project.md
+│   └── updating-a-project.md
+├── index.md
+├── js
+│   └── feedback.js
+├── make-commands.md
+├── reference
+│   └── troubleshooting.md
+├── roadmap.md
+├── template-prompts.md
+├── template-structure.md
+└── template.md
+```
+
+<!-- TREE_END -->
 
 MkDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
 
