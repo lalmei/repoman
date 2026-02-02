@@ -58,5 +58,3 @@ class RAGConfig(BaseSettings):
         base = cls()
         merged = {**yaml_data, **base.model_dump()}
         return cls.model_validate(merged)
-
-{% endif %}

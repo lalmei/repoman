@@ -62,4 +62,3 @@ def run_retrieve(
         k = rerank_top_k or top_k
         candidates = reranker.rerank(query, candidates, top_k=k)
     return candidates
-{% endif %}

@@ -38,4 +38,3 @@ class SentenceTransformersEmbedder(EmbedderPort):
             return []
         vecs = self._model.encode(texts, convert_to_numpy=True)
         return [v.tolist() for v in vecs]
-{% endif %}

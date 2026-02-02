@@ -45,4 +45,3 @@ def test_ingest_then_query_roundtrip(rag_config: RAGConfig, sample_file: Path) -
     assert answer.query == "What does RAG stand for?"
     assert len(answer.text) > 0
     assert len(answer.citations) >= 1
-{% endif %}

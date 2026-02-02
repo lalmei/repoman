@@ -1,0 +1,27 @@
+"""RAG CLI: ingest and query."""
+
+from pathlib import Path
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from typer import Argument, Option, Typer
+
+from {{python_package_import_name}}.config import Config
+from {{python_package_import_name}}.rag import RAGContainer, RAGService
+from {{python_package_import_name}}.utils.theme.theme import set_theme
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+def _get_rag_service() -> RAGService:
+    """Build RAGService from config (CLI use)."""
+    config = Config()
+    if not hasattr(config, "rag_config"):
+        raise RuntimeError("RAG not configured; enable rag_enabled and install rag dependencies.")
+    container = RAGContainer(config.rag_config)
+    return RAGService(container)
+
+
+
+

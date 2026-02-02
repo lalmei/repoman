@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 from rich.console import Console
 
+from repoman.cli.messages import success as success_messages
 from repoman.cli.messages.capability import supports_unicode_markdown
 from repoman.cli.messages.dry_run import (
     dry_run_command_add,

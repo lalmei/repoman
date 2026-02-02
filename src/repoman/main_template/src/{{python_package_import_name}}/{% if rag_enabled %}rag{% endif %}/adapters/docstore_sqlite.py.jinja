@@ -63,4 +63,3 @@ class SQLiteDocstore(DocstorePort):
         """List distinct corpus ids."""
         rows = self._conn.execute("SELECT DISTINCT corpus_id FROM chunks").fetchall()
         return [r[0] for r in rows]
-{% endif %}

@@ -48,4 +48,3 @@ def test_retrieve_after_ingest() -> None:
     assert len(result) >= 1
     assert all(isinstance(r, RetrievedChunk) for r in result)
     assert result[0].corpus_id == "c1"
-{% endif %}

@@ -98,4 +98,3 @@ def load_document_from_path(path: Path | str, corpus_id: str) -> Document:
         raise FileNotFoundError(str(p))
     text = p.read_text(encoding="utf-8", errors="replace")
     return Document(source=str(p), corpus_id=corpus_id, text=text)
-{% endif %}

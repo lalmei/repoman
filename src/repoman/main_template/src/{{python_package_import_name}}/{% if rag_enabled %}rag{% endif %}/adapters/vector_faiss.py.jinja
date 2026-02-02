@@ -66,4 +66,3 @@ class FAISSVectorIndex(VectorIndexPort):
                 # FAISS returns L2 distance (lower better); return -distance so higher is better
                 out.append((self._id_to_row[idx], -float(dist)))
         return out
-{% endif %}
