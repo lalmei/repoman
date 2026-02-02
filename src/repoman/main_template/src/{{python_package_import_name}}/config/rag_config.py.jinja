@@ -33,7 +33,7 @@ class RAGConfig(BaseSettings):
 
     config_path: Path | None = Field(
         default=None,
-        description="Path to RAG YAML config file (optional; env + rag_config.json are primary).",
+        description="Optional path to an external config file (env and rag_config.json are primary).",
     )
     vector_store: str = Field(default="faiss", description="Vector store: faiss or qdrant.")
     docstore_path: str = Field(default=":memory:", description="Docstore path; :memory: or file path for SQLite.")
