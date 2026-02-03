@@ -1,0 +1,53 @@
+# Template answers file for repoman create (non-interactive use).
+# Edit this file, then run: repoman create PROJECT_NAME --answers path/to/this-file
+# See docs/guides/configuration.md and docs/concepts/copier-and-answers.md.
+
+# CI/CD Platform (hostname; e.g. github.com, gitlab.com, azure.com)
+ci: github.com
+
+# Project Information
+project_name: my-awesome-project
+project_description: ""
+
+# Author Information
+author_fullname: ""
+author_email: ""
+author_username: ""
+
+# Repository Configuration
+repository_provider: github
+repository_namespace: ""
+repository_name: ""
+
+# Copyright Information
+copyright_holder: ""
+copyright_holder_email: ""
+copyright_date: ""
+copyright_license: ISC
+
+# Python Package Configuration
+python_package_distribution_name: ""
+python_package_import_name: ""
+python_package_command_line_name: ""
+python_distribution_name: ""
+
+# Container Configuration
+container_registry: ""
+
+# Notebooks
+python_notebooks: false
+
+# FastAPI application
+fastapi_enabled: true
+fastapi_docs_url: "/docs"
+fastapi_api_prefix: "/api"
+fastapi_debug: false
+include_health_endpoints: true
+aiohttp_timeout: 2
+aiohttp_pool_size: 100
+
+# RAG (retrieval-augmented generation)
+rag_enabled: false
+
+# Dataset module (PyTorch-oriented)
+dataset_enabled: false
