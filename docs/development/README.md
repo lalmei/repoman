@@ -48,7 +48,7 @@ Welcome to the repoman development environment! This guide will help you set up 
    make test
 
    # Check that repoman is available
-   uv run python -m repoman --help
+   uv run repoman --help
    ```
 
 ## Development topics
@@ -68,6 +68,7 @@ File trees use Font Awesome icons for file types (see [The template](../template
 Generated with `make docs-trees` from `eza --tree`.
 
 <!-- TREE_START:repoman -->
+
 ```
 repoman
 ├── ' .github'
@@ -217,6 +218,7 @@ repoman
 │   └── test_version.py
 └── uv.lock
 ```
+
 <!-- TREE_END -->
 
 ## 🔧 Development Workflow
