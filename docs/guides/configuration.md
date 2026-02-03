@@ -12,6 +12,16 @@ Repoman does not use a separate config file for itself. **Configuration** is the
 
 Answers are stored in **`.copier-answers.yml`** in the **generated project** directory (the project you created with `repoman create` or that you update with `repoman update`). That file is created the first time you run `repoman create` and is updated when you run `repoman update` (and when you change answers interactively or via `--answers`).
 
+## Generating an answers file
+
+To get a template answers file that you can edit and reuse (e.g. for non-interactive runs), use:
+
+```bash
+repoman config init --output path/to/.copier-answers.yml
+```
+
+If you omit `--output`, the file is written as `.copier-answers.yml` in the current directory. Edit the file with your project values, then pass it to `repoman create --answers`. See the [CLI reference](../cli.md#config) for options (`--force`, `--template`).
+
 ## Non-interactive use
 
 To run repoman without prompts (e.g. in CI or scripts), pass an answers file:

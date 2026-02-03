@@ -26,7 +26,14 @@ You will be prompted for project name, description, author, repository and copyr
 
 To create a project without prompts (e.g. in CI or scripts):
 
-1. Create or reuse a `.copier-answers.yml` (or similar) with the same keys as the template prompts.
+1. Generate a template answers file, then edit it with your values:
+
+   ```bash
+   repoman config init --output path/to/.copier-answers.yml
+   ```
+
+   Or create/reuse a `.copier-answers.yml` (or similar) with the same keys as the template prompts. See [Configuration](configuration.md#generating-an-answers-file).
+
 2. Run:
 
    ```bash
