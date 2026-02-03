@@ -15,10 +15,64 @@ def test_config_defaults() -> None:
 def test_dataset_config_loads_from_json() -> None:
     """Test DatasetConfig loads from config/dataset_config.json with expected defaults."""
     cfg = DatasetConfig()
+    assert cfg.modality == "image"
     assert hasattr(cfg.data_root, "name")  # Path-like
     assert cfg.train_split == 0.8
     assert cfg.val_split == 0.2
     assert cfg.seed == 42
     assert cfg.batch_size == 32
     assert cfg.image_size == (224, 224)
+    assert cfg.text_column == "text"
+    assert cfg.query_column == "query"
+
+
+def test_load_rag_eval_dataset() -> None:
+    """Load eval_sample.jsonl and check structure."""
+    from pathlib import Path
+
+    from {{ python_package_import_name }}.datasets import RAGEvalItem, load_rag_eval_dataset
+
+    fixtures = Path(__file__).parent / "fixtures"
+    path = fixtures / "eval_sample.jsonl"
+    if not path.exists():
+        import pytest
+        pytest.skip("eval_sample.jsonl fixture not found")
+
+    items = load_rag_eval_dataset(path)
+    assert len(items) == 2
+    assert isinstance(items[0], RAGEvalItem)
+    assert items[0].query == "Who introduced relativity?"
+    assert items[0].reference == "Albert Einstein."
+    assert items[1].query == "First computer programmer?"
+    assert items[1].reference == "Ada Lovelace."
+
+
+def test_get_text_loaders() -> None:
+    """Load text_sample.jsonl and get train/val loaders."""
+    import pytest
+    from pathlib import Path
+
+    pytest.importorskip("torch")
+
+    from {{ python_package_import_name }}.config import DatasetConfig
+    from {{ python_package_import_name }}.datasets import get_text_loaders
+
+    fixtures = Path(__file__).parent / "fixtures"
+    path = fixtures / "text_sample.jsonl"
+    if not path.exists():
+        pytest.skip("text_sample.jsonl fixture not found")
+
+    config = DatasetConfig(
+        modality="text",
+        data_root=str(fixtures),
+        text_format="jsonl",
+        train_split=0.67,
+        batch_size=2,
+    )
+    train_loader, _ = get_text_loaders(config, data_root=path)
+    train_batches = list(train_loader)
+    assert len(train_batches) >= 1
+    texts, labels = train_batches[0]
+    assert len(texts) <= 2
+    assert labels.shape[0] <= 2
 {% endif %}

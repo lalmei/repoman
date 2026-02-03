@@ -8,25 +8,17 @@ from torchvision.transforms import Compose
 
 from {{python_package_import_name}}.config.dataset_config import DatasetConfig
 from {{python_package_import_name}}.datasets.base import ImageFolderDataset, default_image_transform
+from {{python_package_import_name}}.datasets.tabular import get_tabular_loaders as _get_tabular_loaders
+from {{python_package_import_name}}.datasets.text import get_text_loaders as _get_text_loaders
 
 
-def get_train_val_loaders(
+def _get_image_loaders(
     config: DatasetConfig,
     data_root: str | Path | None = None,
     batch_size: int | None = None,
     transform: Compose | None = None,
 ) -> tuple[DataLoader, DataLoader]:
-    """Create train and validation DataLoaders from config.
-
-    Args:
-        config: DatasetConfig with paths, splits, and DataLoader params.
-        data_root: Override config.data_root if provided.
-        batch_size: Override config.batch_size if provided.
-        transform: Override default transform if provided.
-
-    Returns:
-        (train_loader, val_loader) tuple.
-    """
+    """Create train/val DataLoaders for image modality."""
     root = Path(data_root) if data_root is not None else config.data_root
     bs = batch_size if batch_size is not None else config.batch_size
 
@@ -49,18 +41,15 @@ def get_train_val_loaders(
     train_indices = indices[:split_idx]
     val_indices = indices[split_idx:]
 
-    train_dataset = Subset(dataset, train_indices)
-    val_dataset = Subset(dataset, val_indices)
-
     train_loader = DataLoader(
-        train_dataset,
+        Subset(dataset, train_indices),
         batch_size=bs,
         shuffle=True,
         num_workers=config.num_workers,
         pin_memory=config.pin_memory,
     )
     val_loader = DataLoader(
-        val_dataset,
+        Subset(dataset, val_indices),
         batch_size=bs,
         shuffle=False,
         num_workers=config.num_workers,
@@ -68,6 +57,39 @@ def get_train_val_loaders(
     )
 
     return train_loader, val_loader
+
+
+def get_train_val_loaders(
+    config: DatasetConfig,
+    data_root: str | Path | None = None,
+    batch_size: int | None = None,
+    transform: Compose | None = None,
+) -> tuple[DataLoader, DataLoader]:
+    """Create train and validation DataLoaders from config.
+
+    Dispatches by config.modality: image, text, or tabular.
+    rag_eval does not use this; use load_rag_eval_dataset instead.
+
+    Args:
+        config: DatasetConfig with paths, splits, and DataLoader params.
+        data_root: Override config.data_root if provided.
+        batch_size: Override config.batch_size if provided.
+        transform: Override default transform (image modality only).
+
+    Returns:
+        (train_loader, val_loader) tuple.
+
+    Raises:
+        ValueError: If modality is rag_eval or unknown.
+    """
+    if config.modality == "image":
+        return _get_image_loaders(config, data_root, batch_size, transform)
+    if config.modality == "text":
+        return _get_text_loaders(config, data_root, batch_size)
+    if config.modality == "tabular":
+        return _get_tabular_loaders(config, data_root, batch_size)
+    msg = f"modality '{config.modality}' has no train/val loaders (use load_rag_eval_dataset for rag_eval)"
+    raise ValueError(msg)
 {% else %}
 """DataLoader factory (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

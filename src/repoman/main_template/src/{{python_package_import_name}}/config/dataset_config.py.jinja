@@ -5,6 +5,7 @@ environment variables. Supports loading from .env files and config/dataset_confi
 """
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import (
@@ -31,6 +32,10 @@ class DatasetConfig(BaseSettings):
         extra="ignore",
     )
 
+    modality: Literal["image", "text", "tabular", "rag_eval"] = Field(
+        default="image",
+        description="Dataset modality: image, text, tabular, or rag_eval.",
+    )
     data_root: Path = Field(default=Path("."), description="Root directory for datasets.")
     train_split: float = Field(default=0.8, description="Train fraction (rest = val).")
     val_split: float = Field(default=0.2, description="Validation fraction.")
@@ -41,6 +46,24 @@ class DatasetConfig(BaseSettings):
     image_size: tuple[int, int] = Field(
         default=(224, 224),
         description="Default image size for vision.",
+    )
+    # Text modality
+    text_column: str = Field(default="text", description="Column name for text content.")
+    label_column: str | None = Field(default="label", description="Column name for labels (optional).")
+    text_format: Literal["jsonl", "csv"] = Field(default="jsonl", description="Format for text data.")
+    # Tabular modality
+    target_column: str = Field(default="target", description="Column name for target variable.")
+    tabular_format: Literal["csv", "parquet"] = Field(
+        default="csv",
+        description="Format for tabular data.",
+    )
+    delimiter: str = Field(default=",", description="CSV delimiter.")
+    # RAG eval modality
+    query_column: str = Field(default="query", description="Column name for queries.")
+    reference_column: str = Field(default="reference", description="Column name for ground-truth answers.")
+    contexts_column: str | None = Field(
+        default="contexts",
+        description="Column name for ground-truth contexts (optional).",
     )
 
     @classmethod

@@ -1,0 +1,119 @@
+{% if dataset_enabled %}"""Tabular dataset for CSV/Parquet."""
+
+import random
+from pathlib import Path
+
+import pandas as pd
+import torch
+from torch.utils.data import DataLoader, Dataset, Subset
+
+from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+
+
+class TabularDataset(Dataset):
+    """PyTorch Dataset wrapping a pandas DataFrame with numeric features and target."""
+
+    def __init__(
+        self,
+        path: str | Path,
+        config: DatasetConfig,
+    ) -> None:
+        """Load tabular data from CSV or Parquet.
+
+        Args:
+            path: Path to CSV or Parquet file.
+            config: DatasetConfig with target_column, tabular_format, delimiter.
+        """
+        path = Path(path)
+        if not path.exists():
+            msg = f"Tabular data file does not exist: {path}"
+            raise FileNotFoundError(msg)
+
+        if config.tabular_format == "csv":
+            self._df = pd.read_csv(path, sep=config.delimiter)
+        else:
+            self._df = pd.read_parquet(path)
+
+        target_col = config.target_column
+        if target_col not in self._df.columns:
+            msg = f"Target column '{target_col}' not found in {path}"
+            raise ValueError(msg)
+
+        self._target = torch.tensor(self._df[target_col].values, dtype=torch.float32)
+        self._features = self._df.drop(columns=[target_col])
+        self._features = pd.get_dummies(self._features, dtype=float)
+        self._feature_tensor = torch.tensor(self._features.values, dtype=torch.float32)
+
+    def __len__(self) -> int:
+        """Return number of rows."""
+        return len(self._df)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return (features, target)."""
+        return self._feature_tensor[idx], self._target[idx]
+
+
+def get_tabular_loaders(
+    config: DatasetConfig,
+    data_root: str | Path | None = None,
+    batch_size: int | None = None,
+) -> tuple[DataLoader, DataLoader]:
+    """Create train and validation DataLoaders for tabular data.
+
+    Expects a single file at data_root. If data_root is a file, uses it.
+    If a directory, finds a matching .csv or .parquet file.
+
+    Args:
+        config: DatasetConfig with paths, splits, and column names.
+        data_root: Override config.data_root if provided.
+        batch_size: Override config.batch_size if provided.
+
+    Returns:
+        (train_loader, val_loader) tuple.
+    """
+    root = Path(data_root) if data_root is not None else config.data_root
+    bs = batch_size if batch_size is not None else config.batch_size
+
+    if root.is_file():
+        path = root
+    else:
+        if not root.exists():
+            msg = f"Data root does not exist: {root}"
+            raise FileNotFoundError(msg)
+        ext = ".csv" if config.tabular_format == "csv" else ".parquet"
+        candidates = list(root.glob(f"*{ext}"))
+        if not candidates:
+            msg = f"No {ext} file found in {root}"
+            raise FileNotFoundError(msg)
+        path = candidates[0]
+
+    dataset = TabularDataset(path=path, config=config)
+
+    n = len(dataset)
+    indices = list(range(n))
+    rng = random.Random(config.seed)  # noqa: S311 - deterministic shuffle
+    rng.shuffle(indices)
+
+    split_idx = int(n * config.train_split)
+    train_indices = indices[:split_idx]
+    val_indices = indices[split_idx:]
+
+    train_loader = DataLoader(
+        Subset(dataset, train_indices),
+        batch_size=bs,
+        shuffle=True,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+    )
+    val_loader = DataLoader(
+        Subset(dataset, val_indices),
+        batch_size=bs,
+        shuffle=False,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+    )
+
+    return train_loader, val_loader
+{% else %}
+"""Tabular dataset (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}
