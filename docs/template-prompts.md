@@ -4,10 +4,10 @@ The following prompts are defined in `src/repoman/copier.yml` (in the repoman re
 
 ## CI
 
-| Prompt  | Description                 | Default  |
-| ------- | --------------------------- | -------- |
-| `ci`    | Which CI system to use      | `github` |
-| Choices | `github`, `gitlab`, `azure` | —        |
+| Prompt  | Description            | Default                                 |
+| ------- | ---------------------- | --------------------------------------- |
+| `ci`    | Which CI system to use | `github.com`                            |
+| Choices | Provider URL           | `github.com`, `gitlab.com`, `azure.com` |
 
 Only the chosen CI directory (`.github/`, `.gitlab/`, or `.azuredevops/`) is included in the generated project (workflows, issue templates).
 
@@ -77,6 +77,30 @@ Used in the Makefile for image tagging (e.g. for deployment).
 | `aiohttp_pool_size`        | HTTP client pool size                | `100`   |
 
 When `fastapi_enabled` is true, the template generates `src/{{ package }}/app/` with a FastAPI app, ASGI entry, router, config, controllers, views, state, and utils (e.g. aiohttp client). Health/ready endpoints are optional via `include_health_endpoints`.
+
+## Notebooks (optional)
+
+| Prompt             | Description                       | Default |
+| ------------------ | --------------------------------- | ------- |
+| `python_notebooks` | Include Jupyter notebooks support | `false` |
+
+When true, the template includes a `notebooks/` folder and ipykernel support.
+
+## RAG (optional)
+
+| Prompt        | Description                                                      | Default |
+| ------------- | ---------------------------------------------------------------- | ------- |
+| `rag_enabled` | Include RAG (retrieval-augmented generation) modules and CLI/API | `false` |
+
+When true, the template generates the RAG package, CLI subcommands (`rag ingest`, `rag query`), and when FastAPI is enabled, API routes under `/rag`. See [Template architecture](concepts/template-architecture.md) for structure.
+
+## Dataset (optional)
+
+| Prompt            | Description                                                | Default |
+| ----------------- | ---------------------------------------------------------- | ------- |
+| `dataset_enabled` | Include dataset module for PyTorch data loading and config | `false` |
+
+When true, the template generates a dataset module for PyTorch-oriented projects.
 
 ---
 
