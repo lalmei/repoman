@@ -31,9 +31,7 @@ def test_generator_command_registered(cli_runner: CliRunner, cli_app: Typer) -> 
     result = cli_runner.invoke(cli_app, ["generator", "--help"], input="")
 
     # Should succeed and show help for the generator command
-    assert result.exit_code == 0, (
-        "The 'generator' command should be registered and accessible"
-    )
+    assert result.exit_code == 0, "The 'generator' command should be registered and accessible"
     assert "Usage:" in result.output, "Help output should be shown"
     assert "generator" in result.output.lower(), "Command name should appear in help"
 
@@ -41,9 +39,7 @@ def test_generator_command_registered(cli_runner: CliRunner, cli_app: Typer) -> 
 def test_config_command_registered(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that the 'config' command is dynamically registered and can be invoked."""
     result = cli_runner.invoke(cli_app, ["config", "--help"], input="")
-    assert result.exit_code == 0, (
-        "The 'config' command should be registered and accessible"
-    )
+    assert result.exit_code == 0, "The 'config' command should be registered and accessible"
     assert "Usage:" in result.output, "Help output should be shown"
     assert "config" in result.output.lower(), "Command name should appear in help"
     assert "init" in result.output.lower(), "init subcommand should be listed"

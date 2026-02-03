@@ -3,9 +3,16 @@
 from pathlib import Path
 from typing import Annotated
 
+from rich.panel import Panel
+from rich.text import Text
 from typer import Context, Exit, Option, Typer
 
-from repoman.cli.messages import error_panel, format_next_steps, warning_panel
+from repoman.cli.messages import (
+    error_panel,
+    format_next_steps,
+    warning_panel,
+)
+from repoman.cli.messages.capability import supports_unicode_markdown
 from repoman.resources import get_copier_answers_template
 from repoman.utils.logging import get_logger_console
 
@@ -36,7 +43,7 @@ def init(
             help="Path to a custom template file (default: use bundled template)",
         ),
     ] = None,
-    force: Annotated[
+    force: Annotated[  # noqa: FBT002
         bool,
         Option("--force", "-f", help="Overwrite existing file"),
     ] = False,
@@ -112,10 +119,7 @@ def init(
         "Run: repoman create PROJECT_NAME --answers " + str(output_resolved),
     ]
     steps_text = format_next_steps(next_steps, console=console)
-    from rich.panel import Panel
-    from rich.text import Text
 
-    from repoman.cli.messages.capability import supports_unicode_markdown
 
     use_unicode = supports_unicode_markdown(console)
     prefix = "✓ " if use_unicode else ""
