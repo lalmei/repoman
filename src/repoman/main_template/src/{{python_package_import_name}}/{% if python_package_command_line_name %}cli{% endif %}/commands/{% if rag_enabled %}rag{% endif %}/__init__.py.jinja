@@ -19,9 +19,15 @@ def _get_rag_service() -> RAGService:
 
 from .ingest import app as ingest_app
 from .query import app as query_app
+{% if dataset_enabled %}
+from .eval import app as eval_app
+{% endif %}
 
 app.add_typer(ingest_app, name="ingest")
 app.add_typer(query_app, name="query")
+{% if dataset_enabled %}
+app.add_typer(eval_app, name="eval")
+{% endif %}
 
 
 
