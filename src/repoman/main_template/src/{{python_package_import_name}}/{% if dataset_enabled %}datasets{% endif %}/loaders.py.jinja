@@ -1,0 +1,73 @@
+{% if dataset_enabled %}"""DataLoader factory using DatasetConfig."""
+
+import random
+from pathlib import Path
+
+from torch.utils.data import DataLoader, Subset
+from torchvision.transforms import Compose
+
+from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+from {{python_package_import_name}}.datasets.base import ImageFolderDataset, default_image_transform
+
+
+def get_train_val_loaders(
+    config: DatasetConfig,
+    data_root: str | Path | None = None,
+    batch_size: int | None = None,
+    transform: Compose | None = None,
+) -> tuple[DataLoader, DataLoader]:
+    """Create train and validation DataLoaders from config.
+
+    Args:
+        config: DatasetConfig with paths, splits, and DataLoader params.
+        data_root: Override config.data_root if provided.
+        batch_size: Override config.batch_size if provided.
+        transform: Override default transform if provided.
+
+    Returns:
+        (train_loader, val_loader) tuple.
+    """
+    root = Path(data_root) if data_root is not None else config.data_root
+    bs = batch_size if batch_size is not None else config.batch_size
+
+    if not root.exists():
+        msg = f"Data root does not exist: {root}"
+        raise FileNotFoundError(msg)
+
+    dataset = ImageFolderDataset(
+        root=root,
+        transform=transform,
+        image_size=config.image_size,
+    )
+
+    n = len(dataset)
+    indices = list(range(n))
+    rng = random.Random(config.seed)  # noqa: S311 - deterministic shuffle for splits
+    rng.shuffle(indices)
+
+    split_idx = int(n * config.train_split)
+    train_indices = indices[:split_idx]
+    val_indices = indices[split_idx:]
+
+    train_dataset = Subset(dataset, train_indices)
+    val_dataset = Subset(dataset, val_indices)
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=bs,
+        shuffle=True,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=bs,
+        shuffle=False,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+    )
+
+    return train_loader, val_loader
+{% else %}
+"""DataLoader factory (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}

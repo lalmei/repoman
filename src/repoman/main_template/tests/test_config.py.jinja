@@ -1,9 +1,24 @@
 """Tests for configuration."""
 
 from {{ python_package_import_name }}.config import Config
+{% if dataset_enabled %}from {{ python_package_import_name }}.config import DatasetConfig
+{% endif %}
 
 
 def test_config_defaults() -> None:
     """Test Config has expected default values."""
     config = Config()
     assert config.log_format == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+{% if dataset_enabled %}
+
+
+def test_dataset_config_loads_from_json() -> None:
+    """Test DatasetConfig loads from config/dataset_config.json with expected defaults."""
+    cfg = DatasetConfig()
+    assert hasattr(cfg.data_root, "name")  # Path-like
+    assert cfg.train_split == 0.8
+    assert cfg.val_split == 0.2
+    assert cfg.seed == 42
+    assert cfg.batch_size == 32
+    assert cfg.image_size == (224, 224)
+{% endif %}

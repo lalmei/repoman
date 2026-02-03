@@ -1,0 +1,37 @@
+{% if dataset_enabled %}"""Base PyTorch Dataset utilities for the dataset module."""
+
+from pathlib import Path
+
+from torchvision.datasets import ImageFolder
+from torchvision.transforms import Compose, Resize, ToTensor
+
+
+def default_image_transform(image_size: tuple[int, int] = (224, 224)) -> Compose:
+    """Default transform: resize to image_size and convert to tensor."""
+    return Compose([
+        Resize(image_size),
+        ToTensor(),
+    ])
+
+
+class ImageFolderDataset(ImageFolder):
+    """ImageFolder wrapper with configurable transform.
+
+    Subclass of torchvision.datasets.ImageFolder for classification.
+    Use with get_train_val_loaders or directly with DataLoader.
+    """
+
+    def __init__(
+        self,
+        root: str | Path,
+        transform: Compose | None = None,
+        image_size: tuple[int, int] = (224, 224),
+        **kwargs: object,
+    ) -> None:
+        """Initialize ImageFolderDataset with optional transform and image size."""
+        if transform is None:
+            transform = default_image_transform(image_size)
+        super().__init__(root=str(root), transform=transform, **kwargs)
+{% else %}
+"""Base PyTorch Dataset utilities (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}

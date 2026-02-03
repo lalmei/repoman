@@ -1,0 +1,65 @@
+{% if dataset_enabled %}"""Dataset configuration for PyTorch data loading.
+
+This class uses pydantic-settings to define and load dataset-specific
+environment variables. Supports loading from .env files and config/dataset_config.json.
+"""
+
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import (
+    BaseSettings,
+    JsonConfigSettingsSource,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
+
+
+class DatasetConfig(BaseSettings):
+    """Dataset configuration: paths, splits, DataLoader params.
+
+    This class uses pydantic and pydantic-settings to define and load dataset-specific
+    environment variables. It supports loading from .env and .env.prod files
+    (lowest to highest priority), and from config/dataset_config.json.
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix="DATASET_",
+        env_file=(".env", ".env.dev", ".env.prod"),
+        env_file_encoding="utf-8",
+        json_file="config/dataset_config.json",
+        extra="ignore",
+    )
+
+    data_root: Path = Field(default=Path("."), description="Root directory for datasets.")
+    train_split: float = Field(default=0.8, description="Train fraction (rest = val).")
+    val_split: float = Field(default=0.2, description="Validation fraction.")
+    seed: int = Field(default=42, description="Random seed for splits.")
+    batch_size: int = Field(default=32, description="Default batch size.")
+    num_workers: int = Field(default=0, description="DataLoader workers.")
+    pin_memory: bool = Field(default=True, description="PyTorch pin_memory.")
+    image_size: tuple[int, int] = Field(
+        default=(224, 224),
+        description="Default image size for vision.",
+    )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Customise settings sources to support JSON file loading."""
+        return (
+            init_settings,
+            JsonConfigSettingsSource(settings_cls),
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )
+{% else %}
+"""Dataset configuration (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}

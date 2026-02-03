@@ -1,0 +1,12 @@
+{% if dataset_enabled %}"""Dataset module for PyTorch data loading."""
+
+from {{python_package_import_name}}.datasets.base import ImageFolderDataset
+from {{python_package_import_name}}.datasets.loaders import get_train_val_loaders
+
+__all__: list[str] = [
+    "ImageFolderDataset",
+    "get_train_val_loaders",
+]
+{% else %}
+"""Dataset module (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}

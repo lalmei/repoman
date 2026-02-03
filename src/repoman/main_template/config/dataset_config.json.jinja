@@ -1,0 +1,14 @@
+{% if dataset_enabled %}
+{
+  "data_root": "data",
+  "train_split": 0.8,
+  "val_split": 0.2,
+  "seed": 42,
+  "batch_size": 32,
+  "num_workers": 0,
+  "pin_memory": true,
+  "image_size": [224, 224]
+}
+{% else %}
+{}
+{% endif %}
