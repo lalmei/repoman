@@ -27,7 +27,11 @@ def _slugify(value: str, separator: str = "-") -> str:
     Returns:
         Slugified string
     """
-    value = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
+    value = (
+        unicodedata.normalize("NFKD", str(value))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
     value = re.sub(r"[^\w\s-]", "", value.lower())
     return re.sub(r"[-_\s]+", separator, value).strip("-_")
 
@@ -59,7 +63,7 @@ def instantiate_template(
         ValueError: If template_path doesn't exist
         FileNotFoundError: If answers_file is provided but doesn't exist
     """
-    # Resolve template path (default to main template)
+    # Resolve template path (default to main template directory)
     if template_path is None:
         current_file = Path(__file__)
         template_path = current_file.parent.parent / "src" / "repoman" / "main_template"
