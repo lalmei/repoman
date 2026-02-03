@@ -37,6 +37,8 @@ Defaults are defined in the template; your answers file overrides them.
 
 ## After creation
 
+The template runs `git init` after generating files, so the project already has a `.git` directory.
+
 1. **Enter the project:** `cd my-project`
 2. **Install dependencies:** `uv sync` (or `pip install -e .`)
 3. **Run tests:** `make test`

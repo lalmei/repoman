@@ -126,6 +126,7 @@ def instantiate_template(
         "overwrite": force,
         "quiet": True,
         "data": default_data,
+        "unsafe": True,  # Template uses _jinja_extensions; _tasks (e.g. git init) run when using package root (repoman create)
     }
 
     # Add answers_file to copier options if provided

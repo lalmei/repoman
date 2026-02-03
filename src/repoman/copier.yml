@@ -3,6 +3,8 @@ _min_copier_version: "9"
 _envops:
   autoescape: false
   keep_trailing_newline: true
+  trim_blocks: true
+  lstrip_blocks: true
 _subdirectory: main_template/
 _templates_suffix: .jinja
 _preserve_symlinks: true
@@ -13,14 +15,16 @@ _jinja_extensions:
 - extensions.py:SlugifyExtension
 _skip_if_exists:
 - CHANGELOG.md
+_tasks:
+- git init
 
 
 # PROMPT --------------------------------
 
 ci:
   type: str
-  help: Your repository URL
-  default: "github.com"
+  help: Your repository URL (hostname; derived from repository provider)
+  default: "{{ repository_provider }}.com"
   choices:
   - github.com
   - gitlab.com
@@ -29,6 +33,8 @@ ci:
 project_name:
   type: str
   help: Your project name
+  placeholder: my-awesome-project
+  validator: "{% if not (project_name | regex_search('^[a-z][a-z0-9-]*$')) %}Use lowercase letters, digits, and hyphens only.{% endif %}"
 
 project_description:
   type: str
@@ -162,31 +168,37 @@ fastapi_docs_url:
   type: str
   help: FastAPI documentation endpoint path
   default: "/docs"
+  when: "{{ fastapi_enabled }}"
 
 fastapi_api_prefix:
   type: str
   help: API route prefix for all endpoints
   default: "/api"
+  when: "{{ fastapi_enabled }}"
 
 fastapi_debug:
   type: bool
   help: Enable FastAPI debug mode
   default: false
+  when: "{{ fastapi_enabled }}"
 
 include_health_endpoints:
   type: bool
   help: Include health check and ready endpoints
   default: true
+  when: "{{ fastapi_enabled }}"
 
 aiohttp_timeout:
   type: int
   help: HTTP client timeout in seconds
   default: 2
+  when: "{{ fastapi_enabled }}"
 
 aiohttp_pool_size:
   type: int
   help: HTTP client connection pool size
   default: 100
+  when: "{{ fastapi_enabled }}"
 
 # RAG (retrieval-augmented generation)
 rag_enabled:
