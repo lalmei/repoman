@@ -1,0 +1,15 @@
+{% if dataset_enabled %}"""Shared types for dataset module."""
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class RAGEvalItem:
+    """Single RAG evaluation item: query, reference answer, optional contexts."""
+
+    query: str
+    reference: str
+    contexts: list[str] | None = None
+{% else %}
+"""Shared dataset types (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}

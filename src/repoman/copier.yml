@@ -194,3 +194,9 @@ rag_enabled:
   help: Include RAG (retrieval-augmented generation) modules and CLI/API
   default: false
 
+# Dataset module (PyTorch-oriented)
+dataset_enabled:
+  type: bool
+  help: Include dataset module for PyTorch data loading and config
+  default: false
+

@@ -1,0 +1,84 @@
+{% if rag_enabled and dataset_enabled %}"""Eval subcommand: run RAG evaluation on a dataset."""
+
+from pathlib import Path
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+from typer import Option, Typer
+
+from {{python_package_import_name}}.datasets import load_rag_eval_dataset
+from {{python_package_import_name}}.rag.eval import run_rag_eval
+
+from ....utils.theme.theme import set_theme
+from . import _get_rag_service
+
+app = Typer(
+    add_completion=True,
+    invoke_without_command=True,
+    no_args_is_help=True,
+    help="Run RAG evaluation on a JSONL/JSON dataset.",
+)
+
+
+@app.callback(invoke_without_command=True)
+def eval_cmd(
+    dataset: Path = Option(..., "--dataset", "-d", help="Path to eval dataset (JSONL or JSON)"),
+    theme: str = Option("dark", "--theme", help="Theme: light or dark"),
+) -> None:
+    """Run RAG evaluation on a dataset of query/reference pairs."""
+    console = Console(theme=set_theme(theme))
+    try:
+        from {{python_package_import_name}}.config import Config
+
+        config = Config()
+        ds_config = getattr(config, "dataset_config", None)
+
+        eval_data = load_rag_eval_dataset(dataset, config=ds_config)
+        if not eval_data:
+            console.print(
+                Panel(
+                    Text("Dataset is empty.", style="red"),
+                    title="Error",
+                    border_style="red",
+                )
+            )
+            raise SystemExit(1)
+
+        service = _get_rag_service()
+        metrics = run_rag_eval(rag_service=service, eval_dataset=eval_data)
+
+        table = Table(title="RAG Evaluation Results")
+        table.add_column("Metric", style="cyan")
+        table.add_column("Score", justify="right", style="green")
+        for name, value in metrics.items():
+            table.add_row(name, f"{value:.4f}")
+
+        console.print(Panel(table, title="Metrics", border_style="green"))
+    except FileNotFoundError as e:
+        console.print(
+            Panel(Text(str(e), style="red"), title="Error", border_style="red")
+        )
+        raise SystemExit(1) from e
+    except Exception as e:
+        console.print(
+            Panel(Text(str(e), style="red"), title="Error", border_style="red")
+        )
+        raise SystemExit(1) from e
+{% else %}
+"""Eval subcommand (disabled). Enable rag_enabled and dataset_enabled to use."""
+
+from typer import Typer
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+@app.callback(invoke_without_command=True)
+def eval_cmd() -> None:
+    """RAG eval requires both rag_enabled and dataset_enabled."""
+    raise RuntimeError(
+        "RAG eval requires rag_enabled and dataset_enabled. "
+        "Re-instantiate the template with both enabled."
+    )
+{% endif %}

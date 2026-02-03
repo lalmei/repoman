@@ -1,0 +1,20 @@
+{% if dataset_enabled %}"""Dataset module for PyTorch data loading and RAG evaluation."""
+
+from {{python_package_import_name}}.datasets.base import ImageFolderDataset
+from {{python_package_import_name}}.datasets.loaders import get_train_val_loaders
+from {{python_package_import_name}}.datasets.rag_eval import load_rag_eval_dataset
+from {{python_package_import_name}}.datasets.tabular import get_tabular_loaders
+from {{python_package_import_name}}.datasets.text import get_text_loaders
+from {{python_package_import_name}}.datasets.types import RAGEvalItem
+
+__all__: list[str] = [
+    "ImageFolderDataset",
+    "get_train_val_loaders",
+    "get_text_loaders",
+    "get_tabular_loaders",
+    "load_rag_eval_dataset",
+    "RAGEvalItem",
+]
+{% else %}
+"""Dataset module (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}
