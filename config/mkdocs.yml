@@ -25,6 +25,7 @@ nav:
     - The template: template.md
     - Template prompts: template-prompts.md
     - Template structure: template-structure.md
+    - Template architecture: concepts/template-architecture.md
   - Guides:
     - Creating a project: guides/creating-a-project.md
     - Updating a project: guides/updating-a-project.md

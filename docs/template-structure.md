@@ -9,6 +9,7 @@
   - and a `[project.scripts]` entry in `pyproject.toml`.
     Otherwise no CLI code or entry point is generated.
 - **FastAPI:** If `fastapi_enabled` is true, the template generates `src/{{ python_package_import_name }}/app/` with the FastAPI app, ASGI, router, health/ready endpoints (when `include_health_endpoints` is true), config, controllers, views, state, exceptions, and utils (e.g. aiohttp client). If false, no `app/` directory is generated.
+- **RAG:** If `rag_enabled` is true, the template generates `src/{{ python_package_import_name }}/rag/` (service, container, pipelines, ports/adapters), CLI subcommands `rag ingest` and `rag query`, optional `RAGConfig` and `rag_config`, and when FastAPI is enabled, API routes under `/rag` (health, query, ingest). If false, no RAG code or routes are generated. See [Template architecture](concepts/template-architecture.md) for details.
 - **Insiders:** The template supports optional `insiders` and `public_release` variables. When used, some docs or assets can be gated for "insiders" (e.g. sponsors). See the template source and docs for details if you extend the template that way.
 
 ## Generated project layout (high-level)
