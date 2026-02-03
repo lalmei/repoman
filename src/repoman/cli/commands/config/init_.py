@@ -53,17 +53,29 @@ def init(
     if output_resolved.is_dir():
         output_resolved = output_resolved / ".copier-answers.yml"
     elif output_resolved.exists() and not output_resolved.is_file():
-        console.print(error_panel(f"Output path is not a file: {output_resolved}", console=console))
+        console.print(
+            error_panel(
+                f"Output path is not a file: {output_resolved}", console=console
+            )
+        )
         raise Exit(1) from None
 
     # Load template content
     if template is not None:
         template_path = Path(template).resolve()
         if not template_path.exists():
-            console.print(error_panel(f"Template file not found: {template_path}", console=console))
+            console.print(
+                error_panel(
+                    f"Template file not found: {template_path}", console=console
+                )
+            )
             raise Exit(1) from None
         if not template_path.is_file():
-            console.print(error_panel(f"Template path is not a file: {template_path}", console=console))
+            console.print(
+                error_panel(
+                    f"Template path is not a file: {template_path}", console=console
+                )
+            )
             raise Exit(1) from None
         logger.info(f"Using custom template at {template_path}")
         content = template_path.read_text(encoding="utf-8")
@@ -82,7 +94,9 @@ def init(
 
     dry_run = ctx.obj.get("dry_run", False)
     if dry_run:
-        console.print(f"[dim]Dry run: would write template to {output_resolved} ({len(content)} bytes)[/dim]")
+        console.print(
+            f"[dim]Dry run: would write template to {output_resolved} ({len(content)} bytes)[/dim]"
+        )
         return
 
     # Write the file
