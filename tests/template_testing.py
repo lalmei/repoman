@@ -59,7 +59,7 @@ def instantiate_template(
         ValueError: If template_path doesn't exist
         FileNotFoundError: If answers_file is provided but doesn't exist
     """
-    # Resolve template path (default to main template)
+    # Resolve template path (default to main template directory)
     if template_path is None:
         current_file = Path(__file__)
         template_path = current_file.parent.parent / "src" / "repoman" / "main_template"
@@ -126,6 +126,7 @@ def instantiate_template(
         "overwrite": force,
         "quiet": True,
         "data": default_data,
+        "unsafe": True,  # Template uses _jinja_extensions; _tasks (e.g. git init) run when using package root (repoman create)
     }
 
     # Add answers_file to copier options if provided

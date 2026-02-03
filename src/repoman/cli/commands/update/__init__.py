@@ -112,6 +112,7 @@ def update(
         "overwrite": force,
         "quiet": True,  # Suppress interactive output
         "conflict": conflict,
+        "unsafe": True,  # Template uses _jinja_extensions; required like create command
     }
 
     # Add optional parameters
