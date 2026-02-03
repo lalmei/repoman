@@ -1,5 +1,7 @@
 # Configuration
 
+For **project/answers configuration** (prompts, `.copier-answers.yml`, non-interactive use), see [Project configuration](../guides/configuration.md).
+
 ## Environment Variables
 
 ```bash
