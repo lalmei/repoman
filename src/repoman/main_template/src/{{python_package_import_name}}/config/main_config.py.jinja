@@ -18,6 +18,8 @@ from {{python_package_import_name}}._version import get_version
 {% endif %}
 {% if rag_enabled %}from {{python_package_import_name}}.config.rag_config import RAGConfig
 {% endif %}
+{% if dataset_enabled %}from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+{% endif %}
 
 
 class Config(BaseSettings):
@@ -45,4 +47,7 @@ class Config(BaseSettings):
 {% endif %}
 {% if rag_enabled %}
     rag_config: "RAGConfig" = RAGConfig()
+{% endif %}
+{% if dataset_enabled %}
+    dataset_config: "DatasetConfig" = DatasetConfig()
 {% endif %}

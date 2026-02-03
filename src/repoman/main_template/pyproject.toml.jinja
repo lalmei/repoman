@@ -65,7 +65,7 @@ module-root = "src"
 module-name = "{{python_package_import_name}}"
 
 [tool.uv]
-default-groups = ["maintain", "ci", "docs"{% if rag_enabled %}, "rag"{% endif %}]
+default-groups = ["maintain", "ci", "docs"{% if rag_enabled %}, "rag"{% endif %}{% if dataset_enabled %}, "dl"{% endif %}]
 
 [dependency-groups]
 
@@ -80,6 +80,12 @@ dev = [
 ml = [
     "mlflow>=3.9.0",
 ]
+{% if dataset_enabled %}
+dl = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+]
+{% endif %}
 {% if rag_enabled %}
 rag = [
     "PyYAML>=6.0",
