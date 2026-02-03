@@ -166,9 +166,7 @@ class TestAttachRotatingFileHandler:
             assert result_logger is logger
 
             # Should have a rotating file handler
-            rotating_handlers = [
-                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
-            ]
+            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
             assert len(rotating_handlers) == 1
 
             # Clean up handlers to avoid resource warnings
@@ -194,9 +192,7 @@ class TestAttachRotatingFileHandler:
             assert result_logger is logger
 
             # Should have a rotating file handler
-            rotating_handlers = [
-                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
-            ]
+            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
             assert len(rotating_handlers) == 1
 
             handler = rotating_handlers[0]
@@ -221,9 +217,7 @@ class TestAttachRotatingFileHandler:
             _attach_rotating_file_handler(logger, str(log_file2))
 
             # Should have two rotating file handlers
-            rotating_handlers = [
-                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
-            ]
+            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
             assert len(rotating_handlers) == 2
 
             # Clean up handlers to avoid resource warnings
@@ -449,16 +443,12 @@ class TestLoggingErrorHandling:
                 _attach_rotating_file_handler(logger, 123)
         finally:
             # Clean up rotating file handlers to prevent resource warnings
-            for handler in logger.handlers[
-                :
-            ]:  # Copy list to avoid modification during iteration
+            for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
                 if handler.get_name() == "rotating_file_handler":
                     handler.close()
                     logger.removeHandler(handler)
 
-    def test_attach_rotating_file_handler_with_invalid_settings(
-        self, temp_log_dir: Any
-    ) -> None:
+    def test_attach_rotating_file_handler_with_invalid_settings(self, temp_log_dir: Any) -> None:
         """Test rotating file handler with invalid settings."""
         logger = Logger("test_logger")
 
@@ -466,27 +456,19 @@ class TestLoggingErrorHandling:
             log_file = temp_log_dir / "test.log"
 
             # Test with negative file size - Python logging handles this gracefully
-            logger = _attach_rotating_file_handler(
-                logger, str(log_file), maximum_log_file_size_mb=-1
-            )
+            logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_size_mb=-1)
             assert isinstance(logger, Logger)
 
             # Test with negative backup count - Python logging handles this gracefully
-            logger = _attach_rotating_file_handler(
-                logger, str(log_file), maximum_log_file_time_days=-1
-            )
+            logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_time_days=-1)
             assert isinstance(logger, Logger)
 
             # Test with zero file size - Python logging handles this gracefully
-            logger = _attach_rotating_file_handler(
-                logger, str(log_file), maximum_log_file_size_mb=0
-            )
+            logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_size_mb=0)
             assert isinstance(logger, Logger)
         finally:
             # Clean up rotating file handlers to prevent resource warnings
-            for handler in logger.handlers[
-                :
-            ]:  # Copy list to avoid modification during iteration
+            for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
                 if handler.get_name() == "rotating_file_handler":
                     handler.close()
                     logger.removeHandler(handler)
@@ -494,7 +476,7 @@ class TestLoggingErrorHandling:
     def test_get_logger_console_with_invalid_parameters(self) -> None:
         """Test get_logger_console with invalid parameters."""
         # Test with None name - should work (None is converted to string)
-        logger, console = get_logger_console(None)
+        logger, _console = get_logger_console(None)
         assert isinstance(logger, Logger)
 
         # Test with invalid console type - should work (console is optional)
@@ -512,9 +494,7 @@ class TestLoggingErrorHandling:
         try:
             # Test with non-numeric string - should raise ValueError
             os.environ["_REPOMAN_LOG_LEVEL"] = "not_a_number"
-            with pytest.raises(
-                ValueError, match=r"invalid literal|invalid|could not convert"
-            ):
+            with pytest.raises(ValueError, match=r"invalid literal|invalid|could not convert"):
                 _set_up_logger("test_logger")
 
             # Test with very large number - should work
@@ -524,9 +504,7 @@ class TestLoggingErrorHandling:
 
             # Test with special characters - should raise ValueError
             os.environ["_REPOMAN_LOG_LEVEL"] = "!@#$%"
-            with pytest.raises(
-                ValueError, match=r"invalid literal|invalid|could not convert"
-            ):
+            with pytest.raises(ValueError, match=r"invalid literal|invalid|could not convert"):
                 _set_up_logger("test_logger")
 
         finally:
@@ -579,9 +557,7 @@ class TestLoggingErrorHandling:
                 # Clean up large file
                 large_file.unlink(missing_ok=True)
                 # Clean up rotating file handlers to prevent resource warnings
-                for handler in logger.handlers[
-                    :
-                ]:  # Copy list to avoid modification during iteration
+                for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
                     if handler.get_name() == "rotating_file_handler":
                         handler.close()
                         logger.removeHandler(handler)
@@ -668,9 +644,7 @@ def test_get_logger_console_log_level_warning() -> None:
         mock_logger.level = logging.DEBUG  # Different from INFO
         mock_get_logger.return_value = mock_logger
 
-        logger2, _console2 = get_logger_console(
-            "test_logger", log_level=logging.WARNING
-        )
+        logger2, _console2 = get_logger_console("test_logger", log_level=logging.WARNING)
 
         # Verify logger was returned
         assert logger2 is not None
