@@ -7,6 +7,7 @@ The project uses **MkDocs** with the **Material theme** for documentation. This 
 Generated with `make docs-trees` from `eza --tree`.
 
 <!-- TREE_START:docs -->
+
 ```
 docs
 ├── cli.md
@@ -53,9 +54,53 @@ docs
 ├── template-structure.md
 └── template.md
 ```
+
 <!-- TREE_END -->
 
 MkDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
+
+## Documentation map
+
+The diagram below shows how the main documentation sections connect: from entry (index, installation, quickstart) through concepts and guides to reference. Use it to choose a reading path.
+
+```mermaid
+flowchart LR
+  subgraph entry [Entry]
+    index[index]
+    install[installation]
+    quickstart[quickstart]
+  end
+  subgraph concepts [Concepts]
+    overview[overview]
+    copier[copier-and-answers]
+    generated[generated-project]
+    template_arch[template-architecture]
+  end
+  subgraph guides [Guides]
+    create[creating-a-project]
+    update[updating-a-project]
+    config_guide[configuration]
+    add_cli[adding-a-cli-command]
+  end
+  subgraph reference [Reference]
+    cli[cli]
+    troubleshooting[troubleshooting]
+    make[make-commands]
+  end
+  index --> install
+  index --> quickstart
+  install --> quickstart
+  quickstart --> create
+  create --> overview
+  overview --> copier
+  overview --> generated
+  generated --> template_arch
+  create --> update
+  update --> config_guide
+  add_cli --> cli
+  create --> cli
+  update --> troubleshooting
+```
 
 ## MkDocs Configuration
 

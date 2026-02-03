@@ -64,8 +64,7 @@ Welcome to the repoman development environment! This guide will help you set up 
 
 ## 📁 Project Structure
 
-File trees use Font Awesome icons for file types (see [The template](../template.md)).
-Generated with `make docs-trees` from `eza --tree`.
+Generated with `make docs-trees` from `eza --tree` (see [Documentation](documentation.md)).
 
 <!-- TREE_START:repoman -->
 
