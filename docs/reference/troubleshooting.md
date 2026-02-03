@@ -26,6 +26,9 @@ This page lists common issues when using repoman (create, update, generator add)
 - **Answers file location**  
   By default it is `<project_dir>/.copier-answers.yml`. Override with `--answers`. For non-interactive runs, pass an answers file that matches the template’s prompt keys.
 
+- **Generating a template**  
+  To create a new answers file with all expected keys, run `repoman config init --output path/to/.copier-answers.yml`, then edit the file. See [Configuration](../guides/configuration.md#generating-an-answers-file) and the [CLI reference](../cli.md#config).
+
 - **Answers out of sync**  
   If the template added or renamed prompts, old answers might be incomplete. Run interactively once or merge the new defaults into your answers file.
 

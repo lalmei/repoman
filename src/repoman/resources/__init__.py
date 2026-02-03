@@ -10,6 +10,4 @@ def get_copier_answers_template() -> str:
 
     Uses importlib.resources so it works when repoman is installed as a package.
     """
-    return (files("repoman") / "resources" / "copier_answers_template.yml").read_text(
-        encoding="utf-8"
-    )
+    return (files("repoman") / "resources" / "copier_answers_template.yml").read_text(encoding="utf-8")
