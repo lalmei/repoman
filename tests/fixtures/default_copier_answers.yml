@@ -1,5 +1,6 @@
 # Default answers file for test template instantiation
-# This file provides test-friendly defaults for template instantiation in tests
+# This file provides test-friendly defaults for template instantiation in tests.
+# Used by CI; all optional Python modules are enabled so no templated code is skipped by format-check/lint.
 
 # CI/CD Platform
 ci: github.com
@@ -44,6 +45,12 @@ fastapi_debug: false
 include_health_endpoints: true
 aiohttp_timeout: 2
 aiohttp_pool_size: 100
+
+# RAG (retrieval-augmented generation) – enable so templated RAG code is format/lint checked
+rag_enabled: true
+
+# Dataset module – enable so templated dataset code is format/lint checked
+dataset_enabled: true
 
 # Insiders Program (not applicable for tests)
 insiders: false
