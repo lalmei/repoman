@@ -12,7 +12,12 @@ from repoman.cli.commands.config.utils import (
     load_prompt_schema,
     validate_answers,
 )
-from repoman.cli.messages import error_panel, warning_panel
+from repoman.cli.messages import (
+    error_panel,
+    invalid_yaml,
+    schema_not_found_skipping_validation,
+    warning_panel,
+)
 from repoman.utils.logging import get_logger_console
 
 app = Typer(
@@ -66,12 +71,12 @@ def validate(
         console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
     except yaml.YAMLError as e:
-        console.print(error_panel(f"Invalid YAML: {e}", console=console))
+        console.print(error_panel(invalid_yaml(e), console=console))
         raise Exit(1) from e
 
     schema = load_prompt_schema()
     if not schema:
-        console.print(warning_panel("Could not load schema (copier.yml). Skipping validation.", console=console))
+        console.print(warning_panel(schema_not_found_skipping_validation(), console=console))
         raise Exit(1)
 
     report = validate_answers(schema, answers, strict=strict)

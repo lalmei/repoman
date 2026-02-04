@@ -6,7 +6,7 @@ from typing import Annotated
 import yaml
 from typer import Exit, Option, Typer
 
-from repoman.cli.messages import warning_panel
+from repoman.cli.messages import file_exists_use_force, key_not_in_template, warning_panel
 from repoman.resources import get_copier_answers_template
 from repoman.utils.logging import get_logger_console
 
@@ -47,7 +47,7 @@ def show(
 
     if key is not None:
         if key not in data:
-            console.print(warning_panel(f"Key not in template: {key}", console=console))
+            console.print(warning_panel(key_not_in_template(key), console=console))
             raise Exit(1)
         text = str(data[key]) if data[key] is not None else ""
         if output is None:
@@ -55,12 +55,7 @@ def show(
         else:
             out_path = output.resolve()
             if out_path.exists() and not force:
-                console.print(
-                    warning_panel(
-                        f"File exists: {out_path}. Use --force to overwrite.",
-                        console=console,
-                    )
-                )
+                console.print(warning_panel(file_exists_use_force(out_path), console=console))
                 raise Exit(1)
             out_path.parent.mkdir(parents=True, exist_ok=True)
             out_path.write_text(text, encoding="utf-8")
@@ -75,12 +70,7 @@ def show(
 
     out_path = output.resolve()
     if out_path.exists() and not force:
-        console.print(
-            warning_panel(
-                f"File exists: {out_path}. Use --force to overwrite.",
-                console=console,
-            )
-        )
+        console.print(warning_panel(file_exists_use_force(out_path), console=console))
         raise Exit(1)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(raw, encoding="utf-8")

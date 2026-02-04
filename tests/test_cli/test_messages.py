@@ -6,6 +6,15 @@ from unittest.mock import MagicMock
 import pytest
 from rich.console import Console
 
+from repoman.cli.messages import (
+    answers_file_not_found,
+    file_exists_use_force,
+    invalid_yaml,
+    project_dir_not_found,
+    schema_not_found,
+    schema_not_found_skipping_validation,
+    unknown_format,
+)
 from repoman.cli.messages import success as success_messages
 from repoman.cli.messages.capability import supports_unicode_markdown
 from repoman.cli.messages.dry_run import (

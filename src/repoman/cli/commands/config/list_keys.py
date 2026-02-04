@@ -8,7 +8,7 @@ from typing import Annotated
 from typer import Exit, Option, Typer
 
 from repoman.cli.commands.config.utils import load_prompt_schema
-from repoman.cli.messages import error_panel
+from repoman.cli.messages import error_panel, schema_not_found, unknown_format
 from repoman.utils.logging import get_logger_console
 
 app = Typer(
@@ -51,7 +51,7 @@ def list_keys(
     logger, console = get_logger_console()
     schema = load_prompt_schema()
     if not schema:
-        console.print(error_panel("Could not load schema (copier.yml).", console=console))
+        console.print(error_panel(schema_not_found(), console=console))
         raise Exit(1)
 
     keys = sorted(schema.keys())
@@ -65,7 +65,7 @@ def list_keys(
         return
 
     if format != "table":
-        console.print(error_panel(f"Unknown format: {format}. Use table or json.", console=console))
+        console.print(error_panel(unknown_format(format), console=console))
         raise Exit(1)
 
     # Table: key, and optionally type, default, when
