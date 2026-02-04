@@ -8,11 +8,11 @@ from rich.table import Table
 from rich.text import Text
 from typer import Option, Typer
 
+from {{python_package_import_name}}.cli.commands.rag import _get_rag_service
+from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.datasets import load_rag_eval_dataset
 from {{python_package_import_name}}.rag.eval import run_rag_eval
-
-from ....utils.theme.theme import set_theme
-from . import _get_rag_service
+from {{python_package_import_name}}.utils.theme.theme import set_theme
 
 app = Typer(
     add_completion=True,
@@ -24,14 +24,12 @@ app = Typer(
 
 @app.callback(invoke_without_command=True)
 def eval_cmd(
-    dataset: Path = Option(..., "--dataset", "-d", help="Path to eval dataset (JSONL or JSON)"),
-    theme: str = Option("dark", "--theme", help="Theme: light or dark"),
+    dataset: Path = Option(..., "--dataset", "-d", help="Path to eval dataset (JSONL or JSON)"),  # noqa: B008
+    theme: str = Option("dark", "--theme", help="Theme: light or dark"),  # noqa: B008
 ) -> None:
     """Run RAG evaluation on a dataset of query/reference pairs."""
     console = Console(theme=set_theme(theme))
     try:
-        from {{python_package_import_name}}.config import Config
-
         config = Config()
         ds_config = getattr(config, "dataset_config", None)
 
@@ -44,7 +42,7 @@ def eval_cmd(
                     border_style="red",
                 )
             )
-            raise SystemExit(1)
+            raise SystemExit(1)  # noqa: TRY301
 
         service = _get_rag_service()
         metrics = run_rag_eval(rag_service=service, eval_dataset=eval_data)
@@ -60,12 +58,12 @@ def eval_cmd(
         console.print(
             Panel(Text(str(e), style="red"), title="Error", border_style="red")
         )
-        raise SystemExit(1) from e
+        raise SystemExit(1) from e  # noqa: TRY301
     except Exception as e:
         console.print(
             Panel(Text(str(e), style="red"), title="Error", border_style="red")
         )
-        raise SystemExit(1) from e
+        raise SystemExit(1) from e  # noqa: TRY301
 {% else %}
 """Eval subcommand (disabled). Enable rag_enabled and dataset_enabled to use."""
 

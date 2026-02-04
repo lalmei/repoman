@@ -6,7 +6,7 @@ from {{python_package_import_name}}.rag.core.ports import LLMPort
 class StubLLM(LLMPort):
     """Stub LLM: returns a placeholder or echoes context (no real LLM)."""
 
-    def __init__(self, echo_context: bool = False) -> None:
+    def __init__(self, echo_context: bool = False) -> None:  # noqa: FBT001, FBT002
         """Stub LLM.
 
         Args:
@@ -16,6 +16,7 @@ class StubLLM(LLMPort):
 
     def generate(self, prompt: str) -> str:
         """Return placeholder or truncated context."""
+        _max_echo_len = 500
         if self._echo_context and prompt:
-            return prompt[:500] + "..." if len(prompt) > 500 else prompt
+            return prompt[:_max_echo_len] + "..." if len(prompt) > _max_echo_len else prompt
         return "[Stub LLM] Answer would be generated here. Configure a real LLM adapter for production."

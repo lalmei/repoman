@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     AiohttpClient.get_aiohttp_client(config.fastapi_config)
 {% if rag_enabled %}
     if hasattr(config, "rag_config"):
-        from {{python_package_import_name}}.rag import RAGContainer, RAGService
+        from {{python_package_import_name}}.rag import RAGContainer, RAGService  # noqa: PLC0415
         container = RAGContainer(config.rag_config)
         app.state.rag_service = RAGService(container)
     else:

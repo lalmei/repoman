@@ -41,17 +41,14 @@ def load_rag_eval_dataset(
     if suffix == ".jsonl":
         rows = []
         with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    rows.append(json.loads(line))
+            for raw_line in f:
+                stripped = raw_line.strip()
+                if stripped:
+                    rows.append(json.loads(stripped))
     elif suffix == ".json":
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
-        if isinstance(data, list):
-            rows = data
-        else:
-            rows = [data]
+        rows = data if isinstance(data, list) else [data]
     else:
         msg = f"Unsupported format: {suffix}. Use .jsonl or .json"
         raise ValueError(msg)

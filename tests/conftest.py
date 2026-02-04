@@ -23,7 +23,9 @@ def strip_ansi_codes(text: str) -> str:
         Plain text without ANSI codes
     """
     # Remove ANSI escape sequences (including Rich's hyperlinks)
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|]8;[^;]*;[^\\]*\\|]8;;)")
+    ansi_escape = re.compile(
+        r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|]8;[^;]*;[^\\]*\\|]8;;)"
+    )
     return ansi_escape.sub("", text)
 
 
@@ -209,9 +211,13 @@ def mock_template_structure(tmp_path: Path) -> Any:
 
     # Create mock template files
     (template_dir / "copier.yml").write_text("project_name: '{{ project_name }}'")
-    (template_dir / "README.md.jinja").write_text("# {{ project_name }}\n\nGenerated project.")
+    (template_dir / "README.md.jinja").write_text(
+        "# {{ project_name }}\n\nGenerated project."
+    )
     (template_dir / "src").mkdir()
-    (template_dir / "src" / "main.py.jinja").write_text("print('Hello {{ project_name }}')")
+    (template_dir / "src" / "main.py.jinja").write_text(
+        "print('Hello {{ project_name }}')"
+    )
 
     return template_dir
 
@@ -332,7 +338,9 @@ def _get_default_answers_file() -> Path | None:
     return None
 
 
-def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_setup: bool = False) -> Path:
+def _create_template_instance(
+    tmp_path_base: Path, project_name: str, *, run_setup: bool = False
+) -> Path:
     """Helper to create template instance with optional setup.
 
     Args:
@@ -370,8 +378,8 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
                 pytest.fail(
                     f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
                 )
-            # Format and fix so template output passes format-check and lint tests
-            for cmd in ("format", "fix"):
+            # Format, fix (may change code), then format again so output passes format-check and lint
+            for cmd in ("format", "fix", "format"):
                 res = run_make_command(instantiated_path, cmd)
                 if res.returncode != 0:
                     pytest.fail(
@@ -405,7 +413,9 @@ def instantiated_template(tmp_path: Path) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=False)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=False
+        )
         yield instantiated_path
 
     finally:
@@ -438,7 +448,9 @@ def setup_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     instantiated_path = None
 
     try:
-        instantiated_path = _create_template_instance(tmp_path, "test-project", run_setup=True)
+        instantiated_path = _create_template_instance(
+            tmp_path, "test-project", run_setup=True
+        )
 
         yield instantiated_path
 
