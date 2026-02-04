@@ -10,19 +10,23 @@ from tests.conftest import strip_ansi_codes
 
 
 def _all_output(result: object) -> str:
-    """Combine stdout and stderr (Rich panels often go to stderr)."""
-    out = getattr(result, "output", "")
-    err = getattr(result, "stderr", None) or ""
-    return out + err
+    """Combine stdout and stderr (Rich/Click may use either)."""
+    stdout = getattr(result, "stdout", "") or ""
+    output = getattr(result, "output", "") or ""
+    stderr = getattr(result, "stderr", "") or ""
+    return (stdout or output) + stderr
 
 
 def test_config_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
-    """Test repoman config --help shows parent help and lists init."""
+    """Test repoman config --help shows parent help and lists subcommands."""
     result = cli_runner.invoke(cli_app, ["config", "--help"], input="")
     assert result.exit_code == 0
     assert "Usage:" in result.output
     assert "config" in result.output.lower()
     assert "init" in result.output.lower()
+    assert "validate" in result.output.lower()
+    assert "show" in result.output.lower()
+    assert "list-keys" in result.output.lower()
     assert "Manage repoman" in result.output or "configuration" in result.output.lower()
 
 
@@ -138,3 +142,160 @@ def test_config_init_template_not_found(cli_runner: CliRunner, cli_app: Typer, t
     if plain:
         assert "not found" in plain.lower()
     assert out.exists() is False
+
+
+# --- config validate ---
+
+
+def test_config_validate_help(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config validate --help."""
+    result = cli_runner.invoke(cli_app, ["config", "validate", "--help"], input="")
+    assert result.exit_code == 0
+    assert "--answers" in result.output or "-a" in result.output
+    assert "strict" in result.output.lower()
+    assert "quiet" in result.output.lower()
+
+
+def test_config_validate_success(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config validate with valid answers file passes."""
+    fixture = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    result = cli_runner.invoke(cli_app, ["config", "validate", "--answers", str(fixture)], input="")
+    assert result.exit_code == 0
+    plain = strip_ansi_codes(_all_output(result))
+    if plain:
+        assert "passed" in plain.lower() or "validation" in plain.lower()
+
+
+def test_config_validate_missing_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config validate with missing file fails."""
+    result = cli_runner.invoke(
+        cli_app,
+        ["config", "validate", "--answers", str(tmp_path / "nonexistent.yml")],
+        input="",
+    )
+    assert result.exit_code == 1
+    plain = strip_ansi_codes(_all_output(result))
+    if plain:
+        assert "not found" in plain.lower()
+
+
+def test_config_validate_quiet(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config validate --quiet exits 0 with no message on success."""
+    fixture = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    result = cli_runner.invoke(
+        cli_app,
+        ["config", "validate", "--answers", str(fixture), "--quiet"],
+        input="",
+    )
+    assert result.exit_code == 0
+
+
+# --- config show ---
+
+
+def test_config_show_help(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config show --help."""
+    result = cli_runner.invoke(cli_app, ["config", "show", "--help"], input="")
+    assert result.exit_code == 0
+    assert "--key" in result.output or "-k" in result.output
+    assert "output" in result.output.lower()
+
+
+def test_config_show_prints_template(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config show prints bundled template to stdout."""
+    result = cli_runner.invoke(cli_app, ["config", "show"], input="")
+    assert result.exit_code == 0
+    plain = _all_output(result)
+    if plain:
+        assert "project_name:" in plain
+        assert "my-awesome-project" in plain
+
+
+def test_config_show_key(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config show --key prints single value."""
+    result = cli_runner.invoke(cli_app, ["config", "show", "--key", "project_name"], input="")
+    assert result.exit_code == 0
+    plain = _all_output(result).strip()
+    if plain:
+        assert plain == "my-awesome-project"
+
+
+def test_config_show_key_missing(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config show --key for missing key fails."""
+    result = cli_runner.invoke(cli_app, ["config", "show", "--key", "nonexistent_key"], input="")
+    assert result.exit_code == 1
+
+
+def test_config_show_output_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config show --output writes template to file."""
+    out = tmp_path / "out.yml"
+    result = cli_runner.invoke(cli_app, ["config", "show", "--output", str(out)], input="")
+    assert result.exit_code == 0
+    assert out.exists()
+    assert "project_name:" in out.read_text()
+    assert "my-awesome-project" in out.read_text()
+
+
+def test_config_show_output_refuses_overwrite(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config show --output refuses overwrite without --force."""
+    out = tmp_path / "out.yml"
+    out.write_text("existing")
+    result = cli_runner.invoke(cli_app, ["config", "show", "--output", str(out)], input="")
+    assert result.exit_code == 1
+    assert out.read_text() == "existing"
+
+
+def test_config_show_output_force_overwrite(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config show --output --force overwrites file."""
+    out = tmp_path / "out.yml"
+    out.write_text("existing")
+    result = cli_runner.invoke(cli_app, ["config", "show", "--output", str(out), "--force"], input="")
+    assert result.exit_code == 0
+    assert "project_name:" in out.read_text()
+    assert "existing" not in out.read_text()
+
+
+# --- config list-keys ---
+
+
+def test_config_list_keys_help(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config list-keys --help."""
+    result = cli_runner.invoke(cli_app, ["config", "list-keys", "--help"], input="")
+    assert result.exit_code == 0
+    assert "format" in result.output.lower()
+    assert "include-meta" in result.output.lower()
+
+
+def test_config_list_keys_table(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config list-keys prints keys (table format)."""
+    result = cli_runner.invoke(cli_app, ["config", "list-keys"], input="")
+    assert result.exit_code == 0
+    plain = _all_output(result)
+    if plain:
+        assert "project_name" in plain
+        assert "ci" in plain
+        assert "fastapi_enabled" in plain
+
+
+def test_config_list_keys_json(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config list-keys --format json outputs JSON array of keys."""
+    result = cli_runner.invoke(cli_app, ["config", "list-keys", "--format", "json"], input="")
+    assert result.exit_code == 0
+    plain = _all_output(result)
+    if plain:
+        import json as _json
+
+        data = _json.loads(plain)
+        assert isinstance(data, list)
+        assert "project_name" in data
+        assert "ci" in data
+
+
+def test_config_list_keys_include_meta(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config list-keys --include-meta shows type/default columns."""
+    result = cli_runner.invoke(cli_app, ["config", "list-keys", "--include-meta"], input="")
+    assert result.exit_code == 0
+    plain = _all_output(result)
+    if plain:
+        assert "project_name" in plain
+        assert "str" in plain or "Type" in plain
