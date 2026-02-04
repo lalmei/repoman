@@ -77,6 +77,18 @@ def test_instantiated_template_test_coverage(setup_template: Any) -> None:
         logger.info("Instantiated template line coverage: %s%%", coverage_pct)
 
 
+def test_instantiated_template_notebook_executes(setup_template: Any) -> None:
+    """Test that make check-notebooks runs successfully in instantiated template (python_notebooks: true)."""
+    result: CommandResult = run_make_command(setup_template, "check-notebooks")
+
+    assert result.returncode == 0, (
+        f"check-notebooks failed with exit code {result.returncode}\n"
+        f"Command: {result.command}\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )
+
+
 def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
     """When fastapi_enabled is false, no app folder is created and CI still passes."""
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
