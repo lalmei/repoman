@@ -67,7 +67,8 @@ def show(
     # Full template
     if output is None:
         if use_layout(console):
-            console.print(layout_config_show_template(raw, len(data)))
+            layout, height = layout_config_show_template(raw, len(data))
+            console.print(layout, height=height)
         else:
             console.print(raw)
         return

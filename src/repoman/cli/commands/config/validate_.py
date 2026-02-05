@@ -88,7 +88,8 @@ def validate(
         return
 
     if use_layout(console, min_width=120):
-        console.print(layout_validation_failed(report))
+        layout, height = layout_validation_failed(report)
+        console.print(layout, height=height)
     else:
         body = _format_report(report)
         console.print(error_panel(body, console=console))

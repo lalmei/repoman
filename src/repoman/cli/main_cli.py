@@ -97,22 +97,7 @@ def main(
     ),
     theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
 ) -> None:
-    r"""Welcome to repoman CLI App.
-
-    \f
-
-    Parameters
-    ----------
-    ctx : typer.Context
-        typer context that lives throughout model command
-    verbose : bool | None
-        set logging to DEBUG , by default typer.Option(False, "--verbose", help="verbose mode")
-        it is also saved in the ctx obj so it can be referred for other noisy output
-    version : bool | None
-        outputs version information, by default typer.Option(None, "--version",
-        help="check model version", callback=_version_callback)
-
-    """
+    r"""Welcome to repoman CLI App."""
     logger, _console = get_logger_console()
 
     config: Config | None = None

@@ -203,14 +203,15 @@ def layout_dry_run_update(
     )
 
 
-def layout_validation_failed(report: "ValidationReport") -> Layout:
+def layout_validation_failed(report: "ValidationReport") -> tuple[Layout, int]:
     """Build a three-column Layout for config validate failure.
 
     Args:
         report: ValidationReport with missing_keys, extra_keys, type_errors.
 
     Returns:
-        Layout with Missing Keys (left), Extra Keys (center), Type Errors (right).
+        (Layout, height): Layout with Missing Keys (left), Extra Keys (center),
+        Type Errors (right), and its height in lines (for console.print(..., height=...)).
 
     Examples:
         Layout (wide terminal)::
@@ -233,8 +234,17 @@ def layout_validation_failed(report: "ValidationReport") -> Layout:
         style="red",
     )
 
-    layout = Layout()
-    layout.split_row(
+    # Height = panel top border + content lines + panel bottom border.
+    # Rich Layout defaults to full terminal height; fix size so there's no extra whitespace.
+    content_lines = max(
+        len(report.missing_keys) or 1,
+        len(report.extra_keys) or 1,
+        len(report.type_errors) or 1,
+    )
+    row_height = 2 + content_lines
+
+    row_layout = Layout()
+    row_layout.split_row(
         Layout(
             Panel(missing_text, title="Missing Keys", border_style="red"),
             name="missing",
@@ -254,7 +264,9 @@ def layout_validation_failed(report: "ValidationReport") -> Layout:
             minimum_size=25,
         ),
     )
-    return layout
+    root = Layout()
+    root.split_column(Layout(row_layout, name="row", size=row_height))
+    return root, row_height
 
 
 def layout_command_created(
@@ -286,7 +298,7 @@ def layout_command_created(
     )
 
 
-def layout_config_show_template(raw_yaml: str, key_count: int) -> Layout:
+def layout_config_show_template(raw_yaml: str, key_count: int) -> tuple[Layout, int]:
     """Build a Layout for config show full template: summary header + YAML content.
 
     Args:
@@ -294,7 +306,8 @@ def layout_config_show_template(raw_yaml: str, key_count: int) -> Layout:
         key_count: Number of keys in the template.
 
     Returns:
-        Layout with header (top) and YAML syntax panel (bottom).
+        (Layout, height): Layout with header (top) and YAML syntax panel (bottom),
+        and its height in lines (for console.print(..., height=...)).
 
     Examples:
         Layout (wide terminal, top header + bottom YAML panel)::
@@ -314,12 +327,16 @@ def layout_config_show_template(raw_yaml: str, key_count: int) -> Layout:
     header = Panel(header_text, border_style="bright_blue")
     syntax = Syntax(raw_yaml, "yaml", line_numbers=False)
     content_panel = Panel(syntax, border_style="bright_blue")
+    # Fix content height so layout doesn't fill terminal (no trailing whitespace).
+    yaml_lines = len(raw_yaml.splitlines()) or 1
+    content_height = 2 + yaml_lines
+    total_height = 3 + content_height  # header size=3 + content panel
     layout = Layout()
     layout.split_column(
         Layout(header, name="header", size=3),
-        Layout(content_panel, name="content", ratio=1),
+        Layout(content_panel, name="content", size=content_height),
     )
-    return layout
+    return layout, total_height
 
 
 def layout_dry_run_command_add(
