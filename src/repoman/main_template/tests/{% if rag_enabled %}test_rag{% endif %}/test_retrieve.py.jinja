@@ -1,12 +1,9 @@
 """Unit tests for retrieval (fake vector index + docstore)."""
 
-import pytest
-
-from {{python_package_import_name}}.rag.core.types import Chunk, QueryFilters, RetrievedChunk
-from {{python_package_import_name}}.rag.core.pipeline.retrieve import run_retrieve
 from {{python_package_import_name}}.rag.core.pipeline.ingest import run_ingest
-from {{python_package_import_name}}.rag.core.types import Document
-from tests.test_rag.conftest import FakeEmbedder, FakeVectorIndex, FakeDocstore
+from {{python_package_import_name}}.rag.core.pipeline.retrieve import run_retrieve
+from {{python_package_import_name}}.rag.core.types import Document, RetrievedChunk
+from tests.test_rag.conftest import FakeDocstore, FakeEmbedder, FakeVectorIndex
 
 
 def test_retrieve_empty_index() -> None:

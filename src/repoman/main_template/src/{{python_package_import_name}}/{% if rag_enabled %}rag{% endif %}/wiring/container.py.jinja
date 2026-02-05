@@ -1,21 +1,18 @@
 """RAG wiring: build concrete implementations from config."""
 
-from pathlib import Path
-from typing import Any
-
 from {{python_package_import_name}}.rag.adapters import (
-    SentenceTransformersEmbedder,
     FAISSVectorIndex,
-    SQLiteDocstore,
+    SentenceTransformersEmbedder,
     SentenceTransformersReranker,
+    SQLiteDocstore,
     StubLLM,
 )
 from {{python_package_import_name}}.rag.core.ports import (
-    EmbedderPort,
-    VectorIndexPort,
     DocstorePort,
-    RerankerPort,
+    EmbedderPort,
     LLMPort,
+    RerankerPort,
+    VectorIndexPort,
 )
 from {{python_package_import_name}}.rag.infra.config import RAGConfig
 from {{python_package_import_name}}.rag.prompts import build_rag_answer_prompt

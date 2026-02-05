@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from {{python_package_import_name}}.rag import RAGService
-from {{python_package_import_name}}.rag.core.types import QueryFilters, RAGAnswer, IngestResult
+from {{python_package_import_name}}.rag.core.types import IngestResult, QueryFilters, RAGAnswer
 
 
 def get_rag_service(request: Request) -> RAGService:
@@ -27,8 +27,6 @@ async def rag_health(service: RAGService = Depends(get_rag_service)) -> dict[str
 
 class QueryResponse(RAGAnswer):
     """Response for POST /rag/query."""
-
-    pass
 
 
 @router.post("/query", response_model=QueryResponse)
