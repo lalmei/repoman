@@ -9,5 +9,4 @@ pr: none  # Don't trigger on pull requests
 
 stages:
   - template: stages/draft_change.yml
-
   - template: stages/docs.yml

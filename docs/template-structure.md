@@ -109,7 +109,6 @@ my_project
 │       ├── py.typed
 │       └── utils
 │           ├── __init__.py
-│           ├── integer.py
 │           ├── logging.py
 │           ├── progress_bar.py
 │           └── theme
@@ -135,7 +134,6 @@ my_project
     ├── test_config.py
     ├── test_utils
     │   ├── __init__.py
-    │   ├── test_integer.py
     │   ├── test_logging.py
     │   ├── test_progress_bar.py
     │   └── test_theme.py

@@ -114,12 +114,10 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 
     if not commands_dir.exists():
         # Try alternative structure
-        commands_dir = project_dir / "src" / python_package_import_name / "cli" / "commands"
-        if not commands_dir.parent.exists():
-            raise ValueError(
-                f"Could not find CLI commands directory. Expected: {commands_dir}\n"
-                "Make sure you're in a repoman-generated project."
-            )
+        raise ValueError(
+            f"Could not find CLI commands directory. Expected: {commands_dir}\n"
+            "Make sure you're in a repoman-generated project."
+        )
 
     return commands_dir, tests_dir
 
@@ -199,7 +197,10 @@ def add(
     if not template_dir.exists():
         console.print(
             error_panel(
-                template_dir_not_found(template_dir, "Expected: extentions/command_template/{{command_name}}/"),
+                template_dir_not_found(
+                    template_dir,
+                    "Expected: extentions/command_template/{{command_name}}/",
+                ),
                 console=console,
             )
         )
