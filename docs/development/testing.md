@@ -8,7 +8,7 @@ This directory contains the comprehensive test suite for the repoman project, de
 
 - **✅ All Tests Passing**: 143/143 tests (100% success rate)
 - **📊 Coverage**: 93.89% overall coverage (excellent improvement from 79.17%)
-- **📊 Instantiated template coverage**: 89.53% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 89.53% -->
+- **📊 Instantiated template coverage**: 90.84% (update with `make update-instantiated-template-coverage`) <!-- instantiated-template-coverage: 90.84% -->
 - **⚡ Performance**: Full suite runs in ~1.30s
 - **🔧 Test Isolation**: Perfect - no dependencies between tests
 - **🚀 Parallel Execution**: Successfully tested with 8 workers
