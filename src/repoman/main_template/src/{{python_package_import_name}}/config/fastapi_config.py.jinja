@@ -28,7 +28,7 @@ class FastAPIConfig(BaseSettings):
     )
 
     docs_url: str = "{{ fastapi_docs_url }}"
-    debug: bool = {{ fastapi_debug }}
+    debug: bool = {% if fastapi_debug %}True{% else %}False{% endif %}
     api_prefix: str = "{{ fastapi_api_prefix }}"
     aiohttp_timeout: int = {{ aiohttp_timeout }}
     aiohttp_pool_size: int = {{ aiohttp_pool_size }}
@@ -48,8 +48,8 @@ class FastAPIConfig(BaseSettings):
             JsonConfigSettingsSource(settings_cls),
             env_settings,
             dotenv_settings,
-        file_secret_settings,
-    )
+            file_secret_settings,
+        )
 {% else %}
 """FastAPI configuration (disabled). Enable FastAPI in copier answers to use this module."""
 {% endif %}

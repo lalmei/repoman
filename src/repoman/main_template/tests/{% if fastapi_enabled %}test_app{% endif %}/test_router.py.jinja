@@ -19,7 +19,6 @@ def test_get_root_api_router_returns_router() -> None:
     assert isinstance(router, APIRouter)
     assert router.prefix == "{{ fastapi_api_prefix }}"
 
-
 {% if include_health_endpoints %}
 def test_health_routes_registered(client: TestClient) -> None:
     """Test that health check and ready routes are registered."""

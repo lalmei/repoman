@@ -112,7 +112,9 @@ class TestAttachRotatingFileHandler:
 
             assert result_logger is logger
 
-            rotating_handlers = [h for h in logger.handlers if h.get_name() == "rotating_file_handler"]
+            rotating_handlers = [
+                h for h in logger.handlers if h.get_name() == "rotating_file_handler"
+            ]
             assert len(rotating_handlers) == 1
 
             for handler in rotating_handlers:
@@ -179,7 +181,9 @@ class TestLoggingErrorHandling:
 
         try:
             os.environ[_log_level_env] = "not_a_number"
-            with pytest.raises(ValueError, match=r"invalid literal|invalid|could not convert"):
+            with pytest.raises(
+                ValueError, match=r"invalid literal|invalid|could not convert"
+            ):
                 _set_up_logger("test_logger")
         finally:
             if original_level is not None:
@@ -202,5 +206,4 @@ def test_get_logger_console_invalid_log_level() -> None:
     logger, _ = get_logger_console("test_invalid_level", log_level="INVALID")
     assert isinstance(logger, Logger)
     assert logger.level == INFO
-
 

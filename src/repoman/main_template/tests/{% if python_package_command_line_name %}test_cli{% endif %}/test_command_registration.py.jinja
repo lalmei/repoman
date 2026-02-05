@@ -18,7 +18,9 @@ def test_dynamic_command_discovery(cli_runner: CliRunner, cli_app: typer.Typer) 
 
     # Should fail with "No such command" error
     assert result.exit_code == 2, "Unknown commands should fail"
-    assert "No such command" in result.output or "no such command" in result.output.lower()
+    assert (
+        "No such command" in result.output or "no such command" in result.output.lower()
+    )
 
 
 def test_cli_commands_registered(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
@@ -29,7 +31,9 @@ def test_cli_commands_registered(cli_runner: CliRunner, cli_app: typer.Typer) ->
 
     # Should succeed and show help
     assert result.exit_code == 0, "CLI should be accessible"
-    assert "Usage:" in result.output or "Commands:" in result.output, "Help output should be shown"
+    assert "Usage:" in result.output or "Commands:" in result.output, (
+        "Help output should be shown"
+    )
 
 
 def test_register_commands_with_custom_path() -> None:
@@ -48,7 +52,9 @@ def test_register_skips_module_without_app() -> None:
     mock_noapp_dir = MagicMock()
     mock_noapp_dir.name = "noapp"
     mock_noapp_dir.is_dir.return_value = True
-    mock_noapp_dir.__truediv__.return_value = MagicMock(exists=MagicMock(return_value=True))
+    mock_noapp_dir.__truediv__.return_value = MagicMock(
+        exists=MagicMock(return_value=True)
+    )
     mock_commands_dir = MagicMock()
     mock_commands_dir.iterdir.return_value = [mock_noapp_dir]
     mock_parent = MagicMock()
@@ -60,7 +66,10 @@ def test_register_skips_module_without_app() -> None:
     register_module = "{{ python_package_import_name }}.cli.register"
     with (
         patch(f"{register_module}.Path", return_value=mock_file_path),
-        patch(f"{register_module}.importlib.import_module", return_value=module_without_app),
+        patch(
+            f"{register_module}.importlib.import_module",
+            return_value=module_without_app,
+        ),
     ):
         _register_commands(app)
     # Should not raise; noapp is skipped (no app attribute)
@@ -73,7 +82,9 @@ def test_register_handles_import_error() -> None:
     mock_badimport_dir = MagicMock()
     mock_badimport_dir.name = "badimport"
     mock_badimport_dir.is_dir.return_value = True
-    mock_badimport_dir.__truediv__.return_value = MagicMock(exists=MagicMock(return_value=True))
+    mock_badimport_dir.__truediv__.return_value = MagicMock(
+        exists=MagicMock(return_value=True)
+    )
     mock_commands_dir = MagicMock()
     mock_commands_dir.iterdir.return_value = [mock_badimport_dir]
     mock_parent = MagicMock()
@@ -84,10 +95,14 @@ def test_register_handles_import_error() -> None:
         if name.endswith(".badimport"):
             raise ImportError("Simulated import error for testing")
         return types.ModuleType(name.split(".")[-1])
+
     register_module = "{{ python_package_import_name }}.cli.register"
     with (
         patch(f"{register_module}.Path", return_value=mock_file_path),
-        patch(f"{register_module}.importlib.import_module", side_effect=import_module_side_effect),
+        patch(
+            f"{register_module}.importlib.import_module",
+            side_effect=import_module_side_effect,
+        ),
     ):
         _register_commands(app)
     # Should not raise; badimport is skipped
