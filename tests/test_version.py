@@ -3,6 +3,7 @@
 import os
 import sys
 from importlib import metadata
+from importlib.metadata import Distribution
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock, patch
