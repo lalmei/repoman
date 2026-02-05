@@ -1,0 +1,16 @@
+"""Tests for app.state module."""
+
+import importlib
+
+from {{ python_package_import_name }}.app import state
+
+
+def test_state_module_imports() -> None:
+    """App state module can be imported and exposes __all__."""
+    assert state.__all__ == []
+
+
+def test_state_module_reload() -> None:
+    """App state module can be reloaded (no side effects on import)."""
+    importlib.reload(state)
+    assert hasattr(state, "__all__")

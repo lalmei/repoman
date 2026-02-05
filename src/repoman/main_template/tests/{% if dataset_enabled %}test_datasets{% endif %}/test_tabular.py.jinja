@@ -1,0 +1,121 @@
+"""Tests for tabular dataset and get_tabular_loaders."""
+
+from pathlib import Path
+
+import pytest
+
+pytest.importorskip("torch")
+import pandas as pd
+
+from {{ python_package_import_name }}.config.dataset_config import DatasetConfig
+from {{ python_package_import_name }}.datasets.tabular import TabularDataset, get_tabular_loaders
+
+
+def test_tabular_dataset_csv(tmp_path: Path) -> None:
+    """TabularDataset loads CSV and returns (features, target) tensors."""
+    csv_path = tmp_path / "data.csv"
+    df = pd.DataFrame({
+        "a": [1.0, 2.0, 3.0],
+        "b": [0, 1, 0],
+        "target": [0.0, 1.0, 0.0],
+    })
+    df.to_csv(csv_path, index=False)
+
+    config = DatasetConfig(
+        modality="tabular",
+        data_root=str(tmp_path),
+        tabular_format="csv",
+        target_column="target",
+        train_split=0.67,
+        seed=42,
+        batch_size=2,
+        num_workers=0,
+        pin_memory=False,
+    )
+    ds = TabularDataset(path=csv_path, config=config)
+    assert len(ds) == 3
+    features, target = ds[0]
+    assert features.shape[0] > 0
+    assert target.shape == ()
+
+
+def test_tabular_dataset_missing_target_column(tmp_path: Path) -> None:
+    """TabularDataset raises ValueError when target column missing."""
+    csv_path = tmp_path / "data.csv"
+    pd.DataFrame({"x": [1], "y": [2]}).to_csv(csv_path, index=False)
+    config = DatasetConfig(
+        modality="tabular",
+        target_column="target",
+        tabular_format="csv",
+    )
+    with pytest.raises(ValueError, match=r"Target column .* not found"):
+        TabularDataset(path=csv_path, config=config)
+
+
+def test_tabular_dataset_file_not_found() -> None:
+    """TabularDataset raises FileNotFoundError when path does not exist."""
+    config = DatasetConfig(modality="tabular", target_column="target", tabular_format="csv")
+    with pytest.raises(FileNotFoundError, match=r"does not exist"):
+        TabularDataset(path="/nonexistent/file.csv", config=config)
+
+
+def test_get_tabular_loaders(tmp_path: Path) -> None:
+    """get_tabular_loaders returns train and val DataLoaders."""
+    csv_path = tmp_path / "data.csv"
+    df = pd.DataFrame({
+        "f1": [1.0, 2.0, 3.0, 4.0, 5.0],
+        "f2": [0, 1, 0, 1, 0],
+        "target": [0.0, 1.0, 0.0, 1.0, 0.0],
+    })
+    df.to_csv(csv_path, index=False)
+
+    config = DatasetConfig(
+        modality="tabular",
+        data_root=str(tmp_path),
+        tabular_format="csv",
+        target_column="target",
+        train_split=0.6,
+        seed=42,
+        batch_size=2,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_tabular_loaders(config, data_root=csv_path)
+    train_batches = list(train_loader)
+    val_batches = list(val_loader)
+    assert len(train_batches) >= 1
+    assert len(val_batches) >= 0
+    feats, tgt = train_batches[0]
+    assert feats.shape[0] <= 2
+    assert tgt.shape[0] <= 2
+
+
+def test_get_tabular_loaders_finds_csv_in_dir(tmp_path: Path) -> None:
+    """get_tabular_loaders finds a single CSV in directory when data_root is dir."""
+    csv_path = tmp_path / "only.csv"
+    pd.DataFrame({"x": [1.0], "target": [0.0]}).to_csv(csv_path, index=False)
+    config = DatasetConfig(
+        modality="tabular",
+        data_root=str(tmp_path),
+        tabular_format="csv",
+        target_column="target",
+        train_split=0.8,
+        seed=42,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_tabular_loaders(config, data_root=tmp_path)
+    list(train_loader)
+    list(val_loader)
+
+
+def test_get_tabular_loaders_no_file_in_dir(tmp_path: Path) -> None:
+    """get_tabular_loaders raises FileNotFoundError when no CSV in dir."""
+    config = DatasetConfig(
+        modality="tabular",
+        data_root=str(tmp_path),
+        tabular_format="csv",
+        target_column="target",
+    )
+    with pytest.raises(FileNotFoundError, match=r"No .* file found"):
+        get_tabular_loaders(config, data_root=tmp_path)

@@ -1,5 +1,8 @@
 """Tests for configuration."""
 
+import importlib.util
+from pathlib import Path
+
 from {{ python_package_import_name }}.config import Config
 {% if dataset_enabled %}from {{ python_package_import_name }}.config import DatasetConfig
 {% endif %}
