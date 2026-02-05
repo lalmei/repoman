@@ -13,7 +13,7 @@ stages:
           python.version: '3.12'
 
     variables:
-    - group: Azure-Static-Web-Apps-agreeable-forest-0bb1d511e-variable-group
+    - group: Azure-Static-Web-Apps-{{ python_package_import_name }}-variable-group
     
     steps:
     - checkout: self

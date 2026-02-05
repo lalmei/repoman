@@ -168,7 +168,7 @@ stages:
           - task: Docker@2
             displayName: 'Docker Login'
             inputs:
-              containerRegistry: 'loopr_container_registry'
+              containerRegistry: '{{ container_registry }}'
               command: 'login'
 
           - script: |

@@ -39,8 +39,8 @@ stages:
           
           - bash: |
               if [ -f RELEASE_NOTES.md ]; then
-                git config user.name "loopr-ml Bot"
-                git config user.email "bot@loopr.ai"
+                git config user.name "{{ author_fullname }} Bot"
+                git config user.email "{{ author_email }}"
                 git add RELEASE_NOTES.md
                 git diff --cached --quiet || git commit -m "docs: Update release notes [skip ci]"
                 git push origin main

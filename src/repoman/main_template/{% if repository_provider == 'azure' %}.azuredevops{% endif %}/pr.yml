@@ -4,17 +4,15 @@ trigger:
   - "*.*.x"
 
 variables:
-    - group: "loopr-ml-CI"
+    - group: "{{ python_package_import_name }}-CI"
 
 parameters:
   - name: deployments
     type: object
     default:
-    # - hnk/irv # No longer deployed.
-    - dtna/mth
-    - gaf/ens
-    - saf/sealant
-
+    {% for deployment in deployments %}
+    - {{ deployment }}
+    {% endfor %}
 
 stages:
   - template: stages/ci.yml
