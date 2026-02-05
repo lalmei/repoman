@@ -79,3 +79,14 @@ def test_config_validation_error(cli_runner: CliRunner, cli_app: Typer) -> None:
         )
         result = cli_runner.invoke(cli_app, ["--help"], input="")
         assert result.exit_code == 0
+
+
+def test_config_validation_error_with_subcommand(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test ValidationError path when callback runs before a subcommand (main_cli 114-117)."""
+    with patch("repoman.cli.main_cli.Config") as mock_config:
+        mock_config.side_effect = ValidationError.from_exception_data(
+            "Config", [{"type": "missing", "loc": ("setting",), "msg": "Field required"}]
+        )
+        result = cli_runner.invoke(cli_app, ["create", "--help"], input="")
+        assert result.exit_code == 0
+        assert "create" in result.output.lower()

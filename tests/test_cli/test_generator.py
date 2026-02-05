@@ -283,7 +283,7 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
 
     def exists_side_effect(self_or_path: Path) -> bool:
         path_str = str(self_or_path)
-        if self_or_path == answers_file or self_or_path == tmp_path:
+        if self_or_path in (answers_file, tmp_path):
             return True
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
@@ -292,9 +292,7 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
         # Project structure exists, but output files for this command do not
         if "test_package/cli/commands/testcommand" in path_str or "test_cli/test_testcommand" in path_str:
             return False
-        if "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str:
-            return True
-        return False
+        return "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
 
     with (
         patch.object(Path, "exists", exists_side_effect),
@@ -478,13 +476,11 @@ def test_generator_add_test_file_exists_no_force(cli_runner: CliRunner, cli_app:
     def exists_side_effect(self_or_path: Path) -> bool:
         path = self_or_path
         path_str = str(path)
-        if path == answers_file or path == tmp_path:
+        if path in (answers_file, tmp_path):
             return True
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
-        if "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str:
-            return True
-        return False
+        return "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
 
     with (
         patch.object(Path, "exists", exists_side_effect),
@@ -824,15 +820,12 @@ def test_generator_add_template_test_file_missing(cli_runner: CliRunner, cli_app
     def exists_side_effect(self_or_path: Path) -> bool:
         path_str = str(self_or_path)
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
-            if "test_" in path_str and "jinja" in path_str:
-                return False  # Test template file missing
-            return True
+            return not ("test_" in path_str and "jinja" in path_str)  # Test template file missing -> False
         # Command file and test file must not exist so we reach template loading (line 245-247)
         if "testcommand" in path_str and ("__init__.py" in path_str or "test_testcommand" in path_str):
             return False
         return (
-            self_or_path == answers_file
-            or self_or_path == tmp_path
+            self_or_path in (answers_file, tmp_path)
             or "src/test_package/cli/commands" in path_str
             or "tests/test_cli" in path_str
         )
@@ -863,7 +856,7 @@ def test_generator_add_template_render_raises(cli_runner: CliRunner, cli_app: Ty
 
     def exists_side_effect(self_or_path: Path) -> bool:
         path_str = str(self_or_path)
-        if self_or_path == answers_file or self_or_path == tmp_path:
+        if self_or_path in (answers_file, tmp_path):
             return True
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
@@ -908,16 +901,14 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
 
     def exists_side_effect(self: Path) -> bool:
         path_str = str(self)
-        if self == tmp_path or self == answers_file:
+        if self in (tmp_path, answers_file):
             return True
         if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
         if "__init__.py.jinja" in path_str or ("test_" in path_str and "jinja" in path_str):
             return True
         if "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str:
-            if "test_package/cli/commands/testcommand" in path_str or "test_cli/test_testcommand" in path_str:
-                return False
-            return True
+            return not ("test_package/cli/commands/testcommand" in path_str or "test_cli/test_testcommand" in path_str)
         return False
 
     with (

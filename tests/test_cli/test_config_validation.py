@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from repoman.cli.commands.config.utils import load_answers, load_prompt_schema, validate_answers
 
@@ -152,7 +152,6 @@ def test_validate_answers_choices_empty() -> None:
 
 def test_validate_answers_type_error_with_empty_loc() -> None:
     """ValidationError with empty loc appends msg only to type_errors (utils line 101)."""
-    from pydantic import BaseModel
 
     class M(BaseModel):
         x: int
@@ -164,7 +163,7 @@ def test_validate_answers_type_error_with_empty_loc() -> None:
         original_errors = e.errors()
 
         def errors_with_empty_loc() -> list:
-            return [{"type": "value_error", "loc": (), "msg": "root error"}] + original_errors
+            return [*[{"type": "value_error", "loc": (), "msg": "root error"}], *original_errors]
 
         e.errors = errors_with_empty_loc
         mock_model = MagicMock()
@@ -175,3 +174,33 @@ def test_validate_answers_type_error_with_empty_loc() -> None:
         assert "root error" in report.type_errors
         return
     raise AssertionError("Expected ValidationError")
+
+
+def test_validate_answers_duplicate_missing_key_skipped() -> None:
+    """Same key in multiple missing errors is only added once (utils branch 146->138)."""
+    errs = [
+        {"type": "missing", "loc": ("count",), "msg": "Field required"},
+        {"type": "missing", "loc": ("count",), "msg": "Field required"},
+    ]
+    exc = ValidationError.from_exception_data("Config", errs)
+    mock_model = MagicMock()
+    mock_model.model_validate.side_effect = exc
+    with patch("repoman.cli.commands.config.utils._schema_to_model", return_value=mock_model):
+        report = validate_answers({"count": {"type": "int"}}, {})
+    assert report.valid is False
+    assert report.missing_keys == ["count"]
+
+
+def test_validate_answers_duplicate_extra_key_skipped() -> None:
+    """Same key in multiple extra_forbidden errors is only added once (utils branch 149->138)."""
+    errs = [
+        {"type": "extra_forbidden", "loc": ("foo",), "msg": "Extra inputs are not permitted"},
+        {"type": "extra_forbidden", "loc": ("foo",), "msg": "Extra inputs are not permitted"},
+    ]
+    exc = ValidationError.from_exception_data("Config", errs)
+    mock_model = MagicMock()
+    mock_model.model_validate.side_effect = exc
+    with patch("repoman.cli.commands.config.utils._schema_to_model", return_value=mock_model):
+        report = validate_answers({"name": {"type": "str"}}, {"name": "x", "foo": 1}, strict=True)
+    assert report.valid is False
+    assert report.extra_keys == ["foo"]
