@@ -106,7 +106,7 @@ def test_rag_eval_cli_success(cli_runner: CliRunner) -> None:
         pytest.skip("eval_sample.jsonl fixture not found")
 
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.eval._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(query=MagicMock(return_value=RAGAnswer(query="", text="Albert Einstein.", citations=[]))),
     ):
         result = cli_runner.invoke(

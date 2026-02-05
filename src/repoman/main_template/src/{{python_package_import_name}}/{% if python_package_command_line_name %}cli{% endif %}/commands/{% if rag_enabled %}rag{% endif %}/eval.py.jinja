@@ -8,7 +8,6 @@ from rich.table import Table
 from rich.text import Text
 from typer import Option, Typer
 
-from {{python_package_import_name}}.cli.commands.rag import _get_rag_service
 from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.datasets import load_rag_eval_dataset
 from {{python_package_import_name}}.rag.eval import run_rag_eval
@@ -43,6 +42,8 @@ def eval_cmd(
                 )
             )
             raise SystemExit(1)  # noqa: TRY301
+
+        from {{python_package_import_name}}.cli.commands.rag import _get_rag_service  # noqa: PLC0415
 
         service = _get_rag_service()
         metrics = run_rag_eval(rag_service=service, eval_dataset=eval_data)

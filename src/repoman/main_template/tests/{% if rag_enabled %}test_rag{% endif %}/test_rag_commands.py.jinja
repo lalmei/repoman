@@ -25,7 +25,7 @@ def test_rag_ingest_success(cli_runner: CliRunner, tmp_path: Path) -> None:
         chunks_ingested=3,
     )
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.ingest._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(ingest=MagicMock(return_value=fake_result)),
     ):
         result = cli_runner.invoke(
@@ -39,7 +39,7 @@ def test_rag_ingest_success(cli_runner: CliRunner, tmp_path: Path) -> None:
 def test_rag_ingest_file_not_found(cli_runner: CliRunner) -> None:
     """Ingest command exits 1 on FileNotFoundError."""
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.ingest._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(
             ingest=MagicMock(side_effect=FileNotFoundError("No such file"))
         ),
@@ -54,7 +54,7 @@ def test_rag_ingest_file_not_found(cli_runner: CliRunner) -> None:
 def test_rag_ingest_generic_error(cli_runner: CliRunner, tmp_path: Path) -> None:
     """Ingest command exits 1 on generic exception."""
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.ingest._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(
             ingest=MagicMock(side_effect=RuntimeError("Something broke"))
         ),
@@ -75,7 +75,7 @@ def test_rag_query_success(cli_runner: CliRunner) -> None:
         ],
     )
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.query._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(query=MagicMock(return_value=fake_answer)),
     ):
         result = cli_runner.invoke(
@@ -89,27 +89,29 @@ def test_rag_query_success(cli_runner: CliRunner) -> None:
 def test_rag_query_with_citations(cli_runner: CliRunner) -> None:
     """Query command shows Citations panel when citations present."""
     fake_answer = RAGAnswer(
-        query="q",
+        query="What is RAG?",
         text="Answer text.",
         citations=[
             Citation(chunk_id="id1", text="Cited chunk text here.", score=0.85, corpus_id="default"),
         ],
     )
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.query._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(query=MagicMock(return_value=fake_answer)),
     ):
         result = cli_runner.invoke(
-            rag_app, ["query", "q", "--top-k", "3"], catch_exceptions=False
+            rag_app,
+            ["query", "--top-k", "3", "What is RAG?"],
+            catch_exceptions=False,
         )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert "Citations" in result.output
 
 
 def test_rag_query_error(cli_runner: CliRunner) -> None:
     """Query command exits 1 on exception."""
     with patch(
-        "{{ python_package_import_name }}.cli.commands.rag.query._get_rag_service",
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
         return_value=MagicMock(query=MagicMock(side_effect=ValueError("Query failed"))),
     ):
         result = cli_runner.invoke(

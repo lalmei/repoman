@@ -55,12 +55,14 @@ def test_get_train_val_loaders_text(tmp_path: Path) -> None:
 def test_get_train_val_loaders_image(tmp_path: Path) -> None:
     """get_train_val_loaders with modality=image returns image loaders."""
     pytest.importorskip("PIL")
-    class_dir = tmp_path / "class0"
-    class_dir.mkdir()
-    # Minimal 1x1 PNG so ImageFolder finds one sample
     from PIL import Image
-    img_path = class_dir / "img.png"
-    Image.new("RGB", (1, 1), color="red").save(img_path)
+
+    # Need at least 2 images so train split gets >= 1 sample (train_split=0.8)
+    for i, class_name in enumerate(("class0", "class1")):
+        class_dir = tmp_path / class_name
+        class_dir.mkdir()
+        img_path = class_dir / f"img{i}.png"
+        Image.new("RGB", (1, 1), color="red").save(img_path)
 
     config = DatasetConfig(
         modality="image",

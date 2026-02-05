@@ -93,7 +93,8 @@ def test_get_tabular_loaders(tmp_path: Path) -> None:
 def test_get_tabular_loaders_finds_csv_in_dir(tmp_path: Path) -> None:
     """get_tabular_loaders finds a single CSV in directory when data_root is dir."""
     csv_path = tmp_path / "only.csv"
-    pd.DataFrame({"x": [1.0], "target": [0.0]}).to_csv(csv_path, index=False)
+    # At least 2 rows so train split gets >= 1 sample (train_split=0.8)
+    pd.DataFrame({"x": [1.0, 2.0], "target": [0.0, 1.0]}).to_csv(csv_path, index=False)
     config = DatasetConfig(
         modality="tabular",
         data_root=str(tmp_path),
