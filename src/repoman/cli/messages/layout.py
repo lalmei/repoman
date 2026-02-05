@@ -22,16 +22,12 @@ def use_layout(console: Console | None, min_width: int = 100) -> bool:
     Uses Layout when the console is wide enough; otherwise falls back to
     single-panel layout to avoid cramped output.
 
-    Parameters
-    ----------
-    console : Console | None
-        The Rich Console instance, or None.
-    min_width : int
-        Minimum console width (in characters) to use Layout. Default 100.
+    Args:
+        console: The Rich Console instance, or None.
+        min_width: Minimum console width (in characters) to use Layout.
+            Defaults to 100.
 
     Returns:
-    -------
-    bool
         True if Layout should be used; False for single-panel fallback.
     """
     if console is None:
@@ -53,24 +49,15 @@ def _make_two_panel_layout(
 ) -> Layout:
     """Build a two-panel horizontal Layout.
 
-    Parameters
-    ----------
-    left_content : Any
-        Rich renderable for the left panel.
-    right_content : Any
-        Rich renderable for the right panel.
-    left_title : str
-        Panel title for the left side.
-    right_title : str
-        Panel title for the right side.
-    left_style : str
-        Border style for the left panel.
-    right_style : str
-        Border style for the right panel.
+    Args:
+        left_content: Rich renderable for the left panel.
+        right_content: Rich renderable for the right panel.
+        left_title: Panel title for the left side.
+        right_title: Panel title for the right side.
+        left_style: Border style for the left panel.
+        right_style: Border style for the right panel.
 
     Returns:
-    -------
-    Layout
         A Layout with two side-by-side panels.
     """
     layout = Layout()
@@ -94,7 +81,21 @@ def layout_project_created(
     *,
     use_unicode: bool,
 ) -> Layout:
-    """Build a two-panel Layout for project creation success."""
+    """Build a two-panel Layout for project creation success.
+
+    Returns:
+        Layout with summary + next steps (left) and copier options JSON (right).
+
+    Examples:
+        Layout (wide terminal)::
+
+            ╭─ Success — Summary & Next Steps ───╮ ╭─ Copier Options ──────╮
+            │ ✓ Project 'my-project' created    │ │ { "src_path": ... }   │
+            │   in ./out                         │ │ { "dst_path": ... }   │
+            │ Next steps:                        │ │                       │
+            │   • cd my-project                  │ │                       │
+            ╰────────────────────────────────────╯ ╰───────────────────────╯
+    """
     prefix = "✓ " if use_unicode else ""
     summary = Text(
         f"{prefix}Project '{project_name}' created successfully in {output_dir}\n\nNext steps:\n{next_steps_text}",
@@ -119,7 +120,11 @@ def layout_project_updated(
     *,
     use_unicode: bool,
 ) -> Layout:
-    """Build a two-panel Layout for project update success."""
+    """Build a two-panel Layout for project update success.
+
+    Returns:
+        Layout with summary + next steps (left) and copier options JSON (right).
+    """
     prefix = "✓ " if use_unicode else ""
     summary = Text(
         f"{prefix}Project updated successfully in {project_dir}\n\nNext steps:\n{next_steps_text}",
@@ -143,7 +148,11 @@ def layout_dry_run_create(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
 ) -> Layout:
-    """Build a two-panel Layout for create dry-run."""
+    """Build a two-panel Layout for create dry-run.
+
+    Returns:
+        Layout with summary + next steps (left) and copier options JSON (right).
+    """
     summary = Text(
         f"Would create project '{project_name}' in {output_dir}\n"
         f"Using template: {template_path}\n\n"
@@ -169,7 +178,11 @@ def layout_dry_run_update(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
 ) -> Layout:
-    """Build a two-panel Layout for update dry-run."""
+    """Build a two-panel Layout for update dry-run.
+
+    Returns:
+        Layout with summary + next steps (left) and copier options JSON (right).
+    """
     template_line = f"Using template: {template_path}\n" if template_path else "Template: (from answers file)\n"
     vcs_line = f"VCS ref: {vcs_ref}\n" if vcs_ref else ""
     summary = Text(
@@ -193,7 +206,19 @@ def layout_dry_run_update(
 def layout_validation_failed(report: "ValidationReport") -> Layout:
     """Build a three-column Layout for config validate failure.
 
-    Left: Missing keys; Center: Extra keys; Right: Type errors.
+    Args:
+        report: ValidationReport with missing_keys, extra_keys, type_errors.
+
+    Returns:
+        Layout with Missing Keys (left), Extra Keys (center), Type Errors (right).
+
+    Examples:
+        Layout (wide terminal)::
+
+            ╭─ Missing Keys ────────╮ ╭─ Extra Keys ───╮ ╭─ Type Errors ───────────╮
+            │   • project_name     │ │   • debug_mode │ │   • project_name: ...   │
+            │   • ci_provider      │ │                │ │   • ci: not in choices  │
+            ╰──────────────────────╯ ╰────────────────╯ ╰─────────────────────────╯
     """
     missing_text = Text(
         "\n".join(f"  • {k}" for k in report.missing_keys) if report.missing_keys else "  (none)",
@@ -240,7 +265,13 @@ def layout_command_created(
 ) -> Layout:
     """Build a two-panel Layout for command creation success.
 
-    Left: Summary + created files; Right: Next steps.
+    Args:
+        summary_section: Summary + created files for left panel.
+        next_steps_section: Next steps for right panel.
+        use_unicode: Whether to use Unicode prefix (✓) in summary.
+
+    Returns:
+        Layout with Created Files (left) and Next Steps (right).
     """
     prefix = "✓ " if use_unicode else ""
     left_content = Text(f"{prefix}{summary_section}", style="green")
@@ -256,7 +287,27 @@ def layout_command_created(
 
 
 def layout_config_show_template(raw_yaml: str, key_count: int) -> Layout:
-    """Build a Layout for config show full template: summary header + YAML content."""
+    """Build a Layout for config show full template: summary header + YAML content.
+
+    Args:
+        raw_yaml: Raw YAML string of template answers.
+        key_count: Number of keys in the template.
+
+    Returns:
+        Layout with header (top) and YAML syntax panel (bottom).
+
+    Examples:
+        Layout (wide terminal, top header + bottom YAML panel)::
+
+            ╭──────────────────────────────────────────────────╮
+            │ Template answers (12 keys)                        │
+            ╰──────────────────────────────────────────────────╯
+            ╭──────────────────────────────────────────────────╮
+            │ project_name: my-awesome-project                  │
+            │ ci: github                                        │
+            │ ...                                               │
+            ╰──────────────────────────────────────────────────╯
+    """
     from rich.syntax import Syntax
 
     header_text = Text(f"Template answers ({key_count} keys)", style="bold")
@@ -277,7 +328,12 @@ def layout_dry_run_command_add(
 ) -> Layout:
     """Build a two-panel Layout for generator add dry-run.
 
-    Left: Summary + paths; Right: Template context.
+    Args:
+        summary_section: Summary + command/test paths for left panel.
+        context_section: Template context for right panel.
+
+    Returns:
+        Layout with Summary (left) and Template Context (right).
     """
     left_content = Text(summary_section, style="blue")
     right_content = Text(context_section, style="blue")

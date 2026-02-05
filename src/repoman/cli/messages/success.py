@@ -11,6 +11,7 @@ from rich.text import Text
 
 from repoman.cli.messages.capability import supports_unicode_markdown
 from repoman.cli.messages.layout import (
+    layout_command_created,
     layout_project_created,
     layout_project_updated,
     use_layout,
