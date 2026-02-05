@@ -7,6 +7,7 @@ import yaml
 from typer import Exit, Option, Typer
 
 from repoman.cli.messages import file_exists_use_force, key_not_in_template, warning_panel
+from repoman.cli.messages.layout import layout_config_show_template, use_layout
 from repoman.resources import get_copier_answers_template
 from repoman.utils.logging import get_logger_console
 
@@ -31,7 +32,7 @@ def show(
             help="Write output to this path instead of stdout",
         ),
     ] = None,
-    force: Annotated[  # noqa: FBT002
+    force: Annotated[
         bool,
         Option("--force", "-f", help="Overwrite existing file when using --output"),
     ] = False,
@@ -41,7 +42,7 @@ def show(
     With --key, print only that key's value. With --output, write to a file
     (refuse to overwrite unless --force).
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
     raw = get_copier_answers_template()
     data = yaml.safe_load(raw) or {}
 
@@ -65,7 +66,11 @@ def show(
 
     # Full template
     if output is None:
-        console.print(raw)
+        if use_layout(console):
+            layout, height = layout_config_show_template(raw, len(data))
+            console.print(layout, height=height)
+        else:
+            console.print(raw)
         return
 
     out_path = output.resolve()

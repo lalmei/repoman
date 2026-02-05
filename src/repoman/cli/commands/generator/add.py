@@ -299,14 +299,22 @@ def add(
         ]
         steps_text = format_next_steps(next_steps, console=console)
 
-        body_text = (
+        summary_section = (
             f"Command '{command_name}' created successfully!\n\n"
             f"Created files:\n"
             f"  - {command_output_file.relative_to(project_dir_path)}\n"
-            f"  - {test_output_file.relative_to(project_dir_path)}\n\n"
-            f"Next steps:\n{steps_text}"
+            f"  - {test_output_file.relative_to(project_dir_path)}"
         )
-        console.print(command_created(command_name, body_text, console=console))
+        body_text = f"{summary_section}\n\nNext steps:\n{steps_text}"
+        console.print(
+            command_created(
+                command_name,
+                body_text,
+                console=console,
+                summary_section=summary_section,
+                next_steps_section=steps_text,
+            )
+        )
 
     except (OSError, PermissionError) as e:
         console.print(error_panel(str(e), console=console))

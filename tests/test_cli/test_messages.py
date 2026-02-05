@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from rich.console import Console
+from rich.layout import Layout
 
 from repoman.cli.messages import (
     answers_file_not_found,
@@ -22,12 +23,60 @@ from repoman.cli.messages.dry_run import (
     dry_run_create,
     dry_run_update,
 )
+from repoman.cli.messages.layout import use_layout
 from repoman.cli.messages.success import (
     command_created,
     format_next_steps,
     project_created,
     project_updated,
 )
+
+# --- layout ---
+
+
+def test_use_layout_none_console() -> None:
+    """use_layout with None console returns False."""
+    assert use_layout(None) is False
+
+
+def test_use_layout_narrow_console() -> None:
+    """use_layout with width < min_width returns False."""
+    console = MagicMock(spec=Console)
+    console.width = 80
+    assert use_layout(console, min_width=100) is False
+
+
+def test_use_layout_wide_console() -> None:
+    """use_layout with width >= min_width returns True."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    assert use_layout(console, min_width=100) is True
+
+
+def test_use_layout_width_none() -> None:
+    """use_layout when console width is None returns False."""
+    console = MagicMock(spec=Console)
+    console.width = None
+    assert use_layout(console) is False
+
+
+def test_project_created_returns_layout_when_wide(tmp_path: Path) -> None:
+    """project_created returns Layout when console is wide enough."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    console.encoding = "utf-8"
+    console.legacy_windows = False
+    console.is_terminal = True
+    result = project_created(
+        "p",
+        tmp_path / "out",
+        {"key": "val"},
+        "  • step",
+        console=console,
+    )
+
+    assert isinstance(result, Layout)
+
 
 # --- capability ---
 

@@ -63,6 +63,7 @@ ignore = [
 ]
 "src/repoman/cli/commands/**/*.py" = [
     "FBT001",  # Boolean positional arg in function definition (Typer Option requires positional default)
+    "FBT002",  # Boolean default positional argument (Typer Option requires positional default)
     "FBT003",  # Boolean positional value in function call (Typer Option requires positional default)
 ]
 "src/repoman/cli/main_cli.py" = [

@@ -101,11 +101,11 @@ def create(
         Path | None,
         Option("--answers", "-a", help="Path to answers file"),
     ] = None,
-    force: Annotated[  # noqa: FBT002
+    force: Annotated[
         bool,
         Option("--force", "-f", help="Force overwrite of existing files"),
     ] = False,
-    dry_run: Annotated[  # noqa: FBT002
+    dry_run: Annotated[
         bool,
         Option("--dry-run", help="Show what would be created without actually creating"),
     ] = False,

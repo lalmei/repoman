@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Annotated
 
+from rich.table import Table
 from typer import Exit, Option, Typer
 
 from repoman.cli.commands.config.utils import load_prompt_schema
@@ -15,6 +16,8 @@ app = Typer(
     add_completion=True,
     help="List prompt keys expected by the template (from copier.yml)",
 )
+
+_MAX_DEFAULT_DISPLAY_LEN = 40
 
 
 def _serialize_value(v: object) -> object:
@@ -48,7 +51,7 @@ def list_keys(
     Excludes copier meta keys (those starting with _). Use --include-meta to
     show type, default, and when for each key. Use --format json for machine-readable output.
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
     schema = load_prompt_schema()
     if not schema:
         console.print(error_panel(schema_not_found(), console=console))
@@ -57,10 +60,7 @@ def list_keys(
     keys = sorted(schema.keys())
 
     if format == "json":
-        if include_meta:
-            out = {k: _serialize_value(schema[k]) for k in keys}
-        else:
-            out = keys
+        out = {k: _serialize_value(schema[k]) for k in keys} if include_meta else keys
         console.print(json.dumps(out, indent=2))
         return
 
@@ -70,21 +70,23 @@ def list_keys(
 
     # Table: key, and optionally type, default, when
     if include_meta:
-        rows = []
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Key")
+        table.add_column("Type")
+        table.add_column("Default")
+        table.add_column("When")
         for k in keys:
             meta = schema[k]
             type_ = meta.get("type", "")
             default = meta.get("default", "")
             when = meta.get("when", "")
-            if isinstance(default, str) and len(default) > 40:
-                default = default[:37] + "..."
-            rows.append((k, type_, str(default), str(when)))
-        col_widths = [max(len(r[0]) for r in rows) + 2, 6, 20, 30]
-        header = ("Key", "Type", "Default", "When")
-        console.print("".join(h.ljust(col_widths[i]) for i, h in enumerate(header)))
-        console.print("-" * (sum(col_widths)))
-        for r in rows:
-            console.print("".join(str(r[i]).ljust(col_widths[i]) for i in range(4)))
+            if isinstance(default, str) and len(default) > _MAX_DEFAULT_DISPLAY_LEN:
+                default = default[: _MAX_DEFAULT_DISPLAY_LEN - 3] + "..."
+            table.add_row(k, str(type_), str(default), str(when))
+        console.print(table)
     else:
+        table = Table(show_header=False)
+        table.add_column("Key")
         for k in keys:
-            console.print(k)
+            table.add_row(k)
+        console.print(table)

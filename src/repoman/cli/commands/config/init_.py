@@ -45,7 +45,7 @@ def init(
             help="Path to a custom template file (default: use bundled template)",
         ),
     ] = None,
-    force: Annotated[  # noqa: FBT002
+    force: Annotated[
         bool,
         Option("--force", "-f", help="Overwrite existing file"),
     ] = False,
@@ -102,5 +102,14 @@ def init(
         "Run: repoman create PROJECT_NAME --answers " + str(output_resolved),
     ]
     steps_text = format_next_steps(next_steps, console=console)
-    body_text = f"Template written to {output_resolved}\n\nNext steps:\n{steps_text}"
-    console.print(command_created("config init", body_text, console=console))
+    summary_section = f"Template written to {output_resolved}"
+    body_text = f"{summary_section}\n\nNext steps:\n{steps_text}"
+    console.print(
+        command_created(
+            "config init",
+            body_text,
+            console=console,
+            summary_section=summary_section,
+            next_steps_section=steps_text,
+        )
+    )

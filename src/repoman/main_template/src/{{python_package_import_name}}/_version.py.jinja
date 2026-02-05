@@ -87,7 +87,7 @@ def version_info() -> Text:
         Version information.
     """
     version = get_version()
-    return Text.assemble(("{{python_package_import_name}}: ", "peach"), (f"{version}", "bold text"))
+    return Text.assemble(("{{python_package_import_name}}: ", "peach"), (f"{version}", "bold"))
 
 
 def get_debug_info() -> Environment:
@@ -122,16 +122,16 @@ def debug_info(console: Console | None = None) -> None:
 
     table.add_row(
         Text("Interpreter Name", style="rosewater"),
-        Text(env.interpreter_name, style="bold text"),
+        Text(env.interpreter_name, style="bold"),
     )
     table.add_row(
         Text("Interpreter Version", style="rosewater"),
-        Text(env.interpreter_version, style="bold text"),
+        Text(env.interpreter_version, style="bold"),
     )
     table.add_row(
         Text("Interpreter Path", style="rosewater"),
-        Text(env.interpreter_path, style="bold text"),
+        Text(env.interpreter_path, style="bold"),
     )
-    table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold text"))
+    table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold"))
 
     console.print(Panel(table, title="Debug Information", title_align="left"))

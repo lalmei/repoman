@@ -10,14 +10,10 @@ def supports_unicode_markdown(console: Console | None) -> bool:
     (e.g. ✓, •, ⚠). When False, use plain Text and ASCII-only labels so output
     stays readable in CI, old terminals, or when piped.
 
-    Parameters
-    ----------
-    console : Console | None
-        The Rich Console instance, or None.
+    Args:
+        console: The Rich Console instance, or None.
 
     Returns:
-    -------
-    bool
         True if encoding is UTF-8/UTF-16, not legacy Windows, and (optionally)
         writing to a terminal; otherwise False.
     """

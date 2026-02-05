@@ -18,6 +18,7 @@ from repoman.cli.messages import (
     schema_not_found_skipping_validation,
     warning_panel,
 )
+from repoman.cli.messages.layout import layout_validation_failed, use_layout
 from repoman.utils.logging import get_logger_console
 
 app = Typer(
@@ -62,7 +63,7 @@ def validate(
     Loads the file and checks that required keys exist and types match the
     template schema (from copier.yml). Use --strict to also fail on extra keys.
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
     path = answers_file.resolve()
 
     try:
@@ -86,6 +87,10 @@ def validate(
             console.print("[green]Validation passed.[/green]")
         return
 
-    body = _format_report(report)
-    console.print(error_panel(body, console=console))
+    if use_layout(console, min_width=120):
+        layout, height = layout_validation_failed(report)
+        console.print(layout, height=height)
+    else:
+        body = _format_report(report)
+        console.print(error_panel(body, console=console))
     raise Exit(1)

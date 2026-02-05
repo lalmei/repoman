@@ -14,26 +14,21 @@ def warning_panel(message: str, console: Console | None = None) -> Panel:
     underscores, and special characters in user-provided warning messages are not
     interpreted as formatting.
 
-    Parameters
-    ----------
-    message : str
-        The warning message body.
-    console : Console | None
-        Rich Console; when supported, title may use Unicode (e.g. ⚠).
+    Args:
+        message: The warning message body.
+        console: Rich Console; when supported, title may use Unicode (e.g. ⚠).
+            Defaults to None.
 
     Returns:
-    -------
-    Panel
         A yellow-bordered Panel suitable for console.print().
 
-    Example:
-    -------
-    When rendered (plain text; terminal uses yellow border)::
+    Examples:
+        Panel (plain text; terminal uses yellow border)::
 
-        ╭─ Warning ─────────────────────────────╮
-        │ File already exists: /path/to/file    │
-        │ Use --force to overwrite.             │
-        ╰───────────────────────────────────────╯
+            ╭─ Warning ─────────────────────────────╮
+            │ File already exists: /path/to/file    │
+            │ Use --force to overwrite.             │
+            ╰───────────────────────────────────────╯
     """
     use_unicode = supports_unicode_markdown(console)
     title = "⚠ Warning" if use_unicode else "Warning"
