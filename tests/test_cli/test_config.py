@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 from typer import Typer
 from typer.testing import CliRunner

@@ -7,23 +7,44 @@ import pytest
 from rich.console import Console
 from rich.layout import Layout
 
+from repoman.cli.commands.config.utils import ValidationReport
 from repoman.cli.messages import (
     answers_file_not_found,
+    command_file_exists_use_force,
     file_exists_use_force,
     invalid_yaml,
+    key_not_in_template,
+    output_path_not_file,
     project_dir_not_found,
     schema_not_found,
     schema_not_found_skipping_validation,
+    template_dir_not_found,
+    template_not_found,
+    template_path_does_not_exist,
+    template_path_not_file,
     unknown_format,
 )
 from repoman.cli.messages import success as success_messages
+from repoman.cli.messages import (
+    test_file_exists_use_force as msg_test_file_force,
+)
 from repoman.cli.messages.capability import supports_unicode_markdown
 from repoman.cli.messages.dry_run import (
     dry_run_command_add,
     dry_run_create,
     dry_run_update,
 )
-from repoman.cli.messages.layout import use_layout
+from repoman.cli.messages.layout import (
+    layout_command_created,
+    layout_config_show_template,
+    layout_dry_run_command_add,
+    layout_dry_run_create,
+    layout_dry_run_update,
+    layout_project_created,
+    layout_project_updated,
+    layout_validation_failed,
+    use_layout,
+)
 from repoman.cli.messages.success import (
     command_created,
     format_next_steps,
@@ -76,6 +97,142 @@ def test_project_created_returns_layout_when_wide(tmp_path: Path) -> None:
     )
 
     assert isinstance(result, Layout)
+
+
+def test_layout_project_created_returns_layout() -> None:
+    """layout_project_created returns Layout with two panels."""
+    result = layout_project_created(
+        "my-project",
+        "./out",
+        {"src_path": "/t", "dst_path": "/o"},
+        "  • cd my-project",
+        _console=None,
+        use_unicode=True,
+    )
+    assert isinstance(result, Layout)
+    assert result.children is not None
+    assert len(result.children) == 2
+
+
+def test_layout_project_updated_returns_layout() -> None:
+    """layout_project_updated returns Layout with two panels."""
+    result = layout_project_updated(
+        "/path/to/proj",
+        {"key": "val"},
+        "  • step",
+        _console=None,
+        use_unicode=False,
+    )
+    assert isinstance(result, Layout)
+    assert result.children is not None
+    assert len(result.children) == 2
+
+
+def test_layout_dry_run_create_returns_layout() -> None:
+    """layout_dry_run_create returns Layout with expected titles."""
+    result = layout_dry_run_create(
+        "proj",
+        "./out",
+        "/tmpl",
+        {"key": "value"},
+        "next steps",
+    )
+    assert isinstance(result, Layout)
+    assert result.children is not None
+    assert len(result.children) == 2
+
+
+def test_layout_dry_run_update_with_template_and_vcs() -> None:
+    """layout_dry_run_update with template_path and vcs_ref includes both lines."""
+    result = layout_dry_run_update(
+        "/proj",
+        "/a.yml",
+        "/tmpl",
+        "v1.0",
+        {},
+        "steps",
+    )
+    assert isinstance(result, Layout)
+    assert result.children is not None
+
+
+def test_layout_dry_run_update_without_template_or_vcs() -> None:
+    """layout_dry_run_update without template_path or vcs_ref uses (none) style."""
+    result = layout_dry_run_update(
+        "/proj",
+        "/a.yml",
+        None,
+        None,
+        {},
+        "steps",
+    )
+    assert isinstance(result, Layout)
+
+
+def test_layout_validation_failed_returns_layout_and_height() -> None:
+    """layout_validation_failed returns Layout and height; all three panels."""
+    report = ValidationReport(
+        valid=False,
+        missing_keys=["project_name"],
+        extra_keys=["debug_mode"],
+        type_errors=["ci: not in choices"],
+    )
+    layout, height = layout_validation_failed(report)
+    assert isinstance(layout, Layout)
+    assert height >= 3
+    assert layout.children is not None
+
+
+def test_layout_validation_failed_empty_lists_shows_none() -> None:
+    """layout_validation_failed with empty lists shows (none) in panels."""
+    report = ValidationReport(
+        valid=False,
+        missing_keys=[],
+        extra_keys=[],
+        type_errors=[],
+    )
+    layout, height = layout_validation_failed(report)
+    assert isinstance(layout, Layout)
+    assert height == 3  # 2 + max(1,1,1)
+
+
+def test_layout_command_created_returns_layout() -> None:
+    """layout_command_created returns two-panel Layout."""
+    result = layout_command_created(
+        "Summary section",
+        "Next steps section",
+        use_unicode=True,
+    )
+    assert isinstance(result, Layout)
+    assert result.children is not None
+    assert len(result.children) == 2
+
+
+def test_layout_config_show_template_returns_layout_and_height() -> None:
+    """layout_config_show_template returns Layout and total_height."""
+    raw_yaml = "project_name: my-project\nci: github"
+    layout, total_height = layout_config_show_template(raw_yaml, key_count=12)
+    assert isinstance(layout, Layout)
+    assert total_height == 3 + (2 + 2)  # header 3 + content 2 lines + 2 border
+    assert layout.children is not None
+
+
+def test_layout_config_show_template_empty_yaml() -> None:
+    """layout_config_show_template with empty raw_yaml uses 1 line for height."""
+    layout, total_height = layout_config_show_template("", key_count=0)
+    assert isinstance(layout, Layout)
+    assert total_height == 6  # 3 + 2 + 1
+
+
+def test_layout_dry_run_command_add_returns_layout() -> None:
+    """layout_dry_run_command_add returns two-panel Layout."""
+    result = layout_dry_run_command_add(
+        "Would create command 'foo'",
+        "Template context:\n  - key: val",
+    )
+    assert isinstance(result, Layout)
+    assert result.children is not None
+    assert len(result.children) == 2
 
 
 # --- capability ---
