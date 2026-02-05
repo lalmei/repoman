@@ -1,4 +1,3 @@
-{% if fastapi_enabled %}
 """Tests for AiohttpClient utility."""
 
 import asyncio
@@ -123,6 +122,3 @@ def test_http_methods(method: str, args: tuple, kwargs: dict) -> None:
 
         getattr(mock_session, method).assert_called_once()
         assert result is not None
-{% else %}
-# Placeholder - fastapi disabled
-{% endif %}

@@ -1,0 +1,121 @@
+"""Tests for RAG API routes: /rag/health, /rag/query, /rag/ingest."""
+
+from unittest.mock import MagicMock
+
+import pytest
+from fastapi.testclient import TestClient
+
+from {{ python_package_import_name }}.app import get_application
+from {{ python_package_import_name }}.config import Config
+from {{ python_package_import_name }}.rag.core.types import IngestResult, RAGAnswer
+
+
+def _api_prefix() -> str:
+    """Return the FastAPI API prefix from config (e.g. /api)."""
+    return Config().fastapi_config.api_prefix
+
+
+def _make_fake_rag_service() -> MagicMock:
+    """Build a mock RAGService with health, query, ingest."""
+    fake = MagicMock()
+    fake.health.return_value = {
+        "embedder": True,
+        "vector_index": True,
+        "docstore": True,
+        "reranker": True,
+        "llm": True,
+    }
+    fake.query.return_value = RAGAnswer(
+        query="What is RAG?",
+        text="RAG is retrieval-augmented generation.",
+        citations=[],
+    )
+    fake.ingest.return_value = IngestResult(
+        success=True,
+        source="/some/doc.txt",
+        corpus_id="default",
+        chunks_ingested=2,
+    )
+    return fake
+
+
+@pytest.fixture
+def client_rag() -> TestClient:
+    """TestClient with app.state.rag_service set to a mock (after lifespan runs)."""
+    app = get_application()
+    with TestClient(app) as c:
+        c.get(f"{_api_prefix()}/healthcheck")  # trigger lifespan
+        app.state.rag_service = _make_fake_rag_service()
+        yield c
+
+
+def test_rag_health_returns_200(client_rag: TestClient) -> None:
+    """GET /api/rag/health returns 200 and health dict."""
+    response = client_rag.get(f"{_api_prefix()}/rag/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, dict)
+    assert "embedder" in data
+    assert data["embedder"] is True
+
+
+def test_rag_query_returns_200(client_rag: TestClient) -> None:
+    """POST /api/rag/query returns 200 and answer with text/citations/query."""
+    response = client_rag.post(
+        f"{_api_prefix()}/rag/query",
+        json={"query": "What is RAG?", "top_k": 3},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "text" in data
+    assert "citations" in data
+    assert "query" in data
+    assert data["query"] == "What is RAG?"
+
+
+def test_rag_ingest_success(client_rag: TestClient) -> None:
+    """POST /api/rag/ingest with path and corpus_id returns 200 and IngestResult."""
+    response = client_rag.post(
+        f"{_api_prefix()}/rag/ingest",
+        json={"path": "/some/path", "corpus_id": "default"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "success" in data
+    assert "chunks_ingested" in data
+    assert data["success"] is True
+
+
+def test_rag_ingest_400_when_path_missing(client_rag: TestClient) -> None:
+    """POST /api/rag/ingest without path returns 400."""
+    response = client_rag.post(
+        f"{_api_prefix()}/rag/ingest",
+        json={"corpus_id": "x"},
+    )
+    assert response.status_code == 400
+    assert "path" in response.json().get("detail", "").lower()
+
+
+def test_rag_ingest_403_when_ingest_disabled(client_rag: TestClient) -> None:
+    """POST /api/rag/ingest returns 403 when config.rag_config.ingest_enabled is False."""
+    # Override app.state.config so ingest is disabled (route still runs via dependency override)
+    client_rag.app.state.config = MagicMock(
+        rag_config=MagicMock(ingest_enabled=False),
+    )
+    response = client_rag.post(
+        f"{_api_prefix()}/rag/ingest",
+        json={"path": "/some/path", "corpus_id": "default"},
+    )
+    assert response.status_code == 403
+    assert "disabled" in response.json().get("detail", "").lower()
+
+
+def test_rag_health_500_when_service_not_configured() -> None:
+    """GET /api/rag/health returns 500 when app.state.rag_service is None."""
+    app = get_application()
+    with TestClient(app, raise_server_exceptions=False) as client:
+        # Trigger lifespan so app.state is set, then clear rag_service
+        client.get(f"{_api_prefix()}/healthcheck")  # trigger lifespan
+        app.state.rag_service = None
+        response = client.get(f"{_api_prefix()}/rag/health")
+    assert response.status_code == 500
