@@ -98,7 +98,7 @@ def version_info() -> Text:
         Version information.
     """
     version = get_version()
-    return Text.assemble(("repoman: ", "peach"), (f"{version}", "bold text"))
+    return Text.assemble(("repoman: ", "peach"), (f"{version}", "bold"))
 
 
 def get_debug_info() -> Environment:
@@ -145,19 +145,19 @@ def _make_debug_layout(env: Environment) -> Layout:
     """Build a Layout for debug info: header + packages | env vars."""
     header_text = Text(
         f"{env.interpreter_name} {env.interpreter_version}  |  {env.interpreter_path}  |  {env.platform}",
-        style="bold text",
+        style="bold",
     )
     header = Panel(header_text, title="Debug Info", title_align="left", border_style="bright_blue")
 
     packages_table = Table(highlight=True, box=None, show_header=True, title=f"Packages ({len(env.packages)})")
     packages_table.add_column("Package", style="rosewater")
-    packages_table.add_column("Version", style="bold text")
+    packages_table.add_column("Version", style="bold")
     for pkg in env.packages:
         packages_table.add_row(pkg.name, pkg.version)
 
     env_table = Table(highlight=True, box=None, show_header=True, title="Environment Variables")
     env_table.add_column("Variable", style="rosewater")
-    env_table.add_column("Value", style="bold text")
+    env_table.add_column("Value", style="bold")
     for var in env.variables:
         env_table.add_row(var.name, var.value)
 
@@ -178,24 +178,24 @@ def _make_debug_panel(env: Environment) -> Panel:
     table = Table(highlight=True, box=None, show_header=False)
     table.add_row(
         Text("Interpreter Name", style="rosewater"),
-        Text(env.interpreter_name, style="bold text"),
+        Text(env.interpreter_name, style="bold"),
     )
     table.add_row(
         Text("Interpreter Version", style="rosewater"),
-        Text(env.interpreter_version, style="bold text"),
+        Text(env.interpreter_version, style="bold"),
     )
     table.add_row(
         Text("Interpreter Path", style="rosewater"),
-        Text(env.interpreter_path, style="bold text"),
+        Text(env.interpreter_path, style="bold"),
     )
-    table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold text"))
+    table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold"))
     table.add_row(
         Text(f"Packages ({len(env.packages)})", style="rosewater"),
-        Text.assemble(*[Text(str(pkg), style="bold text") for pkg in env.packages]),
+        Text.assemble(*[Text(str(pkg), style="bold") for pkg in env.packages]),
     )
     table.add_row(
         Text("Enviroment Variables", style="rosewater"),
-        Text.assemble(*[Text(str(var), style="bold text") for var in env.variables]),
+        Text.assemble(*[Text(str(var), style="bold") for var in env.variables]),
     )
     return Panel(table, title="Debug Information", title_align="left")
 
