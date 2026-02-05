@@ -14,11 +14,13 @@ from {{ python_package_import_name }}.datasets.tabular import TabularDataset, ge
 def test_tabular_dataset_csv(tmp_path: Path) -> None:
     """TabularDataset loads CSV and returns (features, target) tensors."""
     csv_path = tmp_path / "data.csv"
-    df = pd.DataFrame({
-        "a": [1.0, 2.0, 3.0],
-        "b": [0, 1, 0],
-        "target": [0.0, 1.0, 0.0],
-    })
+    df = pd.DataFrame(
+        {
+            "a": [1.0, 2.0, 3.0],
+            "b": [0, 1, 0],
+            "target": [0.0, 1.0, 0.0],
+        },
+    )
     df.to_csv(csv_path, index=False)
 
     config = DatasetConfig(
@@ -62,11 +64,13 @@ def test_tabular_dataset_file_not_found() -> None:
 def test_get_tabular_loaders(tmp_path: Path) -> None:
     """get_tabular_loaders returns train and val DataLoaders."""
     csv_path = tmp_path / "data.csv"
-    df = pd.DataFrame({
-        "f1": [1.0, 2.0, 3.0, 4.0, 5.0],
-        "f2": [0, 1, 0, 1, 0],
-        "target": [0.0, 1.0, 0.0, 1.0, 0.0],
-    })
+    df = pd.DataFrame(
+        {
+            "f1": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "f2": [0, 1, 0, 1, 0],
+            "target": [0.0, 1.0, 0.0, 1.0, 0.0],
+        },
+    )
     df.to_csv(csv_path, index=False)
 
     config = DatasetConfig(

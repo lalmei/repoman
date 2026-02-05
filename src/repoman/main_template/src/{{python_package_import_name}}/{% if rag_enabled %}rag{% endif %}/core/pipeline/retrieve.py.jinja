@@ -1,8 +1,6 @@
 """Retrieve pipeline: embed query, search, optional rerank."""
 
-from typing import Any
-
-from {{python_package_import_name}}.rag.core.ports import EmbedderPort, VectorIndexPort, DocstorePort, RerankerPort
+from {{python_package_import_name}}.rag.core.ports import DocstorePort, EmbedderPort, RerankerPort, VectorIndexPort
 from {{python_package_import_name}}.rag.core.types import QueryFilters, RetrievedChunk
 
 
@@ -56,7 +54,7 @@ def run_retrieve(
                     corpus_id=ch.corpus_id,
                     score=score,
                     metadata=ch.metadata,
-                )
+                ),
             )
     if reranker is not None:
         k = rerank_top_k or top_k

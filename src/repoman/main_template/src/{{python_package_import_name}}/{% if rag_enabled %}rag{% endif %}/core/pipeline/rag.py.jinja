@@ -1,17 +1,17 @@
 """Top-level RAG pipeline: retrieve + generate -> RAGAnswer with citations."""
 
-from typing import Any, Callable
+from typing import Callable
 
+from {{python_package_import_name}}.rag.core.pipeline.generate import run_generate
+from {{python_package_import_name}}.rag.core.pipeline.retrieve import run_retrieve
 from {{python_package_import_name}}.rag.core.ports import (
-    EmbedderPort,
-    VectorIndexPort,
     DocstorePort,
-    RerankerPort,
+    EmbedderPort,
     LLMPort,
+    RerankerPort,
+    VectorIndexPort,
 )
 from {{python_package_import_name}}.rag.core.types import QueryFilters, RAGAnswer
-from {{python_package_import_name}}.rag.core.pipeline.retrieve import run_retrieve
-from {{python_package_import_name}}.rag.core.pipeline.generate import run_generate
 
 
 def run_rag(

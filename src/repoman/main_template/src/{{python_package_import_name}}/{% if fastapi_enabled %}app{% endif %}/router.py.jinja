@@ -8,12 +8,8 @@ Resources:
 """
 
 from fastapi import APIRouter
-{% if include_health_endpoints %}
-from {{python_package_import_name}}.app.controllers import health_check, ready
-{% endif %}
-{% if fastapi_enabled and rag_enabled %}
-from {{python_package_import_name}}.app.controllers import rag
-{% endif %}
+
+from {{python_package_import_name}}.app.controllers import {% if include_health_endpoints %}health_check, {% endif %}{% if fastapi_enabled and rag_enabled %}rag, {% endif %}{% if include_health_endpoints %}ready{% endif %}
 from {{python_package_import_name}}.config import Config
 
 

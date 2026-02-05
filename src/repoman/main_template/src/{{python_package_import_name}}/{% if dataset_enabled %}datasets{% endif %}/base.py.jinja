@@ -8,10 +8,12 @@ from torchvision.transforms import Compose, Resize, ToTensor
 
 def default_image_transform(image_size: tuple[int, int] = (224, 224)) -> Compose:
     """Default transform: resize to image_size and convert to tensor."""
-    return Compose([
-        Resize(image_size),
-        ToTensor(),
-    ])
+    return Compose(
+        [
+            Resize(image_size),
+            ToTensor(),
+        ],
+    )
 
 
 class ImageFolderDataset(ImageFolder):

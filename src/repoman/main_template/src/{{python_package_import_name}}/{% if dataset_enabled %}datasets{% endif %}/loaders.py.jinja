@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, Subset
 from torchvision.transforms import Compose
 
 from {{python_package_import_name}}.config.dataset_config import DatasetConfig
-from {{python_package_import_name}}.datasets.base import ImageFolderDataset, default_image_transform
+from {{python_package_import_name}}.datasets.base import ImageFolderDataset
 from {{python_package_import_name}}.datasets.tabular import get_tabular_loaders as _get_tabular_loaders
 from {{python_package_import_name}}.datasets.text import get_text_loaders as _get_text_loaders
 

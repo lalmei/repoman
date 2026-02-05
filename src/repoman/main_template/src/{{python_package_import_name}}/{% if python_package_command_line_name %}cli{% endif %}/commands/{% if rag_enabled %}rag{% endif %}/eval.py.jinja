@@ -24,7 +24,7 @@ app = Typer(
 @app.callback(invoke_without_command=True)
 def eval_cmd(
     dataset: Path = Option(..., "--dataset", "-d", help="Path to eval dataset (JSONL or JSON)"),  # noqa: B008
-    theme: str = Option("dark", "--theme", help="Theme: light or dark"),  # noqa: B008
+    theme: str = Option("dark", "--theme", help="Theme: light or dark"),
 ) -> None:
     """Run RAG evaluation on a dataset of query/reference pairs."""
     console = Console(theme=set_theme(theme))
@@ -39,7 +39,7 @@ def eval_cmd(
                     Text("Dataset is empty.", style="red"),
                     title="Error",
                     border_style="red",
-                )
+                ),
             )
             raise SystemExit(1)  # noqa: TRY301
 
@@ -57,14 +57,14 @@ def eval_cmd(
         console.print(Panel(table, title="Metrics", border_style="green"))
     except FileNotFoundError as e:
         console.print(
-            Panel(Text(str(e), style="red"), title="Error", border_style="red")
+            Panel(Text(str(e), style="red"), title="Error", border_style="red"),
         )
-        raise SystemExit(1) from e  # noqa: TRY301
+        raise SystemExit(1) from e
     except Exception as e:
         console.print(
-            Panel(Text(str(e), style="red"), title="Error", border_style="red")
+            Panel(Text(str(e), style="red"), title="Error", border_style="red"),
         )
-        raise SystemExit(1) from e  # noqa: TRY301
+        raise SystemExit(1) from e
 {% else %}
 """Eval subcommand (disabled). Enable rag_enabled and dataset_enabled to use."""
 

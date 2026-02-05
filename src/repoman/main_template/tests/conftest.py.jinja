@@ -14,7 +14,6 @@ _noop_app = Typer()
 @_noop_app.callback(invoke_without_command=True)
 def _noop_callback() -> None:
     """No-op subcommand for testing main callback and ctx.obj."""
-    pass
 
 
 cli.add_typer(_noop_app, name="noop")

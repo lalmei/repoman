@@ -3,6 +3,7 @@
 See docs/development/testing.md#test-utilities-reference for full reference.
 """
 
+import contextlib
 import re
 import shutil
 import subprocess
@@ -38,16 +39,17 @@ def _run_ruff_format(project_dir: Path) -> None:
     ruff_config = project_dir / "config" / "ruff.toml"
     if not ruff_config.exists():
         return
-    try:
-        subprocess.run(
-            ["uv", "run", "ruff", "format", "src/", "tests/", f"--config={ruff_config}"],
+    uv_path = shutil.which("uv")
+    if not uv_path:
+        return
+    with contextlib.suppress(FileNotFoundError, subprocess.TimeoutExpired):
+        subprocess.run(  # noqa: S603
+            [uv_path, "run", "ruff", "format", "src/", "tests/", f"--config={ruff_config}"],
             cwd=project_dir,
             capture_output=True,
             check=False,
             timeout=120,
         )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
 
 
 def instantiate_template(

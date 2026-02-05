@@ -1,18 +1,11 @@
 """Fixtures for RAG tests."""
 
-import tempfile
-from pathlib import Path
-
-import pytest
-
-from {{python_package_import_name}}.rag.core.types import Chunk
 from {{python_package_import_name}}.rag.core.ports import (
+    DocstorePort,
     EmbedderPort,
     VectorIndexPort,
-    DocstorePort,
-    RerankerPort,
-    LLMPort,
 )
+from {{python_package_import_name}}.rag.core.types import Chunk
 
 
 class FakeEmbedder(EmbedderPort):

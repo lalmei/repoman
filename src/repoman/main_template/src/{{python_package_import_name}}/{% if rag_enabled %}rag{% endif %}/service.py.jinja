@@ -2,16 +2,15 @@
 
 from pathlib import Path
 
+from {{python_package_import_name}}.rag.core.pipeline import (
+    load_document_from_path,
+    run_ingest,
+    run_rag,
+)
 from {{python_package_import_name}}.rag.core.types import (
-    Document,
     IngestResult,
     QueryFilters,
     RAGAnswer,
-)
-from {{python_package_import_name}}.rag.core.pipeline import (
-    run_rag,
-    run_ingest,
-    load_document_from_path,
 )
 from {{python_package_import_name}}.rag.wiring.container import RAGContainer
 

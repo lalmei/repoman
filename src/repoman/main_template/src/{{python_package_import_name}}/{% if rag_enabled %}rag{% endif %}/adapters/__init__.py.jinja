@@ -1,15 +1,15 @@
 """RAG adapters (concrete implementations)."""
 
-from {{python_package_import_name}}.rag.adapters.embedder_sentence_transformers import SentenceTransformersEmbedder
-from {{python_package_import_name}}.rag.adapters.vector_faiss import FAISSVectorIndex
 from {{python_package_import_name}}.rag.adapters.docstore_sqlite import SQLiteDocstore
-from {{python_package_import_name}}.rag.adapters.reranker_sentence_transformers import SentenceTransformersReranker
+from {{python_package_import_name}}.rag.adapters.embedder_sentence_transformers import SentenceTransformersEmbedder
 from {{python_package_import_name}}.rag.adapters.llm_stub import StubLLM
+from {{python_package_import_name}}.rag.adapters.reranker_sentence_transformers import SentenceTransformersReranker
+from {{python_package_import_name}}.rag.adapters.vector_faiss import FAISSVectorIndex
 
 __all__: list[str] = [
-    "SentenceTransformersEmbedder",
     "FAISSVectorIndex",
     "SQLiteDocstore",
+    "SentenceTransformersEmbedder",
     "SentenceTransformersReranker",
     "StubLLM",
 ]

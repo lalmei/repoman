@@ -17,7 +17,7 @@ class SentenceTransformersEmbedder(EmbedderPort):
         except ImportError as e:
             raise ImportError(
                 "sentence-transformers is required for SentenceTransformersEmbedder. "
-                "Install with: uv sync --group rag"
+                "Install with: uv sync --group rag",
             ) from e
         self._model = SentenceTransformer(model_name)
         self._model_name = model_name

@@ -14,11 +14,11 @@ from pydantic_settings import (
 )
 
 from {{python_package_import_name}}._version import get_version
-{% if fastapi_enabled %}from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
-{% endif %}
-{% if rag_enabled %}from {{python_package_import_name}}.config.rag_config import RAGConfig
-{% endif %}
 {% if dataset_enabled %}from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+{% endif -%}
+{% if fastapi_enabled %}from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
+{% endif -%}
+{% if rag_enabled %}from {{python_package_import_name}}.config.rag_config import RAGConfig
 {% endif %}
 
 

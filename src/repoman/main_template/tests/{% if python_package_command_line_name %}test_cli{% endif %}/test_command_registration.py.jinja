@@ -94,7 +94,7 @@ def test_register_handles_import_error() -> None:
     def import_module_side_effect(name: str) -> types.ModuleType:
         if name.endswith(".badimport"):
             raise ImportError("Simulated import error for testing")
-        return types.ModuleType(name.split(".")[-1])
+        return types.ModuleType(name.rsplit(".", 1)[-1])
 
     register_module = "{{ python_package_import_name }}.cli.register"
     with (

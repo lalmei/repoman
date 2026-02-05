@@ -1,10 +1,9 @@
 """Ingest pipeline: load text, chunk, embed, write to vector index and docstore."""
 
-import hashlib
 import uuid
 from pathlib import Path
 
-from {{python_package_import_name}}.rag.core.ports import EmbedderPort, VectorIndexPort, DocstorePort
+from {{python_package_import_name}}.rag.core.ports import DocstorePort, EmbedderPort, VectorIndexPort
 from {{python_package_import_name}}.rag.core.types import Chunk, Document, IngestResult
 
 

@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from fastapi.testclient import TestClient
 
-from {{ python_package_import_name }}.app.router import root_api_router, _get_root_api_router
+from {{ python_package_import_name }}.app.router import _get_root_api_router, root_api_router
 
 
 def test_root_api_router_has_prefix() -> None:
