@@ -4,10 +4,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from {{ python_package_import_name }}.cli.messages.capability import supports_unicode_markdown
 
-
-def info_panel(message: str, console: Console | None = None) -> Panel:
+def info_panel(message: str, console: Console | None = None) -> Panel:  # noqa: ARG001 - API consistency
     """Build a neutral/info Panel.
 
     The message body is always rendered as plain Text, not Markdown, so file paths,
@@ -15,12 +13,12 @@ def info_panel(message: str, console: Console | None = None) -> Panel:
 
     Args:
         message: The informational message body.
-        console: Rich Console; when supported, title may use Unicode. Defaults to None.
+        console: Rich Console (kept for API consistency with error_panel/warning_panel).
+            Defaults to None.
 
     Returns:
         A blue-bordered Panel suitable for console.print().
     """
-    use_unicode = supports_unicode_markdown(console)
-    title = "\u2139 Info" if use_unicode else "Info"  # noqa: RUF001 - intentional Unicode symbol
+    title = "Info"
     body = Text(message, style="blue")
     return Panel(body, title=title, border_style="blue")
