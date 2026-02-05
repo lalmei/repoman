@@ -1,0 +1,6 @@
+
+commands:
+  - name: config
+    description: Manage repoman and template configuration
+    multiselection: true
+    choices:

@@ -109,9 +109,12 @@ repoman config [COMMAND] [OPTIONS]
 
 **Subcommands**
 
-| Subcommand | Description                                                              |
-| ---------- | ------------------------------------------------------------------------ |
-| `init`     | Generate a template answers file for use with `repoman create --answers` |
+| Subcommand   | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| `init`       | Generate a template answers file for use with `repoman create --answers` |
+| `validate`   | Validate an answers file against the template schema       |
+| `show`       | Print the bundled template answers or a single key         |
+| `list-keys`  | List prompt keys expected by the template (from copier.yml) |
 
 #### config init
 
@@ -135,6 +138,76 @@ repoman config init [OPTIONS]
 repoman config init
 repoman config init --output path/to/.copier-answers.yml
 repoman config init -o my-answers.yml --force
+```
+
+#### config validate
+
+Validate an answers file against the template schema (checks required keys and types).
+
+```bash
+repoman config validate [OPTIONS]
+```
+
+**Options**
+
+| Option     | Short | Description                                              |
+| ---------- | ----- | -------------------------------------------------------- |
+| `--answers`| `-a`  | Path to the answers file (default: `.copier-answers.yml`) |
+| `--strict` |       | Fail on extra keys not in schema                          |
+| `--quiet`  | `-q`  | Only exit with code; no success message                  |
+
+**Examples**
+
+```bash
+repoman config validate
+repoman config validate --answers path/to/.copier-answers.yml --strict
+```
+
+#### config show
+
+Print the bundled template answers to stdout, or a single key's value. Optionally write to a file.
+
+```bash
+repoman config show [OPTIONS]
+```
+
+**Options**
+
+| Option    | Short | Description                                    |
+| --------- | ----- | ---------------------------------------------- |
+| `--key`   | `-k`  | Show only this key's value                     |
+| `--output`| `-o`  | Write output to this path instead of stdout    |
+| `--force` | `-f`  | Overwrite existing file when using `--output`  |
+
+**Examples**
+
+```bash
+repoman config show
+repoman config show --key project_name
+repoman config show --output my-template.yml
+```
+
+#### config list-keys
+
+List prompt keys the template expects (from copier.yml). Excludes copier meta keys.
+
+```bash
+repoman config list-keys [OPTIONS]
+```
+
+**Options**
+
+| Option          | Short | Description                          |
+| --------------- | ----- | ------------------------------------ |
+| `--format`      | `-f`  | Output format: `table` (default) or `json` |
+| `--include-meta`|       | Include type, default, and when for each key |
+
+**Examples**
+
+```bash
+repoman config list-keys
+repoman config list-keys --format json
+repoman config list-keys --include-meta
 ```
 
 ### generator add
@@ -176,5 +249,8 @@ repoman create --help
 repoman update --help
 repoman config --help
 repoman config init --help
+repoman config validate --help
+repoman config show --help
+repoman config list-keys --help
 repoman generator add --help
 ```

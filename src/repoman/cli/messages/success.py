@@ -28,6 +28,11 @@ def format_next_steps(steps: list[str], console: Console | None = None) -> str:
     -------
     str
         Formatted steps string.
+
+    Example:
+    -------
+    With Unicode: ``"  • cd my-project\\n  • make install"``
+    Without Unicode: ``"  1. cd my-project\\n  2. make install"``
     """
     use_unicode = supports_unicode_markdown(console)
     if use_unicode:
@@ -61,6 +66,19 @@ def project_created(
     -------
     Panel
         Green-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses green border)::
+
+        ╭─ Success ────────────────────────────────────────────╮
+        │ Project 'my-project' created successfully in ./out   │
+        │ Copier options used:                                 │
+        │ { "key": "value" }                                   │
+        │ Next steps:                                          │
+        │   • cd my-project                                    │
+        │   • make install                                     │
+        ╰─────────────────────────────────────────────────────╯
     """
     use_unicode = supports_unicode_markdown(console)
     prefix = "✓ " if use_unicode else ""
@@ -103,6 +121,18 @@ def project_updated(
     -------
     Panel
         Green-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses green border)::
+
+        ╭─ Success ────────────────────────────────────────────╮
+        │ Project updated successfully in ./my-project         │
+        │ Copier options used:                                 │
+        │ { "key": "value" }                                   │
+        │ Next steps:                                          │
+        │   • make install                                     │
+        ╰─────────────────────────────────────────────────────╯
     """
     use_unicode = supports_unicode_markdown(console)
     prefix = "✓ " if use_unicode else ""
@@ -138,6 +168,15 @@ def command_created(_command_name: str, body_text: str, console: Console | None 
     -------
     Panel
         Green-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses green border)::
+
+        ╭─ Success ─────────────────────────────╮
+        │ Created src/pkg/cli/commands/mycmd/    │
+        │ Next steps: run tests                 │
+        ╰───────────────────────────────────────╯
     """
     use_unicode = supports_unicode_markdown(console)
     prefix = "✓ " if use_unicode else ""

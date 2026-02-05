@@ -3,16 +3,18 @@
 from pathlib import Path
 from typing import Annotated
 
-from rich.panel import Panel
-from rich.text import Text
 from typer import Context, Exit, Option, Typer
 
 from repoman.cli.messages import (
+    command_created,
     error_panel,
+    file_exists_use_force,
     format_next_steps,
+    output_path_not_file,
+    template_not_found,
+    template_path_not_file,
     warning_panel,
 )
-from repoman.cli.messages.capability import supports_unicode_markdown
 from repoman.resources import get_copier_answers_template
 from repoman.utils.logging import get_logger_console
 
@@ -60,17 +62,17 @@ def init(
     if output_resolved.is_dir():
         output_resolved = output_resolved / ".copier-answers.yml"
     elif output_resolved.exists() and not output_resolved.is_file():
-        console.print(error_panel(f"Output path is not a file: {output_resolved}", console=console))
+        console.print(error_panel(output_path_not_file(output_resolved), console=console))
         raise Exit(1) from None
 
     # Load template content
     if template is not None:
         template_path = Path(template).resolve()
         if not template_path.exists():
-            console.print(error_panel(f"Template file not found: {template_path}", console=console))
+            console.print(error_panel(template_not_found(template_path), console=console))
             raise Exit(1) from None
         if not template_path.is_file():
-            console.print(error_panel(f"Template path is not a file: {template_path}", console=console))
+            console.print(error_panel(template_path_not_file(template_path), console=console))
             raise Exit(1) from None
         logger.info(f"Using custom template at {template_path}")
         content = template_path.read_text(encoding="utf-8")
@@ -79,12 +81,7 @@ def init(
 
     # Refuse to overwrite unless --force
     if output_resolved.exists() and not force:
-        console.print(
-            warning_panel(
-                f"File already exists: {output_resolved}\nUse --force to overwrite.",
-                console=console,
-            )
-        )
+        console.print(warning_panel(file_exists_use_force(output_resolved), console=console))
         raise Exit(1) from None
 
     dry_run = ctx.obj.get("dry_run", False)
@@ -105,11 +102,5 @@ def init(
         "Run: repoman create PROJECT_NAME --answers " + str(output_resolved),
     ]
     steps_text = format_next_steps(next_steps, console=console)
-
-    use_unicode = supports_unicode_markdown(console)
-    prefix = "✓ " if use_unicode else ""
-    body = Text(
-        f"{prefix}Template written to {output_resolved}\n\nNext steps:\n{steps_text}",
-        style="green",
-    )
-    console.print(Panel(body, title="Success", border_style="green"))
+    body_text = f"Template written to {output_resolved}\n\nNext steps:\n{steps_text}"
+    console.print(command_created("config init", body_text, console=console))
