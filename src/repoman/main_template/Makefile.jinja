@@ -16,8 +16,7 @@ git.sha := $(strip $(or $(CI_COMMIT_SHORT_SHA),$(shell git rev-parse --short=8 H
 image.tag := $(if $(git.tag),$(git.tag),$(version)-$(git.sha))
 
 src.python := $(shell find ./src -type f -name "*.py" || :)
-test.unit.python := $(shell find ./tests/unit -type f -name "*.py" || :)
-test.smoke.python := $(shell find ./tests/smoke -type f -name "*.py" || :)
+test.unit.python := $(shell find ./tests -type f -name "*.py" || :)
 src.python.pyc := $(shell find ./src -type f -name "*.pyc")
 cache.dir := $(shell find . -type d -name __pycache__)
 checkpoint.dir := $(shell find . -type d -name .ipynb_checkpoints)
@@ -39,9 +38,9 @@ docker.image.deploy := {{python_package_distribution_name}}
 
 docker.image.registry := {{container_registry}}
 
-deployments.instances := $(shell find $(deployments.dir) -type d -mindepth 1 -maxdepth 2)
+# deployments.instances := $(shell find $(deployments.dir) -type d -mindepth 1 -maxdepth 2)
 # Containerization: build each deployment subfolder via Make
-subdirs := $(patsubst $(deployments.dir)/%,%,$(deployments.instances))
+# subdirs := $(patsubst $(deployments.dir)/%,%,$(deployments.instances))
 
 
 build.wheel := $(dist.dir)/{{python_package_distribution_name}}-$(version).tar.gz

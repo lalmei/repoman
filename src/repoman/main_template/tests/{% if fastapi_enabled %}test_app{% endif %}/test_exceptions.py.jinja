@@ -1,4 +1,3 @@
-{% if fastapi_enabled %}
 """Tests for HTTPException and exception handler."""
 
 import asyncio
@@ -69,6 +68,3 @@ def test_http_exception_handler_integration() -> None:
         response = test_client.get("/raise")
         assert response.status_code == 403
         assert response.json() == {"forbidden": True}
-{% else %}
-# Placeholder - fastapi disabled
-{% endif %}

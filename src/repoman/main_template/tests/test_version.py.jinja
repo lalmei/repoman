@@ -19,6 +19,9 @@ from {{ python_package_import_name }}._version import (
     get_version,
     version_info,
 )
+{% if python_package_command_line_name %}
+from {{ python_package_import_name }}.utils.theme.theme import set_theme
+{% endif %}
 
 
 class TestVersionFunctions:
@@ -58,7 +61,9 @@ class TestInterpreterNameVersion:
         assert isinstance(result[1], str)
 
     @patch("sys.implementation")
-    def test_interpreter_name_version_without_implementation(self, mock_implementation: Any) -> None:
+    def test_interpreter_name_version_without_implementation(
+        self, mock_implementation: Any
+    ) -> None:
         """Test _interpreter_name_version when sys.implementation doesn't exist."""
         delattr(sys, "implementation")
         try:
@@ -139,6 +144,19 @@ class TestGetDebugInfo:
         assert isinstance(result, Environment)
         assert isinstance(result.variables, list)
 
+    @patch.dict(os.environ, {"PYTHONPATH": "", "{{ python_package_import_name }}_TEST": ""})
+    def test_get_debug_info_with_empty_variables(self) -> None:
+        """Test get_debug_info filters out empty environment variables."""
+        result = get_debug_info()
+        for var in result.variables:
+            assert var.value != ""
+
+    def test_get_debug_info_package_version_error(self) -> None:
+        """Test get_debug_info returns valid Environment with packages list."""
+        result = get_debug_info()
+        assert isinstance(result, Environment)
+        assert isinstance(result.packages, list)
+
 
 class TestDebugInfo:
     """Test debug_info function."""
@@ -151,6 +169,56 @@ class TestDebugInfo:
     def test_debug_info_without_console(self) -> None:
         """Test debug_info without console (creates default)."""
         debug_info()
+
+    def test_debug_info_calls_get_debug_info(self) -> None:
+        """Test debug_info calls get_debug_info."""
+        console = Console()
+        debug_info(console)
+
+    def test_debug_info_creates_console_with_theme(self) -> None:
+        """Test debug_info creates console with theme when no console provided."""
+        debug_info()
+{% if python_package_command_line_name %}
+
+    def test_debug_info_wide_console_uses_layout(self) -> None:
+        """Test debug_info with use_layout True uses layout (wide terminal)."""
+        console = Console(theme=set_theme())
+        with patch("{{ python_package_import_name }}.cli.messages.layout.use_layout", return_value=True):
+            debug_info(console)
+
+    def test_debug_info_narrow_console_uses_panel(self) -> None:
+        """Test debug_info with use_layout False uses panel (narrow terminal)."""
+        console = Console(theme=set_theme())
+        with patch("{{ python_package_import_name }}.cli.messages.layout.use_layout", return_value=False):
+            debug_info(console)
+{% endif %}
+
+
+class TestErrorHandling:
+    """Test error handling scenarios."""
+
+    @patch("{{ python_package_import_name }}._version.metadata.version")
+    def test_get_version_metadata_error(self, mock_version: Any) -> None:
+        """Test get_version handles metadata errors."""
+        from importlib.metadata import PackageNotFoundError  # noqa: PLC0415
+
+        mock_version.side_effect = PackageNotFoundError("test-package")
+        result = get_version("test-package")
+        assert result == "0.0.0"
+
+
+class TestEdgeCases:
+    """Test edge cases and boundary conditions."""
+
+    def test_get_version_empty_string(self) -> None:
+        """Test get_version with empty string raises ValueError."""
+        with pytest.raises(ValueError, match="Distribution name cannot be empty or None"):
+            get_version("")
+
+    def test_get_version_none(self) -> None:
+        """Test get_version with None raises ValueError."""
+        with pytest.raises(ValueError, match="Distribution name cannot be empty or None"):
+            get_version(None)
 
 
 class TestInterpreterNonFinalRelease:

@@ -1,0 +1,85 @@
+"""Tests for get_train_val_loaders dispatch and rag_eval modality error."""
+
+from pathlib import Path
+
+import pytest
+
+pytest.importorskip("torch")
+
+from {{ python_package_import_name }}.config.dataset_config import DatasetConfig
+from {{ python_package_import_name }}.datasets.loaders import get_train_val_loaders
+
+
+def test_get_train_val_loaders_tabular(tmp_path: Path) -> None:
+    """get_train_val_loaders with modality=tabular returns tabular loaders."""
+    import pandas as pd
+
+    csv_path = tmp_path / "t.csv"
+    pd.DataFrame({"f1": [1.0, 2.0], "f2": [0, 1], "target": [0.0, 1.0]}).to_csv(
+        csv_path, index=False
+    )
+    config = DatasetConfig(
+        modality="tabular",
+        data_root=str(tmp_path),
+        tabular_format="csv",
+        target_column="target",
+        train_split=0.5,
+        seed=42,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_train_val_loaders(config, data_root=csv_path)
+    list(train_loader)
+    list(val_loader)
+
+
+def test_get_train_val_loaders_text(tmp_path: Path) -> None:
+    """get_train_val_loaders with modality=text returns text loaders."""
+    jsonl_path = tmp_path / "text.jsonl"
+    jsonl_path.write_text('{"text": "hello", "label": 0}\n{"text": "world", "label": 1}\n')
+    config = DatasetConfig(
+        modality="text",
+        data_root=str(tmp_path),
+        text_format="jsonl",
+        train_split=0.5,
+        seed=42,
+        batch_size=1,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_train_val_loaders(config, data_root=jsonl_path)
+    list(train_loader)
+    list(val_loader)
+
+
+def test_get_train_val_loaders_image(tmp_path: Path) -> None:
+    """get_train_val_loaders with modality=image returns image loaders."""
+    pytest.importorskip("PIL")
+    from PIL import Image
+
+    # Need at least 2 images so train split gets >= 1 sample (train_split=0.8)
+    for i, class_name in enumerate(("class0", "class1")):
+        class_dir = tmp_path / class_name
+        class_dir.mkdir()
+        img_path = class_dir / f"img{i}.png"
+        Image.new("RGB", (1, 1), color="red").save(img_path)
+
+    config = DatasetConfig(
+        modality="image",
+        data_root=str(tmp_path),
+        train_split=0.8,
+        seed=42,
+        batch_size=1,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_train_val_loaders(config, data_root=tmp_path)
+    list(train_loader)
+    list(val_loader)
+
+
+def test_get_train_val_loaders_rag_eval_raises() -> None:
+    """get_train_val_loaders with modality=rag_eval raises ValueError."""
+    config = DatasetConfig(modality="rag_eval")
+    with pytest.raises(ValueError, match=r"rag_eval.*no train/val loaders"):
+        get_train_val_loaders(config)

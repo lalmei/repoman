@@ -5,6 +5,7 @@ See docs/development/testing.md#test-utilities-reference for full reference.
 
 import re
 import shutil
+import subprocess
 import unicodedata
 from pathlib import Path
 
@@ -30,6 +31,23 @@ def _slugify(value: str, separator: str = "-") -> str:
     value = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
     value = re.sub(r"[^\w\s-]", "", value.lower())
     return re.sub(r"[-_\s]+", separator, value).strip("-_")
+
+
+def _run_ruff_format(project_dir: Path) -> None:
+    """Run ruff format on src/ and tests/ in project_dir if ruff is available."""
+    ruff_config = project_dir / "config" / "ruff.toml"
+    if not ruff_config.exists():
+        return
+    try:
+        subprocess.run(
+            ["uv", "run", "ruff", "format", "src/", "tests/", f"--config={ruff_config}"],
+            cwd=project_dir,
+            capture_output=True,
+            check=False,
+            timeout=120,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
 
 
 def instantiate_template(
@@ -143,6 +161,8 @@ def instantiate_template(
         run_copy(**copier_options)
         logger.info(f"Template instantiated successfully at {project_dir}")
         console.print(f"[green]✓[/green] Template instantiated at {project_dir}")
+        # Format generated Python so instantiated project passes make format-check
+        _run_ruff_format(project_dir)
     except CopierError as e:
         error_msg = f"Failed to instantiate template: {e}"
         logger.exception(error_msg)

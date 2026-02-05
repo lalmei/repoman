@@ -5,7 +5,6 @@ from rich.panel import Panel
 from rich.text import Text
 from typer import Argument, Option, Typer
 
-from {{python_package_import_name}}.cli.commands.rag import _get_rag_service
 from {{python_package_import_name}}.utils.theme.theme import set_theme
 
 app = Typer(
@@ -23,6 +22,8 @@ def ingest(
     theme: str = Option("dark", "--theme", help="Theme: light or dark"),
 ) -> None:
     """Ingest a document from path into the RAG index."""
+    from {{python_package_import_name}}.cli.commands.rag import _get_rag_service  # noqa: PLC0415
+
     console = Console(theme=set_theme(theme))
     try:
         service = _get_rag_service()

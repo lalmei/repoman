@@ -1,0 +1,170 @@
+"""Tests for RAG CLI commands: ingest, query, and (when dataset_enabled) eval."""
+
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+from typer.testing import CliRunner
+
+from {{ python_package_import_name }}.cli.commands.rag import app as rag_app
+from {{ python_package_import_name }}.rag.core.types import IngestResult, RAGAnswer, Citation
+
+
+@pytest.fixture
+def cli_runner() -> CliRunner:
+    """CLI runner for invoking RAG commands."""
+    return CliRunner()
+
+
+def test_rag_ingest_success(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Ingest command prints success when service returns."""
+    fake_result = IngestResult(
+        success=True,
+        source=str(tmp_path / "doc.txt"),
+        corpus_id="default",
+        chunks_ingested=3,
+    )
+    with patch(
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
+        return_value=MagicMock(ingest=MagicMock(return_value=fake_result)),
+    ):
+        result = cli_runner.invoke(
+            rag_app, ["ingest", str(tmp_path)], catch_exceptions=False
+        )
+    assert result.exit_code == 0
+    assert "Success" in result.output
+    assert "3" in result.output
+
+
+def test_rag_ingest_file_not_found(cli_runner: CliRunner) -> None:
+    """Ingest command exits 1 on FileNotFoundError."""
+    with patch(
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
+        return_value=MagicMock(
+            ingest=MagicMock(side_effect=FileNotFoundError("No such file"))
+        ),
+    ):
+        result = cli_runner.invoke(
+            rag_app, ["ingest", "/nonexistent/path"], catch_exceptions=False
+        )
+    assert result.exit_code == 1
+    assert "Error" in result.output
+
+
+def test_rag_ingest_generic_error(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Ingest command exits 1 on generic exception."""
+    with patch(
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
+        return_value=MagicMock(
+            ingest=MagicMock(side_effect=RuntimeError("Something broke"))
+        ),
+    ):
+        result = cli_runner.invoke(
+            rag_app, ["ingest", str(tmp_path)], catch_exceptions=False
+        )
+    assert result.exit_code == 1
+
+
+def test_rag_query_success(cli_runner: CliRunner) -> None:
+    """Query command prints answer and citations."""
+    fake_answer = RAGAnswer(
+        query="What is RAG?",
+        text="RAG is retrieval-augmented generation.",
+        citations=[
+            Citation(chunk_id="c1", text="Retrieval-augmented...", score=0.9, corpus_id="default"),
+        ],
+    )
+    with patch(
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
+        return_value=MagicMock(query=MagicMock(return_value=fake_answer)),
+    ):
+        result = cli_runner.invoke(
+            rag_app, ["query", "What is RAG?"], catch_exceptions=False
+        )
+    assert result.exit_code == 0
+    assert "Answer" in result.output
+    assert "retrieval-augmented" in result.output
+
+
+def test_rag_query_with_citations(cli_runner: CliRunner) -> None:
+    """Query command shows Citations panel when citations present."""
+    fake_answer = RAGAnswer(
+        query="What is RAG?",
+        text="Answer text.",
+        citations=[
+            Citation(chunk_id="id1", text="Cited chunk text here.", score=0.85, corpus_id="default"),
+        ],
+    )
+    with patch(
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
+        return_value=MagicMock(query=MagicMock(return_value=fake_answer)),
+    ):
+        result = cli_runner.invoke(
+            rag_app,
+            ["query", "--top-k", "3", "What is RAG?"],
+            catch_exceptions=False,
+        )
+    assert result.exit_code == 0, result.output
+    assert "Citations" in result.output
+
+
+def test_rag_query_error(cli_runner: CliRunner) -> None:
+    """Query command exits 1 on exception."""
+    with patch(
+        "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
+        return_value=MagicMock(query=MagicMock(side_effect=ValueError("Query failed"))),
+    ):
+        result = cli_runner.invoke(
+            rag_app, ["query", "fail"], catch_exceptions=False
+        )
+    assert result.exit_code == 1
+    assert "Error" in result.output
+
+
+def test_get_rag_service_with_rag_config() -> None:
+    """_get_rag_service returns RAGService when Config has rag_config."""
+    from {{ python_package_import_name }}.cli.commands.rag import _get_rag_service
+    from {{ python_package_import_name }}.rag import RAGService
+
+    with (
+        patch(
+            "{{ python_package_import_name }}.cli.commands.rag.Config",
+            return_value=MagicMock(rag_config=MagicMock()),
+        ),
+        patch(
+            "{{ python_package_import_name }}.cli.commands.rag.RAGContainer",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "{{ python_package_import_name }}.cli.commands.rag.RAGService",
+            wraps=RAGService,
+        ),
+    ):
+        service = _get_rag_service()
+    assert isinstance(service, RAGService)
+
+
+def test_get_rag_service_without_rag_config_raises() -> None:
+    """_get_rag_service raises RuntimeError when Config has no rag_config."""
+    from types import SimpleNamespace
+
+    from {{ python_package_import_name }}.cli.commands.rag import _get_rag_service
+
+    with (
+        patch(
+            "{{ python_package_import_name }}.cli.commands.rag.Config",
+            return_value=SimpleNamespace(),  # no rag_config attribute
+        ),
+        pytest.raises(RuntimeError, match=r"RAG not configured"),
+    ):
+        _get_rag_service()
+
+
+{% if not dataset_enabled %}
+def test_eval_cmd_raises_when_dataset_disabled() -> None:
+    """Eval subcommand raises RuntimeError when dataset_enabled is False."""
+    from {{ python_package_import_name }}.cli.commands.rag.eval import eval_cmd
+
+    with pytest.raises(RuntimeError, match=r"rag_enabled and dataset_enabled"):
+        eval_cmd()
+{% endif %}

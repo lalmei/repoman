@@ -17,6 +17,7 @@ _skip_if_exists:
 - CHANGELOG.md
 _tasks:
 - git init
+- command -v uv >/dev/null 2>&1 && uv run ruff format src/ tests/ --config=config/ruff.toml || true
 
 
 # PROMPT --------------------------------

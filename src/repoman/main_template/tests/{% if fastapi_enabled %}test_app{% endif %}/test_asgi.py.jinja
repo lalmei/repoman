@@ -1,4 +1,3 @@
-{% if fastapi_enabled %}
 """Tests for ASGI application and lifespan."""
 
 from unittest.mock import AsyncMock, patch
@@ -47,6 +46,3 @@ def test_lifespan_shutdown_closes_aiohttp_client() -> None:
         with TestClient(app):
             pass  # Exit triggers shutdown
         mock_close.assert_called_once()
-{% else %}
-# Placeholder - fastapi disabled
-{% endif %}
