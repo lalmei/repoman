@@ -5,8 +5,8 @@ from rich.panel import Panel
 from rich.text import Text
 from typer import Argument, Option, Typer
 
-from ....utils.theme.theme import set_theme
-from . import _get_rag_service
+from {{python_package_import_name}}.cli.commands.rag import _get_rag_service
+from {{python_package_import_name}}.utils.theme.theme import set_theme
 
 app = Typer(
     add_completion=True,

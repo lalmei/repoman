@@ -4,6 +4,11 @@ from typer import Typer
 
 from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.rag import RAGContainer, RAGService
+from {{python_package_import_name}}.cli.commands.rag.ingest import app as ingest_app
+from {{python_package_import_name}}.cli.commands.rag.query import app as query_app
+{% if dataset_enabled %}
+from {{python_package_import_name}}.cli.commands.rag.eval import app as eval_app
+{% endif %}
 
 app = Typer(add_completion=True, no_args_is_help=True)
 
@@ -16,12 +21,6 @@ def _get_rag_service() -> RAGService:
     container = RAGContainer(config.rag_config)
     return RAGService(container)
 
-
-from .ingest import app as ingest_app
-from .query import app as query_app
-{% if dataset_enabled %}
-from .eval import app as eval_app
-{% endif %}
 
 app.add_typer(ingest_app, name="ingest")
 app.add_typer(query_app, name="query")

@@ -52,10 +52,10 @@ class TextDataset(Dataset):
         """Load JSONL file."""
         rows = []
         with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    rows.append(json.loads(line))
+            for raw_line in f:
+                stripped = raw_line.strip()
+                if stripped:
+                    rows.append(json.loads(stripped))
         return rows
 
     def _load_csv(self, path: Path) -> list[dict]:

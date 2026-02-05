@@ -25,6 +25,7 @@ class RAGContainer:
     """Container that builds RAG ports from RAGConfig."""
 
     def __init__(self, config: RAGConfig) -> None:
+        """Build container from RAG config."""
         self._config = config
         self._embedder: EmbedderPort | None = None
         self._vector_index: VectorIndexPort | None = None

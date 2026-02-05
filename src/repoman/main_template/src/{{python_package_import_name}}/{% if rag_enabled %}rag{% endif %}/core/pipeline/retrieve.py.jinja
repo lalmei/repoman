@@ -47,7 +47,7 @@ def run_retrieve(
     chunk_ids = [cid for cid, _ in hits]
     chunks = docstore.get_many(chunk_ids)
     candidates: list[RetrievedChunk] = []
-    for (cid, score), ch in zip(hits, chunks):
+    for (_cid, score), ch in zip(hits, chunks):
         if ch is not None:
             candidates.append(
                 RetrievedChunk(

@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from {{python_package_import_name}}.rag import RAGService
 from {{python_package_import_name}}.rag.core.types import QueryFilters, RAGAnswer, IngestResult
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/rag", tags=["rag"])
 
 
 @router.get("/health", response_model=dict[str, bool])
-async def rag_health(service: RAGService = Depends(get_rag_service)) -> dict[str, bool]:
+async def rag_health(service: RAGService = Depends(get_rag_service)) -> dict[str, bool]:  # noqa: B008
     """Return which RAG providers are configured and ready."""
     return service.health()
 
@@ -34,7 +34,7 @@ class QueryResponse(RAGAnswer):
 @router.post("/query", response_model=QueryResponse)
 async def rag_query(
     body: dict[str, Any],
-    service: RAGService = Depends(get_rag_service),
+    service: RAGService = Depends(get_rag_service),  # noqa: B008
 ) -> QueryResponse:
     """Run RAG query: retrieve + generate answer with citations."""
     query = body.get("query", "")
@@ -49,10 +49,9 @@ async def rag_query(
 async def rag_ingest(
     request: Request,
     body: dict[str, Any],
-    service: RAGService = Depends(get_rag_service),
+    service: RAGService = Depends(get_rag_service),  # noqa: B008
 ) -> IngestResult:
     """Ingest a document from a provided source path (optional; can be disabled in prod)."""
-    from fastapi import HTTPException
     config = getattr(request.app.state, "config", None)
     if config is not None and hasattr(config, "rag_config") and not config.rag_config.ingest_enabled:
         raise HTTPException(status_code=403, detail="RAG ingest is disabled")

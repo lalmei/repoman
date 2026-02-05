@@ -20,6 +20,7 @@ class RAGService:
     """Facade exposing query and ingest using container and pipeline."""
 
     def __init__(self, container: RAGContainer) -> None:
+        """Initialize RAG service with container."""
         self._container = container
 
     def query(

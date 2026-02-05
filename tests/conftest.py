@@ -370,8 +370,8 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
                 pytest.fail(
                     f"Setup failed:\nCommand: {result.command}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
                 )
-            # Format and fix so template output passes format-check and lint tests
-            for cmd in ("format", "fix"):
+            # Format, fix (may change code), then format again so output passes format-check and lint
+            for cmd in ("format", "fix", "format"):
                 res = run_make_command(instantiated_path, cmd)
                 if res.returncode != 0:
                     pytest.fail(

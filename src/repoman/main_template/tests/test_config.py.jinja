@@ -68,6 +68,7 @@ def test_get_text_loaders() -> None:
         text_format="jsonl",
         train_split=0.67,
         batch_size=2,
+        pin_memory=False,  # avoid MPS warning in CI (e.g. Apple Silicon)
     )
     train_loader, _ = get_text_loaders(config, data_root=path)
     train_batches = list(train_loader)

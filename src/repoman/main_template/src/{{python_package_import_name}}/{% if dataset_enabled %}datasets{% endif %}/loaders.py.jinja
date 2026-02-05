@@ -2,6 +2,7 @@
 
 import random
 from pathlib import Path
+from typing import Any
 
 from torch.utils.data import DataLoader, Subset
 from torchvision.transforms import Compose
@@ -41,14 +42,14 @@ def _get_image_loaders(
     train_indices = indices[:split_idx]
     val_indices = indices[split_idx:]
 
-    train_loader = DataLoader(
+    train_loader: DataLoader[Any] = DataLoader(
         Subset(dataset, train_indices),
         batch_size=bs,
         shuffle=True,
         num_workers=config.num_workers,
         pin_memory=config.pin_memory,
     )
-    val_loader = DataLoader(
+    val_loader: DataLoader[Any] = DataLoader(
         Subset(dataset, val_indices),
         batch_size=bs,
         shuffle=False,
