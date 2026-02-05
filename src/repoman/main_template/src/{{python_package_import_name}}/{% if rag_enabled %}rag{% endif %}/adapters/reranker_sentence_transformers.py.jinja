@@ -18,7 +18,7 @@ class SentenceTransformersReranker(RerankerPort):
         except ImportError as e:
             raise ImportError(
                 "sentence-transformers is required for SentenceTransformersReranker. "
-                "Install with: uv sync --group rag"
+                "Install with: uv sync --group rag",
             ) from e
         self._model = CrossEncoder(model_name)
 

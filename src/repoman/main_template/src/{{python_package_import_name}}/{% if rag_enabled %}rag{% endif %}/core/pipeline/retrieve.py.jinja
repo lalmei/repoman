@@ -54,7 +54,7 @@ def run_retrieve(
                     corpus_id=ch.corpus_id,
                     score=score,
                     metadata=ch.metadata,
-                )
+                ),
             )
     if reranker is not None:
         k = rerank_top_k or top_k

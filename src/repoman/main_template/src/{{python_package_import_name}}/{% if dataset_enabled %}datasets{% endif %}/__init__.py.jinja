@@ -9,11 +9,11 @@ from {{python_package_import_name}}.datasets.types import RAGEvalItem
 
 __all__: list[str] = [
     "ImageFolderDataset",
-    "get_train_val_loaders",
-    "get_text_loaders",
-    "get_tabular_loaders",
-    "load_rag_eval_dataset",
     "RAGEvalItem",
+    "get_tabular_loaders",
+    "get_text_loaders",
+    "get_train_val_loaders",
+    "load_rag_eval_dataset",
 ]
 {% else %}
 """Dataset module (disabled). Enable dataset in copier answers to use this module."""

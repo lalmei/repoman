@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from {{ python_package_import_name }}.datasets import RAGEvalItem, load_rag_eval_dataset
-from {{ python_package_import_name }}.rag.core.types import RAGAnswer, Citation
+from {{ python_package_import_name }}.datasets import RAGEvalItem
+from {{ python_package_import_name }}.rag.core.types import Citation, RAGAnswer
 
 
 def test_answer_overlap_score_full_match() -> None:
@@ -107,7 +107,9 @@ def test_rag_eval_cli_success(cli_runner: CliRunner) -> None:
 
     with patch(
         "{{ python_package_import_name }}.cli.commands.rag._get_rag_service",
-        return_value=MagicMock(query=MagicMock(return_value=RAGAnswer(query="", text="Albert Einstein.", citations=[]))),
+        return_value=MagicMock(
+            query=MagicMock(return_value=RAGAnswer(query="", text="Albert Einstein.", citations=[])),
+        ),
     ):
         result = cli_runner.invoke(
             rag_app,

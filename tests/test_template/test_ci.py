@@ -101,8 +101,8 @@ def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
     src_package = project_dir / "src" / "test_project"
     assert not (src_package / "app").exists(), "app folder must not exist when fastapi_enabled is false"
 
-    # Setup and format/fix/format so generated code passes format-check and lint
-    for make_target in ("setup", "format", "fix", "format"):
+    # Setup and format so generated code passes format-check and lint (no fix)
+    for make_target in ("setup", "format"):
         result = run_make_command(project_dir, make_target)
         assert result.returncode == 0, f"make {make_target} failed: {result.stderr}"
 
@@ -118,12 +118,12 @@ def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:
     """Test that cleanup removes all artifacts after CI tests."""
     from tests.template_testing import cleanup_project_artifacts  # noqa: PLC0415
 
-    # Create some artifacts
-    (instantiated_template / ".venv").mkdir()
-    (instantiated_template / "dist").mkdir()
-    (instantiated_template / "__pycache__").mkdir()
-    (instantiated_template / ".pytest_cache").mkdir()
-    (instantiated_template / "site").mkdir()
+    # Create some artifacts (exist_ok in case e.g. copier task already created .venv)
+    (instantiated_template / ".venv").mkdir(exist_ok=True)
+    (instantiated_template / "dist").mkdir(exist_ok=True)
+    (instantiated_template / "__pycache__").mkdir(exist_ok=True)
+    (instantiated_template / ".pytest_cache").mkdir(exist_ok=True)
+    (instantiated_template / "site").mkdir(exist_ok=True)
 
     # Run cleanup
     cleanup_project_artifacts(instantiated_template)

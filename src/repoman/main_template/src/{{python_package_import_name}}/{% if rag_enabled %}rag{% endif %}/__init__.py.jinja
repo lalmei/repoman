@@ -9,15 +9,17 @@ from {{python_package_import_name}}.rag.core.types import (
     RAGAnswer,
     RetrievedChunk,
 )
+from {{python_package_import_name}}.rag.service import RAGService
+from {{python_package_import_name}}.rag.wiring import RAGContainer
 
 __all__: list[str] = [
-    "RAGService",
-    "RAGContainer",
     "Chunk",
     "Citation",
     "Document",
     "IngestResult",
     "QueryFilters",
     "RAGAnswer",
+    "RAGContainer",
+    "RAGService",
     "RetrievedChunk",
 ]

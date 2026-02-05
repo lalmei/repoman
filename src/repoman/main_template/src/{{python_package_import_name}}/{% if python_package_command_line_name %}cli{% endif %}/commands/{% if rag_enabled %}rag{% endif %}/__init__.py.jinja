@@ -2,13 +2,11 @@
 
 from typer import Typer
 
+{% if dataset_enabled %}from {{python_package_import_name}}.cli.commands.rag.eval import app as eval_app
+{% endif %}from {{python_package_import_name}}.cli.commands.rag.ingest import app as ingest_app
+from {{python_package_import_name}}.cli.commands.rag.query import app as query_app
 from {{python_package_import_name}}.config import Config
 from {{python_package_import_name}}.rag import RAGContainer, RAGService
-from {{python_package_import_name}}.cli.commands.rag.ingest import app as ingest_app
-from {{python_package_import_name}}.cli.commands.rag.query import app as query_app
-{% if dataset_enabled %}
-from {{python_package_import_name}}.cli.commands.rag.eval import app as eval_app
-{% endif %}
 
 app = Typer(add_completion=True, no_args_is_help=True)
 

@@ -3,9 +3,7 @@
 import importlib.util
 from pathlib import Path
 
-from {{ python_package_import_name }}.config import Config
-{% if dataset_enabled %}from {{ python_package_import_name }}.config import DatasetConfig
-{% endif %}
+from {{ python_package_import_name }}.config import Config{% if dataset_enabled %}, DatasetConfig{% endif %}
 
 
 def test_config_defaults() -> None:
@@ -50,12 +48,13 @@ def test_load_rag_eval_dataset() -> None:
     """Load eval_sample.jsonl and check structure."""
     from pathlib import Path
 
+    import pytest
+
     from {{ python_package_import_name }}.datasets import RAGEvalItem, load_rag_eval_dataset
 
     fixtures = Path(__file__).parent / "fixtures"
     path = fixtures / "eval_sample.jsonl"
     if not path.exists():
-        import pytest
         pytest.skip("eval_sample.jsonl fixture not found")
 
     items = load_rag_eval_dataset(path)
@@ -69,8 +68,9 @@ def test_load_rag_eval_dataset() -> None:
 
 def test_get_text_loaders() -> None:
     """Load text_sample.jsonl and get train/val loaders."""
-    import pytest
     from pathlib import Path
+
+    import pytest
 
     pytest.importorskip("torch")
 

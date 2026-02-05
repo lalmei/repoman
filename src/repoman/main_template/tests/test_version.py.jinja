@@ -19,9 +19,8 @@ from {{ python_package_import_name }}._version import (
     get_version,
     version_info,
 )
-{% if python_package_command_line_name %}
-from {{ python_package_import_name }}.utils.theme.theme import set_theme
-{% endif %}
+{% if python_package_command_line_name %}from {{ python_package_import_name }}.utils.theme.theme import set_theme
+{% endif -%}
 
 
 class TestVersionFunctions:
@@ -36,7 +35,7 @@ class TestVersionFunctions:
     @patch("{{ python_package_import_name }}._version.metadata.version")
     def test_get_version_package_not_found(self, mock_version: Any) -> None:
         """Test get_version when package is not found."""
-        from importlib.metadata import PackageNotFoundError  # noqa: PLC0415
+        from importlib.metadata import PackageNotFoundError
 
         mock_version.side_effect = PackageNotFoundError("nonexistent-package")
         result = get_version("nonexistent-package")
@@ -200,7 +199,7 @@ class TestErrorHandling:
     @patch("{{ python_package_import_name }}._version.metadata.version")
     def test_get_version_metadata_error(self, mock_version: Any) -> None:
         """Test get_version handles metadata errors."""
-        from importlib.metadata import PackageNotFoundError  # noqa: PLC0415
+        from importlib.metadata import PackageNotFoundError
 
         mock_version.side_effect = PackageNotFoundError("test-package")
         result = get_version("test-package")
