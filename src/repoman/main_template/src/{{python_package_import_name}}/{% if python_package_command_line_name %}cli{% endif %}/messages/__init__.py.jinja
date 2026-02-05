@@ -1,0 +1,19 @@
+"""CLI messages package for {{ python_package_import_name }}.
+
+Provides error_panel, warning_panel, info_panel, and use_layout for consistent
+CLI styling. Commands can import from this package for user-facing output.
+"""
+
+from {{ python_package_import_name }}.cli.messages.capability import supports_unicode_markdown
+from {{ python_package_import_name }}.cli.messages.error import error_panel
+from {{ python_package_import_name }}.cli.messages.layout import use_layout
+from {{ python_package_import_name }}.cli.messages.message import info_panel
+from {{ python_package_import_name }}.cli.messages.warning import warning_panel
+
+__all__ = [
+    "error_panel",
+    "info_panel",
+    "supports_unicode_markdown",
+    "use_layout",
+    "warning_panel",
+]
