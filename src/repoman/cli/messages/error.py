@@ -14,25 +14,20 @@ def error_panel(message: str, console: Console | None = None) -> Panel:
     underscores, and special characters in user-provided error messages are not
     interpreted as formatting.
 
-    Parameters
-    ----------
-    message : str
-        The error message body.
-    console : Console | None
-        Rich Console; when supported, title may use Unicode (e.g. ⚠).
+    Args:
+        message: The error message body.
+        console: Rich Console; when supported, title may use Unicode (e.g. ⚠).
+            Defaults to None.
 
     Returns:
-    -------
-    Panel
         A red-bordered Panel suitable for console.print().
 
-    Example:
-    -------
-    When rendered (plain text; terminal uses red border)::
+    Examples:
+        Panel (plain text; terminal uses red border)::
 
-        ╭─ Error ────────────────────────────╮
-        │ Answers file not found: /path.yml  │
-        ╰────────────────────────────────────╯
+            ╭─ Error ────────────────────────────╮
+            │ Answers file not found: /path.yml  │
+            ╰────────────────────────────────────╯
     """
     use_unicode = supports_unicode_markdown(console)
     title = "⚠ Error" if use_unicode else "Error"

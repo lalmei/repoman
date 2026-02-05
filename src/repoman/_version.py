@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from importlib import metadata
 
 from rich.console import Console
+from rich.layout import Layout
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -140,15 +141,41 @@ def get_debug_info() -> Environment:
     )
 
 
-def debug_info(console: Console | None = None) -> None:
-    """Return debug information."""
-    if not console:
-        console = Console(theme=set_theme())
+def _make_debug_layout(env: Environment) -> Layout:
+    """Build a Layout for debug info: header + packages | env vars."""
+    header_text = Text(
+        f"{env.interpreter_name} {env.interpreter_version}  |  {env.interpreter_path}  |  {env.platform}",
+        style="bold text",
+    )
+    header = Panel(header_text, title="Debug Info", title_align="left", border_style="bright_blue")
 
-    env = get_debug_info()
+    packages_table = Table(highlight=True, box=None, show_header=True, title=f"Packages ({len(env.packages)})")
+    packages_table.add_column("Package", style="rosewater")
+    packages_table.add_column("Version", style="bold text")
+    for pkg in env.packages:
+        packages_table.add_row(pkg.name, pkg.version)
 
+    env_table = Table(highlight=True, box=None, show_header=True, title="Environment Variables")
+    env_table.add_column("Variable", style="rosewater")
+    env_table.add_column("Value", style="bold text")
+    for var in env.variables:
+        env_table.add_row(var.name, var.value)
+
+    layout = Layout()
+    layout.split_column(
+        Layout(header, name="header", size=5),
+        Layout(name="main", ratio=1),
+    )
+    layout["main"].split_row(
+        Layout(Panel(packages_table, border_style="bright_blue"), name="packages", ratio=1),
+        Layout(Panel(env_table, border_style="bright_blue"), name="vars", ratio=1, minimum_size=30),
+    )
+    return layout
+
+
+def _make_debug_panel(env: Environment) -> Panel:
+    """Build a single Panel for debug info (fallback for narrow terminals)."""
     table = Table(highlight=True, box=None, show_header=False)
-
     table.add_row(
         Text("Interpreter Name", style="rosewater"),
         Text(env.interpreter_name, style="bold text"),
@@ -170,4 +197,19 @@ def debug_info(console: Console | None = None) -> None:
         Text("Enviroment Variables", style="rosewater"),
         Text.assemble(*[Text(str(var), style="bold text") for var in env.variables]),
     )
-    console.print(Panel(table, title="Debug Information", title_align="left"))
+    return Panel(table, title="Debug Information", title_align="left")
+
+
+def debug_info(console: Console | None = None) -> None:
+    """Return debug information."""
+    if not console:
+        console = Console(theme=set_theme())
+
+    env = get_debug_info()
+
+    from repoman.cli.messages.layout import use_layout
+
+    if use_layout(console):
+        console.print(_make_debug_layout(env))
+    else:
+        console.print(_make_debug_panel(env))

@@ -86,6 +86,9 @@ def validate(
             console.print("[green]Validation passed.[/green]")
         return
 
-    body = _format_report(report)
-    console.print(error_panel(body, console=console))
+    if use_layout(console, min_width=120):
+        console.print(layout_validation_failed(report))
+    else:
+        body = _format_report(report)
+        console.print(error_panel(body, console=console))
     raise Exit(1)

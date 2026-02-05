@@ -23,42 +23,43 @@ def dry_run_create(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
     _console: Console | None = None,
-) -> Panel:
-    """Build a blue dry-run Panel for project creation.
+) -> Union[Panel, Layout]:
+    """Build a blue dry-run Panel or Layout for project creation.
 
-    Parameters
-    ----------
-    project_name : str
-        Name of the project that would be created.
-    output_dir : Path | str
-        Output directory path.
-    template_path : Path | str
-        Template path used.
-    copier_options_serializable : dict
-        Copier options safe for JSON serialization.
-    next_steps_text : str
-        Preformatted next steps (e.g. from format_next_steps).
-    _console : Console | None
-        Reserved for API consistency with other message helpers; unused.
+    Uses a two-panel Layout on wide terminals (console.width >= 100); falls back
+    to single Panel on narrow terminals or piped output.
+
+    Args:
+        project_name: Name of the project that would be created.
+        output_dir: Output directory path.
+        template_path: Template path used.
+        copier_options_serializable: Copier options safe for JSON serialization.
+        next_steps_text: Preformatted next steps (e.g. from format_next_steps).
+        _console: Rich Console; used to decide Layout vs Panel. Defaults to None.
 
     Returns:
-    -------
-    Panel
-        Blue-bordered Panel suitable for console.print().
+        Blue-bordered Panel or Layout suitable for console.print().
 
-    Example:
-    -------
-    When rendered (plain text; terminal uses blue border)::
+    Examples:
+        Panel (narrow)::
 
-        ╭─ Dry Run ───────────────────────────────────────────╮
-        │ Would create project 'my-project' in ./out           │
-        │ Using template: /path/to/template                    │
-        │ Copier options:                                      │
-        │ { "key": "value" }                                   │
-        │ Next steps:                                          │
-        │   • cd my-project                                    │
-        ╰─────────────────────────────────────────────────────╯
+            ╭─ Dry Run ───────────────────────────────────────────╮
+            │ Would create project 'my-project' in ./out           │
+            │ Using template: /path/to/template                    │
+            │ Copier options: { "key": "value" }                   │
+            │ Next steps:   • cd my-project                        │
+            ╰─────────────────────────────────────────────────────╯
+
+        Layout (wide): Two-panel (summary + next steps | copier options).
     """
+    if use_layout(_console):
+        return layout_dry_run_create(
+            project_name,
+            str(output_dir),
+            str(template_path),
+            copier_options_serializable,
+            next_steps_text,
+        )
     summary = Text(
         f"Would create project '{project_name}' in {output_dir}\nUsing template: {template_path}\n",
         style="blue",
@@ -83,45 +84,36 @@ def dry_run_update(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
     _console: Console | None = None,
-) -> Panel:
-    """Build a blue dry-run Panel for project update.
+) -> Union[Panel, Layout]:
+    """Build a blue dry-run Panel or Layout for project update.
 
-    Parameters
-    ----------
-    project_dir : Path | str
-        Project directory path.
-    answers_path : Path | str
-        Path to answers file.
-    template_path : Path | str | None
-        Template path, or None if from answers file.
-    vcs_ref : str | None
-        VCS ref if specified.
-    copier_options_serializable : dict
-        Copier options safe for JSON serialization.
-    next_steps_text : str
-        Preformatted next steps (e.g. from format_next_steps).
-    _console : Console | None
-        Reserved for API consistency with other message helpers; unused.
+    Uses a two-panel Layout on wide terminals; falls back to single Panel on narrow.
+
+    Args:
+        project_dir: Project directory path.
+        answers_path: Path to answers file.
+        template_path: Template path, or None if from answers file.
+        vcs_ref: VCS ref if specified.
+        copier_options_serializable: Copier options safe for JSON serialization.
+        next_steps_text: Preformatted next steps (e.g. from format_next_steps).
+        _console: Rich Console; used to decide Layout vs Panel. Defaults to None.
 
     Returns:
-    -------
-    Panel
-        Blue-bordered Panel suitable for console.print().
+        Blue-bordered Panel or Layout suitable for console.print().
 
-    Example:
-    -------
-    When rendered (plain text; terminal uses blue border)::
-
-        ╭─ Dry Run ───────────────────────────────────────────╮
-        │ Would update project in ./my-project                 │
-        │ Using answers file: .copier-answers.yml              │
-        │ Using template: /path/to/template                    │
-        │ Copier options:                                      │
-        │ { "key": "value" }                                   │
-        │ Next steps:                                          │
-        │   • make install                                     │
-        ╰─────────────────────────────────────────────────────╯
+    Examples:
+        Panel (narrow): Similar to dry_run_create with update-specific fields.
+        Layout (wide): Two-panel (summary + next steps | copier options).
     """
+    if use_layout(_console):
+        return layout_dry_run_update(
+            str(project_dir),
+            str(answers_path),
+            str(template_path) if template_path else None,
+            vcs_ref,
+            copier_options_serializable,
+            next_steps_text,
+        )
     template_line = f"Using template: {template_path}\n" if template_path else "Template: (from answers file)\n"
     vcs_line = f"VCS ref: {vcs_ref}\n" if vcs_ref else ""
     summary = Text(
@@ -146,45 +138,41 @@ def dry_run_command_add(
     test_output_file: Path | str,
     context_lines: str,
     _console: Console | None = None,
-) -> Panel:
-    """Build a blue dry-run Panel for generator add command.
+) -> Union[Panel, Layout]:
+    """Build a blue dry-run Panel or Layout for generator add command.
 
-    Parameters
-    ----------
-    command_name : str
-        Name of the command that would be created.
-    command_output_file : Path | str
-        Path to command file.
-    test_output_file : Path | str
-        Path to test file.
-    context_lines : str
-        Template context summary (e.g. command_name, python_package_import_name, etc.).
-    _console : Console | None
-        Reserved for API consistency with other message helpers; unused.
+    Uses a two-panel Layout on wide terminals; falls back to single Panel on narrow.
+
+    Args:
+        command_name: Name of the command that would be created.
+        command_output_file: Path to command file.
+        test_output_file: Path to test file.
+        context_lines: Template context summary (e.g. command_name,
+            python_package_import_name, etc.).
+        _console: Rich Console; used to decide Layout vs Panel. Defaults to None.
 
     Returns:
-    -------
-    Panel
-        Blue-bordered Panel suitable for console.print().
+        Blue-bordered Panel or Layout suitable for console.print().
 
-    Example:
-    -------
-    When rendered (plain text; terminal uses blue border)::
+    Examples:
+        Panel (narrow)::
 
-        ╭─ Dry Run ───────────────────────────────────────────╮
-        │ Would create command 'mycmd':                        │
-        │                                                      │
-        │ Command: src/pkg/cli/commands/mycmd/__init__.py      │
-        │ Test: tests/test_cli/test_mycmd.py                   │
-        │                                                      │
-        │ command_name: mycmd                                  │
-        ╰─────────────────────────────────────────────────────╯
+            ╭─ Dry Run ───────────────────────────────────────────╮
+            │ Would create command 'mycmd':                        │
+            │ Command: src/pkg/cli/commands/mycmd/__init__.py      │
+            │ Test: tests/test_cli/test_mycmd.py                   │
+            │ command_name: mycmd                                  │
+            ╰─────────────────────────────────────────────────────╯
+
+        Layout (wide): Two-panel (summary + paths | template context).
     """
+    summary_section = (
+        f"Would create command '{command_name}':\n\nCommand: {command_output_file}\nTest: {test_output_file}"
+    )
+    if use_layout(_console):
+        return layout_dry_run_command_add(summary_section, context_lines)
     body = Text(
-        f"Would create command '{command_name}':\n\n"
-        f"Command: {command_output_file}\n"
-        f"Test: {test_output_file}\n\n"
-        f"{context_lines}",
+        f"{summary_section}\n\n{context_lines}",
         style="blue",
     )
     return Panel(body, title="Dry Run", border_style="blue")
