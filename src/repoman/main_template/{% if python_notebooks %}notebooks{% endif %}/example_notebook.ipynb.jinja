@@ -1,0 +1,144 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "c10677bd",
+   "metadata": {},
+   "source": [
+    "# Example Notebook\n",
+    "\n",
+    "This notebook uses the project's Python package so you can try code here, then move it into `src/{{python_package_import_name}}/` when it's ready. **Before running:** run `make kernel` in the project root, then in Jupyter choose the kernel named after this project (so imports see your package)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "import-pkg-md",
+   "metadata": {},
+   "source": [
+    "## Import the package\n",
+    "\n",
+    "Run this first. If it fails, run `make kernel` and select the project kernel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "77203cd8",
+   "metadata": {
+    "vscode": {
+     "languageId": "python"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import {{python_package_import_name}}"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "version-md",
+   "metadata": {},
+   "source": [
+    "## Check version\n",
+    "\n",
+    "Confirms the kernel sees your package and shows its version."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "version-code",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from {{python_package_import_name}} import get_version\n",
+    "print(get_version())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "debug-md",
+   "metadata": {},
+   "source": [
+    "## Environment info\n",
+    "\n",
+    "Shows which Python and paths the kernel is using. Use this if imports or paths behave oddly."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "debug-code",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from {{python_package_import_name}} import debug_info\n",
+    "debug_info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "config-md",
+   "metadata": {},
+   "source": [
+    "## Use project config\n",
+    "\n",
+    "The project loads settings (e.g. from `.env`) into a `Config` object. Here we load it and read one field."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "config-code",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from {{python_package_import_name}}.config import Config\n",
+    "cfg = Config()\n",
+    "print(cfg.app_name)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "moving-code-md",
+   "metadata": {},
+   "source": [
+    "## Moving code from notebook to the package\n",
+    "\n",
+    "1. Write and test code in cells.\n",
+    "2. When it works, move it into a new or existing module under `src/{{python_package_import_name}}/`.\n",
+    "3. Run `make kernel` again if you added a new module (or restart the kernel).\n",
+    "4. Import and use it in the notebook. This keeps the package as the single source of truth."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "reload-md",
+   "metadata": {},
+   "source": [
+    "## Reload after editing the package\n",
+    "\n",
+    "If you changed code in `src/{{python_package_import_name}}/`, run the cell below to reload the package without restarting the kernel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "reload-code",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import importlib\n",
+    "import {{python_package_import_name}} as pkg\n",
+    "importlib.reload(pkg)"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
