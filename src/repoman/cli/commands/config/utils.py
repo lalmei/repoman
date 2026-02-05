@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import yaml
+from pydantic import ConfigDict, ValidationError, create_model
 
 from repoman.cli.messages import answers_file_not_found
 
@@ -42,6 +44,51 @@ def load_answers(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
+def _schema_to_model(schema: dict, strict: bool) -> type:
+    """Build a dynamic Pydantic model from the copier schema.
+
+    Args:
+        schema: From load_prompt_schema(); keys are prompt names, values have type, choices.
+        strict: If True, extra keys are forbidden (ConfigDict extra='forbid').
+
+    Returns:
+        A Pydantic BaseModel subclass for validating answers.
+    """
+    extra = "forbid" if strict else "ignore"
+    config = ConfigDict(extra=extra)
+    fields: dict[str, tuple[type, ...]] = {}
+
+    for key, meta in schema.items():
+        if not isinstance(meta, dict):
+            continue
+        raw_type = meta.get("type", "str")
+        choices = meta.get("choices")
+
+        if choices is not None:
+            if isinstance(choices, dict):
+                allowed = tuple(choices.values())
+            else:
+                allowed = tuple(choices)
+            if allowed:
+                field_type: type = Literal[*allowed]
+            else:
+                field_type = str
+        elif raw_type == "bool":
+            field_type = bool
+        elif raw_type == "int":
+            field_type = int
+        else:
+            field_type = str
+
+        fields[key] = (field_type, ...)
+
+    return create_model(
+        "AnswersModel",
+        __config__=config,
+        **fields,
+    )
+
+
 def load_prompt_schema() -> dict:
     """Load prompt schema from repoman's copier.yml (keys and type info).
 
@@ -73,27 +120,40 @@ def validate_answers(
     Returns:
         ValidationReport with valid flag, missing_keys, extra_keys, type_errors.
     """
-    expected_keys = set(schema)
-    answer_keys = set(answers)
+    model = _schema_to_model(schema, strict)
 
-    missing_keys = sorted(expected_keys - answer_keys)
-    extra_keys = sorted(answer_keys - expected_keys) if strict else []
+    try:
+        model.model_validate(answers)
+        return ValidationReport(
+            valid=True,
+            missing_keys=[],
+            extra_keys=[],
+            type_errors=[],
+        )
+    except ValidationError as e:
+        missing_keys: list[str] = []
+        extra_keys: list[str] = []
+        type_errors: list[str] = []
 
-    type_errors: list[str] = []
-    for key in expected_keys & answer_keys:
-        expected_type = schema[key].get("type", "str")
-        value = answers[key]
-        if expected_type == "bool" and not isinstance(value, bool):
-            type_errors.append(f"{key}: expected bool, got {type(value).__name__}")
-        elif expected_type == "int" and not isinstance(value, int):
-            type_errors.append(f"{key}: expected int, got {type(value).__name__}")
-        elif expected_type == "str" and value is not None and not isinstance(value, str):
-            type_errors.append(f"{key}: expected str, got {type(value).__name__}")
+        for err in e.errors():
+            loc = err.get("loc", ())
+            err_type = err.get("type", "")
+            msg = err.get("msg", "")
 
-    valid = len(missing_keys) == 0 and len(extra_keys) == 0 and len(type_errors) == 0
-    return ValidationReport(
-        valid=valid,
-        missing_keys=missing_keys,
-        extra_keys=extra_keys,
-        type_errors=type_errors,
-    )
+            key = str(loc[0]) if len(loc) >= 1 else ""
+
+            if err_type in ("missing", "value_error.missing"):
+                if key and key not in missing_keys:
+                    missing_keys.append(key)
+            elif err_type in ("extra_forbidden", "value_error.extra"):
+                if key and key not in extra_keys:
+                    extra_keys.append(key)
+            else:
+                type_errors.append(f"{key}: {msg}" if key else msg)
+
+        return ValidationReport(
+            valid=False,
+            missing_keys=sorted(missing_keys),
+            extra_keys=sorted(extra_keys),
+            type_errors=type_errors,
+        )
