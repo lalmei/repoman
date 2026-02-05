@@ -25,6 +25,15 @@ def warning_panel(message: str, console: Console | None = None) -> Panel:
     -------
     Panel
         A yellow-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses yellow border)::
+
+        ╭─ Warning ─────────────────────────────╮
+        │ File already exists: /path/to/file    │
+        │ Use --force to overwrite.             │
+        ╰───────────────────────────────────────╯
     """
     use_unicode = supports_unicode_markdown(console)
     title = "⚠ Warning" if use_unicode else "Warning"

@@ -8,7 +8,13 @@ from pathlib import Path
 
 
 def answers_file_not_found(path: Path | str) -> str:
-    """Return message for missing answers file. For error_panel or FileNotFoundError."""
+    """Return message for missing answers file. For error_panel or FileNotFoundError.
+
+    Example:
+    -------
+    >>> answers_file_not_found("/path/to/answers.yml")
+    'Answers file not found: /path/to/answers.yml'
+    """
     return f"Answers file not found: {path}"
 
 
@@ -63,7 +69,13 @@ def invalid_conflict_mode(conflict: str) -> str:
 
 
 def copier_answers_not_found_for_update(path: Path | str) -> str:
-    """Return message when .copier-answers.yml is missing for update. For error_panel."""
+    """Return message when .copier-answers.yml is missing for update. For error_panel.
+
+    Example:
+    -------
+    Output starts with ``"Copier answers file not found: <path>"``, followed by
+    a blank line and hint lines about .copier-answers.yml and --answers.
+    """
     return (
         f"Copier answers file not found: {path}\n\n"
         "The .copier-answers.yml file is required for updating projects.\n"
@@ -100,7 +112,13 @@ def invalid_yaml(e: BaseException | str) -> str:
 
 
 def file_exists_use_force(path: Path | str) -> str:
-    """Return message when file exists and --force is needed. For warning_panel."""
+    """Return message when file exists and --force is needed. For warning_panel.
+
+    Example:
+    -------
+    >>> file_exists_use_force("/path/config.yml")
+    'File already exists: /path/config.yml\\nUse --force to overwrite.'
+    """
     return f"File already exists: {path}\nUse --force to overwrite."
 
 

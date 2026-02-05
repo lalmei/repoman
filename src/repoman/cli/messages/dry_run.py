@@ -38,6 +38,19 @@ def dry_run_create(
     -------
     Panel
         Blue-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses blue border)::
+
+        ╭─ Dry Run ───────────────────────────────────────────╮
+        │ Would create project 'my-project' in ./out           │
+        │ Using template: /path/to/template                    │
+        │ Copier options:                                      │
+        │ { "key": "value" }                                   │
+        │ Next steps:                                          │
+        │   • cd my-project                                    │
+        ╰─────────────────────────────────────────────────────╯
     """
     summary = Text(
         f"Would create project '{project_name}' in {output_dir}\nUsing template: {template_path}\n",
@@ -87,6 +100,20 @@ def dry_run_update(
     -------
     Panel
         Blue-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses blue border)::
+
+        ╭─ Dry Run ───────────────────────────────────────────╮
+        │ Would update project in ./my-project                 │
+        │ Using answers file: .copier-answers.yml              │
+        │ Using template: /path/to/template                    │
+        │ Copier options:                                      │
+        │ { "key": "value" }                                   │
+        │ Next steps:                                          │
+        │   • make install                                     │
+        ╰─────────────────────────────────────────────────────╯
     """
     template_line = f"Using template: {template_path}\n" if template_path else "Template: (from answers file)\n"
     vcs_line = f"VCS ref: {vcs_ref}\n" if vcs_ref else ""
@@ -132,6 +159,19 @@ def dry_run_command_add(
     -------
     Panel
         Blue-bordered Panel suitable for console.print().
+
+    Example:
+    -------
+    When rendered (plain text; terminal uses blue border)::
+
+        ╭─ Dry Run ───────────────────────────────────────────╮
+        │ Would create command 'mycmd':                        │
+        │                                                      │
+        │ Command: src/pkg/cli/commands/mycmd/__init__.py      │
+        │ Test: tests/test_cli/test_mycmd.py                   │
+        │                                                      │
+        │ command_name: mycmd                                  │
+        ╰─────────────────────────────────────────────────────╯
     """
     body = Text(
         f"Would create command '{command_name}':\n\n"
