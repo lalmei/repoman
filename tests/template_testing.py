@@ -44,7 +44,7 @@ def _run_ruff_format(project_dir: Path) -> None:
             cwd=project_dir,
             capture_output=True,
             check=False,
-            timeout=60,
+            timeout=120,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass

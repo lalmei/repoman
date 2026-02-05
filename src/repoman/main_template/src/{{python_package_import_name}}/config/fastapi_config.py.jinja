@@ -27,11 +27,11 @@ class FastAPIConfig(BaseSettings):
         extra="ignore",
     )
 
-    docs_url: str = "{{ fastapi_docs_url }}"
+    docs_url: str = "{{ fastapi_docs_url | default('/docs') }}"
     debug: bool = {% if fastapi_debug %}True{% else %}False{% endif %}
-    api_prefix: str = "{{ fastapi_api_prefix }}"
-    aiohttp_timeout: int = {{ aiohttp_timeout }}
-    aiohttp_pool_size: int = {{ aiohttp_pool_size }}
+    api_prefix: str = "{{ fastapi_api_prefix | default('/api') }}"
+    aiohttp_timeout: int = {{ aiohttp_timeout | default(2) }}
+    aiohttp_pool_size: int = {{ aiohttp_pool_size | default(100) }}
 
     @classmethod
     def settings_customise_sources(
