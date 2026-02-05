@@ -1,12 +1,19 @@
 """CLI dry-run message panels."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from rich.console import Console, Group
 from rich.json import JSON
+from rich.layout import Layout
 from rich.panel import Panel
 from rich.text import Text
+
+from repoman.cli.messages.layout import (
+    layout_dry_run_create,
+    layout_dry_run_update,
+    use_layout,
+)
 
 
 def dry_run_create(

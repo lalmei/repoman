@@ -1,14 +1,20 @@
 """CLI success message utilities."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from rich.console import Console, Group
 from rich.json import JSON
+from rich.layout import Layout
 from rich.panel import Panel
 from rich.text import Text
 
 from repoman.cli.messages.capability import supports_unicode_markdown
+from repoman.cli.messages.layout import (
+    layout_project_created,
+    layout_project_updated,
+    use_layout,
+)
 
 
 def format_next_steps(steps: list[str], console: Console | None = None) -> str:
