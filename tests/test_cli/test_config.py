@@ -151,6 +151,23 @@ def test_config_init_template_not_found(cli_runner: CliRunner, cli_app: Typer, t
     assert out.exists() is False
 
 
+def test_config_init_template_path_not_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config init when --template path exists but is not a file (e.g. directory) fails (init_.py 75-76)."""
+    out = tmp_path / "out.yml"
+    adir = tmp_path / "adir"
+    adir.mkdir()
+    result = cli_runner.invoke(
+        cli_app,
+        ["config", "init", "--output", str(out), "--template", str(adir)],
+        input="",
+    )
+    assert result.exit_code == 1
+    plain = strip_ansi_codes(_all_output(result))
+    if plain:
+        assert "not a file" in plain.lower() or "template" in plain.lower()
+    assert out.exists() is False
+
+
 def test_config_init_output_path_not_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
     """Test config init --output when path exists but is not a file (e.g. FIFO) fails."""
     if not hasattr(os, "mkfifo"):
