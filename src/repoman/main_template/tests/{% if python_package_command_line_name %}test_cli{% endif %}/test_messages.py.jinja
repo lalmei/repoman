@@ -1,0 +1,38 @@
+"""Tests for the CLI messages module."""
+
+from __future__ import annotations
+
+from rich.panel import Panel
+
+from {{ python_package_import_name }}.cli.messages import (
+    error_panel,
+    info_panel,
+    use_layout,
+    warning_panel,
+)
+
+
+def test_error_panel_returns_panel() -> None:
+    """error_panel returns a Rich Panel."""
+    result = error_panel("Something went wrong", console=None)
+    assert isinstance(result, Panel)
+    assert "Error" in result.title
+
+
+def test_warning_panel_returns_panel() -> None:
+    """warning_panel returns a Rich Panel."""
+    result = warning_panel("Be careful", console=None)
+    assert isinstance(result, Panel)
+    assert "Warning" in result.title
+
+
+def test_info_panel_returns_panel() -> None:
+    """info_panel returns a Rich Panel."""
+    result = info_panel("For your information", console=None)
+    assert isinstance(result, Panel)
+    assert "Info" in result.title
+
+
+def test_use_layout_with_none_returns_false() -> None:
+    """use_layout(None) returns False (no Layout for headless/piped)."""
+    assert use_layout(None) is False
