@@ -85,6 +85,8 @@ def get_version(dist: str = "repoman") -> str:
     Returns:
         A version number.
     """
+    if not dist:
+        raise ValueError("Distribution name cannot be empty or None")
     try:
         return metadata.version(dist)
     except metadata.PackageNotFoundError:
