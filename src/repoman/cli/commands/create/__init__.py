@@ -11,9 +11,11 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from typer import Argument, Context, Exit, Option, Typer
 
 from repoman.cli.messages import (
+    answers_file_not_found,
     dry_run_create,
     error_panel,
     format_next_steps,
+    output_dir_exists_use_force,
     project_created,
     warning_panel,
 )
@@ -133,17 +135,12 @@ def create(
 
     # Check if output directory exists
     if output_dir_obj.exists() and not force:
-        console.print(
-            warning_panel(
-                f"Output directory {output_dir_obj} already exists. Use --force to overwrite.",
-                console=console,
-            )
-        )
+        console.print(warning_panel(output_dir_exists_use_force(output_dir_obj), console=console))
         raise Exit(1) from None
     if answers_file is not None:
         answers_path = Path(answers_file).resolve()
         if not answers_path.exists():
-            console.print(error_panel(f"Answers file not found: {answers_path}", console=console))
+            console.print(error_panel(answers_file_not_found(answers_path), console=console))
             raise Exit(1) from None
         console.print(f"Using answers file: {answers_path}")
         with open(answers_path) as f:

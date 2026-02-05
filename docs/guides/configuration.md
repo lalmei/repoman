@@ -22,6 +22,26 @@ repoman config init --output path/to/.copier-answers.yml
 
 If you omit `--output`, the file is written as `.copier-answers.yml` in the current directory. Edit the file with your project values, then pass it to `repoman create --answers`. See the [CLI reference](../cli.md#config) for options (`--force`, `--template`).
 
+## Validating an answers file
+
+To check that an answers file has all required keys and correct types (e.g. before running in CI), use:
+
+```bash
+repoman config validate --answers path/to/.copier-answers.yml
+```
+
+Use `--strict` to also fail if the file contains extra keys not in the template schema. Use `--quiet` to only rely on the exit code (0 = valid, 1 = invalid).
+
+## Inspecting prompt keys
+
+To list the prompt keys the template expects (from `copier.yml`), use:
+
+```bash
+repoman config list-keys
+```
+
+Use `--format json` for machine-readable output, or `--include-meta` to show type, default, and `when` conditions for each key. To print the full bundled template (or a single key's value), use `repoman config show`; see the [CLI reference](../cli.md#config-show).
+
 ## Non-interactive use
 
 To run repoman without prompts (e.g. in CI or scripts), pass an answers file:

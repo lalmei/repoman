@@ -222,3 +222,54 @@ def test_project_updated_returns_panel(tmp_path: Path) -> None:
     panel = project_updated(tmp_path / "out", {}, "steps", console=Console())
     assert panel.title == "Success"
     assert panel.border_style == "green"
+
+
+# --- error_text (message string helpers) ---
+
+
+def test_answers_file_not_found() -> None:
+    """answers_file_not_found includes path and 'not found'."""
+    msg = answers_file_not_found("/path/to/answers.yml")
+    assert "not found" in msg.lower()
+    assert "/path/to/answers.yml" in msg
+
+
+def test_schema_not_found() -> None:
+    """schema_not_found mentions schema/copier."""
+    msg = schema_not_found()
+    assert "schema" in msg.lower()
+    assert "copier" in msg.lower()
+
+
+def test_schema_not_found_skipping_validation() -> None:
+    """schema_not_found_skipping_validation mentions skipping."""
+    msg = schema_not_found_skipping_validation()
+    assert "skipping" in msg.lower()
+
+
+def test_project_dir_not_found(tmp_path: Path) -> None:
+    """project_dir_not_found includes path."""
+    msg = project_dir_not_found(tmp_path / "proj")
+    assert "not exist" in msg.lower() or "not found" in msg.lower()
+    assert "proj" in msg
+
+
+def test_file_exists_use_force(tmp_path: Path) -> None:
+    """file_exists_use_force includes path and --force."""
+    msg = file_exists_use_force(tmp_path / "file.yml")
+    assert "already exists" in msg.lower() or "exists" in msg.lower()
+    assert "force" in msg.lower()
+
+
+def test_unknown_format() -> None:
+    """unknown_format includes format and allowed options."""
+    msg = unknown_format("xml")
+    assert "xml" in msg
+    assert "table" in msg or "json" in msg
+
+
+def test_invalid_yaml() -> None:
+    """invalid_yaml includes the error detail."""
+    msg = invalid_yaml("parse error at line 1")
+    assert "yaml" in msg.lower()
+    assert "parse error" in msg.lower()

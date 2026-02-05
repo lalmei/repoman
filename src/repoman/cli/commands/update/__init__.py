@@ -8,10 +8,15 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from typer import Argument, Context, Exit, Option, Typer
 
 from repoman.cli.messages import (
+    copier_answers_not_found_for_update,
     dry_run_update,
     error_panel,
     format_next_steps,
+    invalid_conflict_mode,
+    project_dir_not_found,
+    project_path_not_directory,
     project_updated,
+    template_path_does_not_exist,
 )
 from repoman.utils.logging import get_logger_console
 
@@ -49,12 +54,7 @@ def update(
 
     # Validate conflict mode
     if conflict not in ["inline", "rej"]:
-        console.print(
-            error_panel(
-                f"Invalid conflict mode: {conflict}. Must be 'inline' or 'rej'.",
-                console=console,
-            )
-        )
+        console.print(error_panel(invalid_conflict_mode(conflict), console=console))
         raise Exit(1) from None
 
     # Determine project directory
@@ -62,11 +62,11 @@ def update(
 
     # Validate project directory exists
     if not project_dir_obj.exists():
-        console.print(error_panel(f"Project directory does not exist: {project_dir_obj}", console=console))
+        console.print(error_panel(project_dir_not_found(project_dir_obj), console=console))
         raise Exit(1) from None
 
     if not project_dir_obj.is_dir():
-        console.print(error_panel(f"Project path is not a directory: {project_dir_obj}", console=console))
+        console.print(error_panel(project_path_not_directory(project_dir_obj), console=console))
         raise Exit(1) from None
 
     # Determine answers file path
@@ -78,15 +78,7 @@ def update(
 
     # Validate answers file exists (required for copier update)
     if not answers_file_path.exists():
-        console.print(
-            error_panel(
-                f"Copier answers file not found: {answers_file_path}\n\n"
-                "The .copier-answers.yml file is required for updating projects.\n"
-                "Make sure you're in a repoman-generated project directory,\n"
-                "or specify the answers file with --answers.",
-                console=console,
-            )
-        )
+        console.print(error_panel(copier_answers_not_found_for_update(answers_file_path), console=console))
         raise Exit(1) from None
 
     # Determine template path
@@ -94,12 +86,7 @@ def update(
     if template_path is not None:
         template_path_obj = Path(template_path).resolve()
         if not template_path_obj.exists():
-            console.print(
-                error_panel(
-                    f"Template path does not exist: {template_path_obj}",
-                    console=console,
-                )
-            )
+            console.print(error_panel(template_path_does_not_exist(template_path_obj), console=console))
             raise Exit(1) from None
         logger.info(f"Using custom template at {template_path_obj}")
     else:

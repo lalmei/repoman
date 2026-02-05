@@ -43,6 +43,8 @@ nav:
   - Development Guide: development/README.md
   - Tools: development/tools.md
   - Code Quality: development/code-quality.md
+  - CLI messages: development/cli-messages.md
+  - Config validation: development/config-validation.md
   - Documentation: development/documentation.md
   - CI: development/ci.md
   - Debugging: development/debugging.md

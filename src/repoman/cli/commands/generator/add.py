@@ -10,10 +10,17 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from typer import Argument, Exit, Option, Typer
 
 from repoman.cli.messages import (
+    answers_file_not_found,
     command_created,
+    command_file_exists_use_force,
+    copier_answers_not_found_with_hint,
     dry_run_command_add,
     error_panel,
     format_next_steps,
+    missing_python_package_import_name,
+    project_dir_not_found,
+    template_dir_not_found,
+    test_file_exists_use_force,
     warning_panel,
 )
 from repoman.extensions import CurrentYearExtension, GitExtension, SlugifyExtension
@@ -83,7 +90,7 @@ def load_copier_answers(answers_file: Path) -> dict:
         yaml.YAMLError: If the file is not valid YAML
     """
     if not answers_file.exists():
-        raise FileNotFoundError(f"Answers file not found: {answers_file}")
+        raise FileNotFoundError(answers_file_not_found(answers_file))
 
     with open(answers_file) as f:
         return yaml.safe_load(f) or {}
@@ -149,7 +156,7 @@ def add(
     project_dir_path: Path = Path.cwd() if project_dir is None else Path(project_dir).resolve()
 
     if not project_dir_path.exists():
-        console.print(error_panel(f"Project directory does not exist: {project_dir_path}", console=console))
+        console.print(error_panel(project_dir_not_found(project_dir_path), console=console))
         raise Exit(1) from None
 
     # Determine answers file path
@@ -161,14 +168,7 @@ def add(
     try:
         answers = load_copier_answers(answers_file_path)
     except FileNotFoundError as e:
-        console.print(
-            error_panel(
-                f"Could not find copier answers file: {e}\n\n"
-                "Make sure you're in a repoman-generated project directory,\n"
-                "or specify the answers file with --answers.",
-                console=console,
-            )
-        )
+        console.print(error_panel(copier_answers_not_found_with_hint(e), console=console))
         raise Exit(1) from e
     except yaml.YAMLError as e:
         console.print(error_panel(str(e), console=console))
@@ -177,13 +177,7 @@ def add(
     # Extract required context
     python_package_import_name = answers.get("python_package_import_name")
     if not python_package_import_name:
-        console.print(
-            error_panel(
-                "Missing 'python_package_import_name' in answers file.\n"
-                "This is required to determine where to create the command.",
-                console=console,
-            )
-        )
+        console.print(error_panel(missing_python_package_import_name(), console=console))
         raise Exit(1) from None
 
     python_package_command_line_name = answers.get("python_package_command_line_name", python_package_import_name)
@@ -205,8 +199,7 @@ def add(
     if not template_dir.exists():
         console.print(
             error_panel(
-                f"Template directory not found: {template_dir}\n"
-                "Expected: extentions/command_template/{{command_name}}/",
+                template_dir_not_found(template_dir, "Expected: extentions/command_template/{{command_name}}/"),
                 console=console,
             )
         )
@@ -237,20 +230,10 @@ def add(
     # Check if files already exist
     if not force:
         if command_output_file.exists():
-            console.print(
-                warning_panel(
-                    f"Command file already exists: {command_output_file}\nUse --force to overwrite.",
-                    console=console,
-                )
-            )
+            console.print(warning_panel(command_file_exists_use_force(command_output_file), console=console))
             raise Exit(1) from None
         if test_output_file.exists():
-            console.print(
-                warning_panel(
-                    f"Test file already exists: {test_output_file}\nUse --force to overwrite.",
-                    console=console,
-                )
-            )
+            console.print(warning_panel(test_file_exists_use_force(test_output_file), console=console))
             raise Exit(1) from None
 
     # Render templates
