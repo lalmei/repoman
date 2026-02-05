@@ -63,7 +63,7 @@ def validate(
     Loads the file and checks that required keys exist and types match the
     template schema (from copier.yml). Use --strict to also fail on extra keys.
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
     path = answers_file.resolve()
 
     try:

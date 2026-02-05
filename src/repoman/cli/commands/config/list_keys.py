@@ -17,6 +17,8 @@ app = Typer(
     help="List prompt keys expected by the template (from copier.yml)",
 )
 
+_MAX_DEFAULT_DISPLAY_LEN = 40
+
 
 def _serialize_value(v: object) -> object:
     """Make schema values JSON-serializable."""
@@ -49,7 +51,7 @@ def list_keys(
     Excludes copier meta keys (those starting with _). Use --include-meta to
     show type, default, and when for each key. Use --format json for machine-readable output.
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
     schema = load_prompt_schema()
     if not schema:
         console.print(error_panel(schema_not_found(), console=console))
@@ -58,10 +60,7 @@ def list_keys(
     keys = sorted(schema.keys())
 
     if format == "json":
-        if include_meta:
-            out = {k: _serialize_value(schema[k]) for k in keys}
-        else:
-            out = keys
+        out = {k: _serialize_value(schema[k]) for k in keys} if include_meta else keys
         console.print(json.dumps(out, indent=2))
         return
 
@@ -81,8 +80,8 @@ def list_keys(
             type_ = meta.get("type", "")
             default = meta.get("default", "")
             when = meta.get("when", "")
-            if isinstance(default, str) and len(default) > 40:
-                default = default[:37] + "..."
+            if isinstance(default, str) and len(default) > _MAX_DEFAULT_DISPLAY_LEN:
+                default = default[: _MAX_DEFAULT_DISPLAY_LEN - 3] + "..."
             table.add_row(k, str(type_), str(default), str(when))
         console.print(table)
     else:

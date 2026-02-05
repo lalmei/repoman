@@ -19,7 +19,7 @@ from repoman.cli.messages.layout import (
 
 
 def format_next_steps(steps: list[str], console: Console | None = None) -> str:
-    """Format a list of next steps as a single string for use in panels.
+    r"""Format a list of next steps as a single string for use in panels.
 
     When the console supports Unicode, uses bullet "•"; otherwise uses
     numbered lines "  1. step", "  2. step", ...

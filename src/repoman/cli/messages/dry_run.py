@@ -10,6 +10,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from repoman.cli.messages.layout import (
+    layout_dry_run_command_add,
     layout_dry_run_create,
     layout_dry_run_update,
     use_layout,

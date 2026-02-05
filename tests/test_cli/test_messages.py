@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from rich.console import Console
+from rich.layout import Layout
 
 from repoman.cli.messages import (
     answers_file_not_found,
@@ -73,7 +74,6 @@ def test_project_created_returns_layout_when_wide(tmp_path: Path) -> None:
         "  • step",
         console=console,
     )
-    from rich.layout import Layout
 
     assert isinstance(result, Layout)
 

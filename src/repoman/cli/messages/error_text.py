@@ -213,7 +213,7 @@ def invalid_yaml(e: BaseException | str) -> str:
 
 
 def file_exists_use_force(path: Path | str) -> str:
-    """Return message when file exists and --force is needed. For warning_panel.
+    r"""Return message when file exists and --force is needed. For warning_panel.
 
     Args:
         path: Path to the existing file.

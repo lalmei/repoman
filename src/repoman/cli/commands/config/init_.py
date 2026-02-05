@@ -45,7 +45,7 @@ def init(
             help="Path to a custom template file (default: use bundled template)",
         ),
     ] = None,
-    force: Annotated[  # noqa: FBT002
+    force: Annotated[
         bool,
         Option("--force", "-f", help="Overwrite existing file"),
     ] = False,

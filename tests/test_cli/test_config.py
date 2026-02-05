@@ -1,5 +1,6 @@
 """Tests for the config command and config init subcommand."""
 
+import json
 from pathlib import Path
 
 from typer import Typer
@@ -283,9 +284,7 @@ def test_config_list_keys_json(cli_runner: CliRunner, cli_app: Typer) -> None:
     assert result.exit_code == 0
     plain = _all_output(result)
     if plain:
-        import json as _json
-
-        data = _json.loads(plain)
+        data = json.loads(plain)
         assert isinstance(data, list)
         assert "project_name" in data
         assert "ci" in data

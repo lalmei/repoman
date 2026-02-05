@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.json import JSON
 from rich.layout import Layout
 from rich.panel import Panel
+from rich.syntax import Syntax
 from rich.text import Text
 
 
@@ -33,9 +34,7 @@ def use_layout(console: Console | None, min_width: int = 100) -> bool:
     if console is None:
         return False
     width = getattr(console, "width", None)
-    if width is None or width < min_width:
-        return False
-    return True
+    return not (width is None or width < min_width)
 
 
 def _make_two_panel_layout(
@@ -77,7 +76,7 @@ def layout_project_created(
     output_dir: str,
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
-    console: Console | None,
+    _console: Console | None,
     *,
     use_unicode: bool,
 ) -> Layout:
@@ -116,7 +115,7 @@ def layout_project_updated(
     project_dir: str,
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
-    console: Console | None,
+    _console: Console | None,
     *,
     use_unicode: bool,
 ) -> Layout:
@@ -321,8 +320,6 @@ def layout_config_show_template(raw_yaml: str, key_count: int) -> tuple[Layout, 
             │ ...                                               │
             ╰──────────────────────────────────────────────────╯
     """
-    from rich.syntax import Syntax
-
     header_text = Text(f"Template answers ({key_count} keys)", style="bold")
     header = Panel(header_text, border_style="bright_blue")
     syntax = Syntax(raw_yaml, "yaml", line_numbers=False)

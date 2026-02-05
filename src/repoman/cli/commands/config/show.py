@@ -32,7 +32,7 @@ def show(
             help="Write output to this path instead of stdout",
         ),
     ] = None,
-    force: Annotated[  # noqa: FBT002
+    force: Annotated[
         bool,
         Option("--force", "-f", help="Overwrite existing file when using --output"),
     ] = False,
@@ -42,7 +42,7 @@ def show(
     With --key, print only that key's value. With --output, write to a file
     (refuse to overwrite unless --force).
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
     raw = get_copier_answers_template()
     data = yaml.safe_load(raw) or {}
 

@@ -207,7 +207,7 @@ def debug_info(console: Console | None = None) -> None:
 
     env = get_debug_info()
 
-    from repoman.cli.messages.layout import use_layout
+    from repoman.cli.messages.layout import use_layout  # noqa: PLC0415 - deferred to avoid circular import
 
     if use_layout(console):
         console.print(_make_debug_layout(env))

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Literal
 
 import yaml
 from pydantic import ConfigDict, ValidationError, create_model
@@ -65,12 +65,14 @@ def _schema_to_model(schema: dict, strict: bool) -> type:
         choices = meta.get("choices")
 
         if choices is not None:
-            if isinstance(choices, dict):
-                allowed = tuple(choices.values())
-            else:
-                allowed = tuple(choices)
+            allowed = tuple(choices.values()) if isinstance(choices, dict) else tuple(choices)
             if allowed:
-                field_type: type = Literal[*allowed]
+                # Literal[*allowed] requires Python 3.11+. Use dynamic Enum for 3.9 compat.
+                choices_enum = Enum(
+                    f"Choices_{len(fields)}",
+                    [(f"v{i}", v) for i, v in enumerate(allowed)],
+                )
+                field_type = choices_enum
             else:
                 field_type = str
         elif raw_type == "bool":
