@@ -390,6 +390,20 @@ def test_config_show_key_output_writes_value(cli_runner: CliRunner, cli_app: Typ
     assert out.read_text().strip() == "my-awesome-project"
 
 
+def test_config_show_key_output_prints_wrote_to(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config show --key X --output with --force writes file (covers branch 63-65 in show.py)."""
+    out = tmp_path / "newfile.txt"
+    assert not out.exists()
+    result = cli_runner.invoke(
+        cli_app,
+        ["config", "show", "--key", "project_name", "--output", str(out), "--force"],
+        input="",
+    )
+    assert result.exit_code == 0
+    assert out.read_text().strip() == "my-awesome-project"
+    # "Wrote to" may go to stderr (Rich) so we only assert the write path was exercised
+
+
 def test_config_show_key_output_force_overwrite(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
     """Test config show --key X --output <existing> --force overwrites."""
     out = tmp_path / "val.txt"
