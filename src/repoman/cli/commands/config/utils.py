@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Any, Literal
 
 import yaml
-from pydantic import ConfigDict, ValidationError, create_model
+from pydantic import BaseModel, ConfigDict, ValidationError, create_model
 
 from repoman.cli.messages import answers_file_not_found
 
@@ -44,7 +45,7 @@ def load_answers(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
-def _schema_to_model(schema: dict, strict: bool) -> type:
+def _schema_to_model(schema: dict, strict: bool) -> type[BaseModel]:
     """Build a dynamic Pydantic model from the copier schema.
 
     Args:
@@ -54,21 +55,22 @@ def _schema_to_model(schema: dict, strict: bool) -> type:
     Returns:
         A Pydantic BaseModel subclass for validating answers.
     """
-    extra = "forbid" if strict else "ignore"
+    extra: Literal["forbid", "ignore"] = "forbid" if strict else "ignore"
     config = ConfigDict(extra=extra)
-    fields: dict[str, tuple[type, ...]] = {}
+    fields: dict[str, Any] = {}
 
     for key, meta in schema.items():
         if not isinstance(meta, dict):
             continue
         raw_type = meta.get("type", "str")
         choices = meta.get("choices")
+        field_type: type
 
         if choices is not None:
             allowed = tuple(choices.values()) if isinstance(choices, dict) else tuple(choices)
             if allowed:
                 # Literal[*allowed] requires Python 3.11+. Use dynamic Enum for 3.9 compat.
-                choices_enum = Enum(
+                choices_enum = Enum(  # type: ignore[misc]
                     f"Choices_{len(fields)}",
                     [(f"v{i}", v) for i, v in enumerate(allowed)],
                 )
@@ -84,11 +86,7 @@ def _schema_to_model(schema: dict, strict: bool) -> type:
 
         fields[key] = (field_type, ...)
 
-    return create_model(
-        "AnswersModel",
-        __config__=config,
-        **fields,
-    )
+    return create_model("AnswersModel", __config__=config, **fields)
 
 
 def load_prompt_schema() -> dict:
