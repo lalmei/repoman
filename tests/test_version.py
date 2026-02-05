@@ -2,9 +2,11 @@
 
 import os
 import sys
+from importlib import metadata
+from importlib.metadata import Distribution
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from rich.console import Console
@@ -19,6 +21,7 @@ from repoman._version import (
     get_version,
     version_info,
 )
+from repoman.utils.theme.theme import set_theme
 
 
 class TestVersionFunctions:
@@ -151,6 +154,27 @@ class TestGetDebugInfo:
         for var in result.variables:
             assert var.value != ""
 
+    def test_get_debug_info_skips_distribution_with_none_name(self) -> None:
+        """Test get_debug_info skips distributions whose metadata Name is None (_version line 118)."""
+        real_dists = list(metadata.distributions())
+        mock_meta = MagicMock()
+        mock_meta.get.side_effect = (
+            lambda k, default=None: None if k == "Name" else ("1.0.0" if k == "Version" else default)
+        )
+        mock_dist = MagicMock(spec=Distribution)
+        mock_dist.metadata = mock_meta
+
+        def dist_gen() -> Any:
+            yield mock_dist
+            yield from real_dists
+
+        with patch("repoman._version.metadata.distributions", dist_gen):
+            result = get_debug_info()
+        assert isinstance(result, Environment)
+        # Should not crash; None-name dist is skipped
+        names = [p.name for p in result.packages]
+        assert None not in names
+
     def test_get_debug_info_package_version_error(self) -> None:
         """Test get_debug_info handles package version errors."""
         # This test verifies the function works normally
@@ -184,6 +208,18 @@ class TestDebugInfo:
         """Test debug_info creates console with theme when no console provided."""
         # This test verifies the function works without mocking
         debug_info()  # Should not raise any exceptions
+
+    def test_debug_info_wide_console_uses_layout(self) -> None:
+        """Test debug_info with use_layout True uses _make_debug_layout (wide terminal)."""
+        console = Console(theme=set_theme())
+        with patch("repoman.cli.messages.layout.use_layout", return_value=True):
+            debug_info(console)  # Should not raise; prints layout
+
+    def test_debug_info_narrow_console_uses_panel(self) -> None:
+        """Test debug_info with use_layout False uses _make_debug_panel (narrow terminal)."""
+        console = Console(theme=set_theme())
+        with patch("repoman.cli.messages.layout.use_layout", return_value=False):
+            debug_info(console)  # Should not raise; prints panel
 
 
 class TestErrorHandling:

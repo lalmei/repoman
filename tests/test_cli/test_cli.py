@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from pydantic import BaseModel
+from pydantic import ValidationError
 from rich.console import Console
 from typer import Typer
 from typer.testing import CliRunner
@@ -72,26 +72,21 @@ def test_debug_info_callback(cli_runner: CliRunner, cli_app: Typer) -> None:
 
 
 def test_config_validation_error(cli_runner: CliRunner, cli_app: Typer) -> None:
-    """Test that ValidationError in Config is handled gracefully.
-
-    This test verifies ValidationError handling (lines 129-132).
-    """
-    # Mock Config to raise ValidationError
+    """Test that ValidationError in Config is handled gracefully (main_cli lines 114-117)."""
     with patch("repoman.cli.main_cli.Config") as mock_config:
-        # Make Config() raise ValidationError when instantiated
-        # Create ValidationError by validating invalid data (simplest approach)
-
-        class TestModel(BaseModel):
-            required_field: str
-
-        # Create a function that raises ValidationError
-        def raise_validation_error(*_args: object, **_kwargs: object) -> None:
-            # This will raise ValidationError because required_field is missing
-            TestModel()
-
-        mock_config.side_effect = raise_validation_error
-
+        mock_config.side_effect = ValidationError.from_exception_data(
+            "Config", [{"type": "missing", "loc": ("x",), "msg": "Field required"}]
+        )
         result = cli_runner.invoke(cli_app, ["--help"], input="")
-
-        # Should still work (config is set to None on error)
         assert result.exit_code == 0
+
+
+def test_config_validation_error_with_subcommand(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test ValidationError path when callback runs before a subcommand (main_cli 114-117)."""
+    with patch("repoman.cli.main_cli.Config") as mock_config:
+        mock_config.side_effect = ValidationError.from_exception_data(
+            "Config", [{"type": "missing", "loc": ("setting",), "msg": "Field required"}]
+        )
+        result = cli_runner.invoke(cli_app, ["create", "--help"], input="")
+        assert result.exit_code == 0
+        assert "create" in result.output.lower()
