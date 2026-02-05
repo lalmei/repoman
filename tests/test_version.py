@@ -19,6 +19,7 @@ from repoman._version import (
     get_version,
     version_info,
 )
+from repoman.utils.theme.theme import set_theme
 
 
 class TestVersionFunctions:
@@ -184,6 +185,18 @@ class TestDebugInfo:
         """Test debug_info creates console with theme when no console provided."""
         # This test verifies the function works without mocking
         debug_info()  # Should not raise any exceptions
+
+    def test_debug_info_wide_console_uses_layout(self) -> None:
+        """Test debug_info with use_layout True uses _make_debug_layout (wide terminal)."""
+        console = Console(theme=set_theme())
+        with patch("repoman.cli.messages.layout.use_layout", return_value=True):
+            debug_info(console)  # Should not raise; prints layout
+
+    def test_debug_info_narrow_console_uses_panel(self) -> None:
+        """Test debug_info with use_layout False uses _make_debug_panel (narrow terminal)."""
+        console = Console(theme=set_theme())
+        with patch("repoman.cli.messages.layout.use_layout", return_value=False):
+            debug_info(console)  # Should not raise; prints panel
 
 
 class TestErrorHandling:

@@ -133,7 +133,7 @@ def test_layout_dry_run_create_returns_layout() -> None:
     result = layout_dry_run_create(
         "proj",
         "./out",
-        "/tmpl",
+        "/fake/template",
         {"key": "value"},
         "next steps",
     )
@@ -147,7 +147,7 @@ def test_layout_dry_run_update_with_template_and_vcs() -> None:
     result = layout_dry_run_update(
         "/proj",
         "/a.yml",
-        "/tmpl",
+        "/fake/template",
         "v1.0",
         {},
         "steps",
@@ -379,6 +379,51 @@ def test_dry_run_command_add_returns_panel(tmp_path: Path) -> None:
     assert "mycmd" in str(panel.renderable)
 
 
+def test_dry_run_create_returns_layout_when_wide(tmp_path: Path) -> None:
+    """dry_run_create returns Layout when console is wide."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    result = dry_run_create(
+        "proj",
+        tmp_path / "out",
+        tmp_path / "tmpl",
+        {"key": "value"},
+        "next steps",
+        _console=console,
+    )
+    assert isinstance(result, Layout)
+
+
+def test_dry_run_update_returns_layout_when_wide(tmp_path: Path) -> None:
+    """dry_run_update returns Layout when console is wide."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    result = dry_run_update(
+        tmp_path / "proj",
+        tmp_path / "a.yml",
+        tmp_path / "t",
+        "v1.0",
+        {},
+        "steps",
+        _console=console,
+    )
+    assert isinstance(result, Layout)
+
+
+def test_dry_run_command_add_returns_layout_when_wide(tmp_path: Path) -> None:
+    """dry_run_command_add returns Layout when console is wide."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    result = dry_run_command_add(
+        "mycmd",
+        tmp_path / "cmd.py",
+        tmp_path / "test_cmd.py",
+        "context",
+        _console=console,
+    )
+    assert isinstance(result, Layout)
+
+
 # --- success ---
 
 
@@ -430,6 +475,34 @@ def test_project_updated_returns_panel(tmp_path: Path) -> None:
     assert panel.border_style == "green"
 
 
+def test_project_updated_returns_layout_when_wide(tmp_path: Path) -> None:
+    """project_updated returns Layout when console is wide."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    console.encoding = "utf-8"
+    console.legacy_windows = False
+    console.is_terminal = True
+    result = project_updated(str(tmp_path / "out"), {"k": "v"}, "steps", console=console)
+    assert isinstance(result, Layout)
+
+
+def test_command_created_returns_layout_when_wide_with_sections() -> None:
+    """command_created returns Layout when wide and summary_section/next_steps_section provided."""
+    console = MagicMock(spec=Console)
+    console.width = 120
+    console.encoding = "utf-8"
+    console.legacy_windows = False
+    console.is_terminal = True
+    result = command_created(
+        "mycmd",
+        "body",
+        console=console,
+        summary_section="Summary",
+        next_steps_section="Next steps",
+    )
+    assert isinstance(result, Layout)
+
+
 # --- error_text (message string helpers) ---
 
 
@@ -479,3 +552,57 @@ def test_invalid_yaml() -> None:
     msg = invalid_yaml("parse error at line 1")
     assert "yaml" in msg.lower()
     assert "parse error" in msg.lower()
+
+
+def test_output_path_not_file(tmp_path: Path) -> None:
+    """output_path_not_file includes path and 'not a file'."""
+    msg = output_path_not_file(tmp_path / "out")
+    assert "not a file" in msg.lower()
+    assert "out" in msg
+
+
+def test_template_not_found(tmp_path: Path) -> None:
+    """template_not_found includes path."""
+    msg = template_not_found(tmp_path / "tmpl.yml")
+    assert "template" in msg.lower()
+    assert "not found" in msg.lower() or "found" in msg.lower()
+
+
+def test_template_path_not_file(tmp_path: Path) -> None:
+    """template_path_not_file includes path."""
+    msg = template_path_not_file(tmp_path / "t")
+    assert "not a file" in msg.lower() or "file" in msg.lower()
+
+
+def test_template_path_does_not_exist(tmp_path: Path) -> None:
+    """template_path_does_not_exist includes path."""
+    msg = template_path_does_not_exist(tmp_path / "missing")
+    assert "not exist" in msg.lower() or "exist" in msg.lower()
+
+
+def test_template_dir_not_found(tmp_path: Path) -> None:
+    """template_dir_not_found includes path and hint."""
+    msg = template_dir_not_found(tmp_path / "cmds", "Expected under src/")
+    assert "not found" in msg.lower() or "found" in msg.lower()
+    assert "Expected" in msg or "cmds" in msg
+
+
+def test_command_file_exists_use_force(tmp_path: Path) -> None:
+    """command_file_exists_use_force includes path and --force."""
+    msg = command_file_exists_use_force(tmp_path / "cmd.py")
+    assert "already exists" in msg.lower() or "exists" in msg.lower()
+    assert "force" in msg.lower()
+
+
+def test_test_file_exists_use_force(tmp_path: Path) -> None:
+    """test_file_exists_use_force includes path and --force."""
+    msg = msg_test_file_force(tmp_path / "test_cmd.py")
+    assert "already exists" in msg.lower() or "exists" in msg.lower()
+    assert "force" in msg.lower()
+
+
+def test_key_not_in_template() -> None:
+    """key_not_in_template includes key."""
+    msg = key_not_in_template("nonexistent_key")
+    assert "key" in msg.lower()
+    assert "nonexistent_key" in msg

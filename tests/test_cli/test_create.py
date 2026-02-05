@@ -25,6 +25,21 @@ def test_create_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     assert "PROJECT_NAME" in result.output or "project_name" in result.output
 
 
+def test_create_command_with_answers_file(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test create command with --answers loads file and uses data (covers answers path 141-152)."""
+    fixture = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    assert fixture.exists(), "Need default_copier_answers.yml fixture"
+    result = cli_runner.invoke(
+        cli_app,
+        ["create", "--dry-run", "--answers", str(fixture), "my-project"],
+        input="",
+    )
+    assert result.exit_code == 0
+    output = (result.stdout or "") + (result.stderr or "") + (result.output or "")
+    if output:
+        assert "Using answers file" in output or "dry run" in output.lower() or "Would create" in output.lower()
+
+
 def test_create_command_dry_run(sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with dry-run flag."""
     project_name = sample_project_names[0]

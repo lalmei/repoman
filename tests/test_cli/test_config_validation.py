@@ -123,3 +123,25 @@ def test_validate_answers_real_schema_and_fixture() -> None:
     answers = load_answers(fixture_path)
     report = validate_answers(schema, answers)
     assert report.valid is True, f"Validation failed: {report}"
+
+
+def test_validate_answers_schema_value_not_dict_skipped() -> None:
+    """Schema key with non-dict value is skipped (line 63-64)."""
+    schema = {"name": {"type": "str"}, "bad": "not a dict"}
+    answers = {"name": "test"}
+    report = validate_answers(schema, answers)
+    # Only "name" is in model; "bad" is skipped so no crash, "name" is present
+    assert report.valid is True
+    assert report.missing_keys == []
+
+
+def test_validate_answers_choices_empty() -> None:
+    """Schema with empty choices (list or dict) uses str type (line 79)."""
+    schema = {"x": {"type": "str", "choices": []}}
+    answers = {"x": "any"}
+    report = validate_answers(schema, answers)
+    assert report.valid is True
+    schema2 = {"y": {"choices": {}}}
+    answers2 = {"y": "val"}
+    report2 = validate_answers(schema2, answers2)
+    assert report2.valid is True
