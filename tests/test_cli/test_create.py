@@ -40,6 +40,19 @@ def test_create_command_with_answers_file(cli_runner: CliRunner, cli_app: Typer)
         assert "Using answers file" in output or "dry run" in output.lower() or "Would create" in output.lower()
 
 
+def test_create_command_answers_file_not_found(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test create with --answers when file does not exist (create/__init__.py 143-144)."""
+    result = cli_runner.invoke(
+        cli_app,
+        ["create", "--dry-run", "--answers", "/nonexistent/answers.yml", "my-project"],
+        input="",
+    )
+    assert result.exit_code == 1
+    output = (result.stdout or "") + (result.stderr or "") + (result.output or "")
+    if output:
+        assert "not found" in output.lower() or "answers" in output.lower()
+
+
 def test_create_command_dry_run(sample_project_names: list[str], cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create command with dry-run flag."""
     project_name = sample_project_names[0]

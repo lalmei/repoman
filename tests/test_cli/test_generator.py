@@ -269,26 +269,7 @@ def test_generator_add_valid_command_name_validation(cli_runner: CliRunner, cli_
 
 
 def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
-    """Test that generator add command supports dry-run mode for previewing changes.
-
-    This test verifies the --dry-run functionality:
-    - When --dry-run is specified, no files should be created
-    - The command should show what would be created
-    - All validation and setup steps should still run
-    - User can preview changes before committing
-
-    Setup:
-    - Creates mock .copier-answers.yml file
-    - Creates mock project directory structure
-    - Mocks template directory and rendering
-
-    Expected behavior:
-    - Exit code should be 0 (success)
-    - Output should indicate dry-run mode ("Dry Run", "dry-run", or "Would create")
-    - No actual files should be created (verified by mocking)
-    - User should see what files would be created and where
-    """
-    # Create a mock .copier-answers.yml file
+    """Test that generator add --dry-run reaches dry_run path and exits 0 (lines 258-273)."""
     answers_file = tmp_path / ".copier-answers.yml"
     answers_file.write_text(
         yaml.dump(
@@ -298,54 +279,46 @@ def test_generator_add_dry_run(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
             }
         )
     )
-
-    # Create mock project structure
     _create_test_project_structure(tmp_path)
 
-    # Mock the template directory and file operations
-    # Use the same pattern as test_generator_add_valid_command_name_validation
-    with patch("repoman.cli.commands.generator.add.Path.exists") as mock_exists:
-        # Make template directory exist
-        def exists_side_effect(path: Path) -> bool:
-            path_str = str(path)
-            if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
-                return True
-            # Check if it's the answers file or project structure paths
-            if path == answers_file:
-                return True
-            if "src/test_package/cli/commands" in path_str:
-                return True
-            # For other paths, use default behavior (call original if possible, else False)
-            return "tests/test_cli" in path_str
+    def exists_side_effect(self_or_path: Path) -> bool:
+        path_str = str(self_or_path)
+        if self_or_path == answers_file or self_or_path == tmp_path:
+            return True
+        if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            return True
+        if "__init__.py.jinja" in path_str or ("test_" in path_str and "jinja" in path_str):
+            return True
+        # Project structure exists, but output files for this command do not
+        if "test_package/cli/commands/testcommand" in path_str or "test_cli/test_testcommand" in path_str:
+            return False
+        if "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str:
+            return True
+        return False
 
-        mock_exists.side_effect = exists_side_effect
+    with (
+        patch.object(Path, "exists", exists_side_effect),
+        patch("repoman.cli.commands.generator.add.Environment") as mock_env,
+    ):
+        mock_template = Mock()
+        mock_template.render.return_value = "rendered content"
+        mock_env_instance = Mock()
+        mock_env_instance.get_template.return_value = mock_template
+        mock_env.return_value = mock_env_instance
 
-        # Mock template rendering
-        with patch("repoman.cli.commands.generator.add.Environment") as mock_env:
-            mock_template = Mock()
-            mock_template.render.return_value = "rendered content"
-            mock_env_instance = Mock()
-            mock_env_instance.get_template.return_value = mock_template
-            mock_env.return_value = mock_env_instance
-
-            result = cli_runner.invoke(
-                cli_app,
-                [
-                    "generator",
-                    "add",
-                    "--project-dir",
-                    str(tmp_path),
-                    "--dry-run",
-                    "testcommand",
-                ],
-                input="",
-            )
-            # Rich console output bypasses CliRunner's capture but is visible in pytest's "Captured stdout call"
-            # Note: This test may fail if template directory structure doesn't exist
-            # Verify command succeeded (exit code 0) - Rich output verification visible in pytest output
-            # If exit code is 1, it's likely due to missing template directory (acceptable for test environment)
-            assert result.exit_code in (0, 1), f"Unexpected exit code. Output: {result.output}"
-            # Rich Panel output may not be captured in result.output, but is visible in pytest output
+        result = cli_runner.invoke(
+            cli_app,
+            [
+                "generator",
+                "add",
+                "--project-dir",
+                str(tmp_path),
+                "--dry-run",
+                "testcommand",
+            ],
+            input="",
+        )
+    assert result.exit_code == 0
 
 
 def test_generator_add_missing_answers_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
@@ -485,6 +458,52 @@ def test_generator_add_file_already_exists(cli_runner: CliRunner, cli_app: Typer
         # Rich Panel output may not be captured, so check exit code and visible error message
         output_lower = result.output.lower()
         assert "already exists" in output_lower or "Warning" in result.output or result.exit_code == 1
+
+
+def test_generator_add_test_file_exists_no_force(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test that generator add refuses when test file exists without --force (lines 234-236)."""
+    answers_file = tmp_path / ".copier-answers.yml"
+    answers_file.write_text(
+        yaml.dump(
+            {
+                "python_package_import_name": "test_package",
+                "python_package_command_line_name": "test",
+            }
+        )
+    )
+    _create_test_project_structure(tmp_path)
+    # Existing test file only, no command dir
+    (tmp_path / "tests" / "test_cli" / "test_foo.py").write_text("# existing test")
+
+    def exists_side_effect(self_or_path: Path) -> bool:
+        path = self_or_path
+        path_str = str(path)
+        if path == answers_file or path == tmp_path:
+            return True
+        if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            return True
+        if "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str:
+            return True
+        return False
+
+    with (
+        patch.object(Path, "exists", exists_side_effect),
+        patch("repoman.cli.commands.generator.add.Environment") as mock_env,
+    ):
+        mock_template = Mock()
+        mock_template.render.return_value = "# content"
+        mock_env_instance = Mock()
+        mock_env_instance.get_template.return_value = mock_template
+        mock_env.return_value = mock_env_instance
+
+        result = cli_runner.invoke(
+            cli_app,
+            ["generator", "add", "--project-dir", str(tmp_path), "foo"],
+            input="",
+        )
+    assert result.exit_code == 1
+    if result.output:
+        assert "already exists" in result.output.lower() or "force" in result.output.lower()
 
 
 def test_generator_add_empty_command_name(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
@@ -631,6 +650,31 @@ def test_generator_add_project_structure_not_found(cli_runner: CliRunner, cli_ap
         assert "commands directory" in result.output.lower() or "not found" in result.output.lower()
 
 
+def test_generator_add_commands_dir_parent_missing(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test ValueError when src/<package> exists but cli/commands does not (lines 118-124)."""
+    answers_file = tmp_path / ".copier-answers.yml"
+    answers_file.write_text(
+        yaml.dump(
+            {
+                "python_package_import_name": "test_package",
+                "python_package_command_line_name": "test",
+            }
+        )
+    )
+    # Only src/test_package, no src/test_package/cli/commands
+    (tmp_path / "src" / "test_package").mkdir(parents=True)
+    (tmp_path / "tests" / "test_cli").mkdir(parents=True)
+
+    result = cli_runner.invoke(
+        cli_app,
+        ["generator", "add", "--project-dir", str(tmp_path), "testcommand"],
+        input="",
+    )
+    assert result.exit_code == 1
+    if result.output:
+        assert "Could not find CLI commands directory" in result.output or "commands directory" in result.output.lower()
+
+
 def test_generator_add_project_directory_not_exists(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
     """Test that generator add command handles non-existent project directory.
 
@@ -764,6 +808,84 @@ def test_generator_add_template_rendering_error(cli_runner: CliRunner, cli_app: 
             )
 
 
+def test_generator_add_template_test_file_missing(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test FileNotFoundError when test template path does not exist (line 247)."""
+    answers_file = tmp_path / ".copier-answers.yml"
+    answers_file.write_text(
+        yaml.dump(
+            {
+                "python_package_import_name": "test_package",
+                "python_package_command_line_name": "test",
+            }
+        )
+    )
+    _create_test_project_structure(tmp_path)
+
+    def exists_side_effect(self_or_path: Path) -> bool:
+        path_str = str(self_or_path)
+        if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            if "test_" in path_str and "jinja" in path_str:
+                return False  # Test template file missing
+            return True
+        return (
+            self_or_path == answers_file
+            or self_or_path == tmp_path
+            or "src/test_package/cli/commands" in path_str
+            or "tests/test_cli" in path_str
+        )
+
+    with patch.object(Path, "exists", exists_side_effect):
+        result = cli_runner.invoke(
+            cli_app,
+            ["generator", "add", "--project-dir", str(tmp_path), "testcommand"],
+            input="",
+        )
+    assert result.exit_code == 1
+    if result.output:
+        assert "error" in result.output.lower() or "not found" in result.output.lower()
+
+
+def test_generator_add_template_render_raises(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test jinja2.TemplateError on render (lines 252-255)."""
+    answers_file = tmp_path / ".copier-answers.yml"
+    answers_file.write_text(
+        yaml.dump(
+            {
+                "python_package_import_name": "test_package",
+                "python_package_command_line_name": "test",
+            }
+        )
+    )
+    _create_test_project_structure(tmp_path)
+
+    def exists_side_effect(self_or_path: Path) -> bool:
+        path_str = str(self_or_path)
+        if self_or_path == answers_file or self_or_path == tmp_path:
+            return True
+        if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
+            return True
+        return "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str
+
+    with (
+        patch.object(Path, "exists", exists_side_effect),
+        patch("repoman.cli.commands.generator.add.Environment") as mock_env,
+    ):
+        mock_template = Mock()
+        mock_template.render.side_effect = jinja2.TemplateError("syntax error")
+        mock_env_instance = Mock()
+        mock_env_instance.get_template.return_value = mock_template
+        mock_env.return_value = mock_env_instance
+
+        result = cli_runner.invoke(
+            cli_app,
+            ["generator", "add", "--project-dir", str(tmp_path), "testcommand"],
+            input="",
+        )
+    assert result.exit_code == 1
+    if result.output:
+        assert "error" in result.output.lower() or "template" in result.output.lower()
+
+
 def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
     """Test that generator add command successfully creates files.
 
@@ -781,34 +903,24 @@ def test_generator_add_file_creation_success(cli_runner: CliRunner, cli_app: Typ
 
     _commands_dir, _tests_dir = _create_test_project_structure(tmp_path)
 
-    # Create template directory structure
-    template_base = Path(__file__).parent.parent.parent / "src" / "repoman" / "extentions" / "command_template"
-    template_dir = template_base / "{{command_name}}"
-
     def exists_side_effect(self: Path) -> bool:
         path_str = str(self)
-        # Template directory exists
-        if self == template_dir or str(self).endswith("{{command_name}}"):
+        if self == tmp_path or self == answers_file:
             return True
-        # Template files exist
-        if "__init__.py.jinja" in path_str or "test_" in path_str:
+        if "extentions/command_template" in path_str or "{{command_name}}" in path_str:
             return True
-        # Answers file exists
-        if self == answers_file:
+        if "__init__.py.jinja" in path_str or ("test_" in path_str and "jinja" in path_str):
             return True
-        # Project structure exists
         if "src/test_package/cli/commands" in path_str or "tests/test_cli" in path_str:
+            if "test_package/cli/commands/testcommand" in path_str or "test_cli/test_testcommand" in path_str:
+                return False
             return True
-        # Output files don't exist yet
-        if "test_package/cli/commands/testcommand" in path_str:
-            return False
         return False
 
     with (
         patch.object(Path, "exists", exists_side_effect),
         patch("repoman.cli.commands.generator.add.Environment") as mock_env,
     ):
-        # Mock template rendering
         mock_template = Mock()
         mock_template.render.return_value = "# Generated command"
         mock_env_instance = Mock()

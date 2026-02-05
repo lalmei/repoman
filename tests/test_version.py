@@ -2,9 +2,10 @@
 
 import os
 import sys
+from importlib import metadata
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from rich.console import Console
@@ -151,6 +152,29 @@ class TestGetDebugInfo:
         # Empty variables should be filtered out
         for var in result.variables:
             assert var.value != ""
+
+    def test_get_debug_info_skips_distribution_with_none_name(self) -> None:
+        """Test get_debug_info skips distributions whose metadata Name is None (_version line 118)."""
+        from importlib.metadata import Distribution
+
+        real_dists = list(metadata.distributions())
+        mock_meta = MagicMock()
+        mock_meta.get.side_effect = (
+            lambda k, default=None: None if k == "Name" else ("1.0.0" if k == "Version" else default)
+        )
+        mock_dist = MagicMock(spec=Distribution)
+        mock_dist.metadata = mock_meta
+
+        def dist_gen() -> Any:
+            yield mock_dist
+            yield from real_dists
+
+        with patch("repoman._version.metadata.distributions", dist_gen):
+            result = get_debug_info()
+        assert isinstance(result, Environment)
+        # Should not crash; None-name dist is skipped
+        names = [p.name for p in result.packages]
+        assert None not in names
 
     def test_get_debug_info_package_version_error(self) -> None:
         """Test get_debug_info handles package version errors."""

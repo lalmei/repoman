@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from pydantic import ValidationError
 
 from repoman.cli.commands.config.utils import load_answers, load_prompt_schema, validate_answers
 
@@ -145,3 +148,30 @@ def test_validate_answers_choices_empty() -> None:
     answers2 = {"y": "val"}
     report2 = validate_answers(schema2, answers2)
     assert report2.valid is True
+
+
+def test_validate_answers_type_error_with_empty_loc() -> None:
+    """ValidationError with empty loc appends msg only to type_errors (utils line 101)."""
+    from pydantic import BaseModel
+
+    class M(BaseModel):
+        x: int
+
+    try:
+        M.model_validate({"x": "bad"})
+    except ValidationError as e:
+        # Override errors() to include one with empty loc so type_errors get msg only
+        original_errors = e.errors()
+
+        def errors_with_empty_loc() -> list:
+            return [{"type": "value_error", "loc": (), "msg": "root error"}] + original_errors
+
+        e.errors = errors_with_empty_loc
+        mock_model = MagicMock()
+        mock_model.model_validate.side_effect = e
+        with patch("repoman.cli.commands.config.utils._schema_to_model", return_value=mock_model):
+            report = validate_answers({"a": {"type": "str"}}, {"a": "x"})
+        assert report.valid is False
+        assert "root error" in report.type_errors
+        return
+    raise AssertionError("Expected ValidationError")
