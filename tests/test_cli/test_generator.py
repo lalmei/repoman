@@ -827,6 +827,9 @@ def test_generator_add_template_test_file_missing(cli_runner: CliRunner, cli_app
             if "test_" in path_str and "jinja" in path_str:
                 return False  # Test template file missing
             return True
+        # Command file and test file must not exist so we reach template loading (line 245-247)
+        if "testcommand" in path_str and ("__init__.py" in path_str or "test_testcommand" in path_str):
+            return False
         return (
             self_or_path == answers_file
             or self_or_path == tmp_path
