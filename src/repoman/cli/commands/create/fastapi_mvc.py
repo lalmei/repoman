@@ -5,7 +5,7 @@ from typing import Annotated
 
 from typer import Argument, Option, Typer
 
-from repoman.cli.commands.create._shared import run_create
+from repoman.cli.commands.create._shared import build_preset_data, run_create
 
 app = Typer(
     add_completion=True,

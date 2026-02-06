@@ -15,9 +15,20 @@ _jinja_extensions:
 - extensions.py:SlugifyExtension
 _skip_if_exists:
 - CHANGELOG.md
+_exclude:
+  - "{% if docs_only %}src/{% endif %}"
+  - "{% if docs_only %}tests/{% endif %}"
+  - "{% if docs_only %}config/coverage.ini{% endif %}"
+  - "{% if docs_only %}config/pytest.ini{% endif %}"
+  - "{% if docs_only %}config/ruff.toml{% endif %}"
+  - "{% if docs_only %}config/mypy.ini{% endif %}"
+  - "{% if docs_only %}config/dataset_config.json{% endif %}"
+  - "{% if docs_only %}make_cmds/quality.mk{% endif %}"
+  - "{% if docs_only %}make_cmds/tests.mk{% endif %}"
 _tasks:
-- git init
-- command -v uv >/dev/null 2>&1 && uv run ruff format src/ tests/ --config=config/ruff.toml || true
+  - git init
+  - command: command -v uv >/dev/null 2>&1 && uv run ruff format src/ tests/ --config=config/ruff.toml || true
+    when: "{{ not docs_only }}"
 
 
 # PROMPT --------------------------------
@@ -211,5 +222,11 @@ rag_enabled:
 dataset_enabled:
   type: bool
   help: Include dataset module for PyTorch data loading and config
+  default: false
+
+# Documentation-only project (no src package, no tests)
+docs_only:
+  type: bool
+  help: Documentation-only project (no src package, no tests)
   default: false
 

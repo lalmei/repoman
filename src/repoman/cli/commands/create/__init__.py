@@ -6,19 +6,16 @@ from typing import Annotated
 import yaml
 from typer import Argument, Context, Exit, Option, Typer
 
-from repoman.cli.commands.create._shared import build_preset_data, run_create, validate_project_name
-from repoman.cli.messages import answers_file_not_found
-from repoman.utils.logging import get_logger_console
-
-app = Typer(add_completion=True)
-
-# Preset shortcuts as subcommands (e.g. repoman create cli PROJECT)
-# Use --preset for same effect: repoman create PROJECT --preset cli
+from repoman.cli.commands.create._shared import build_preset_data, run_create
 from repoman.cli.commands.create.cli_only import app as cli_only_app
 from repoman.cli.commands.create.docs_only import app as docs_only_app
 from repoman.cli.commands.create.fastapi_mvc import app as fastapi_mvc_app
 from repoman.cli.commands.create.library import app as library_app
 from repoman.cli.commands.create.rag_service import app as rag_service_app
+from repoman.cli.messages import answers_file_not_found, error_panel
+from repoman.utils.logging import get_logger_console
+
+app = Typer(add_completion=True)
 
 app.add_typer(cli_only_app, name="cli")
 app.add_typer(docs_only_app, name="docs-only")

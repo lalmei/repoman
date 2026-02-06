@@ -21,6 +21,9 @@ from repoman.extensions import slugify
 from repoman.resources import get_copier_answers_template
 from repoman.utils.logging import get_logger_console
 
+# ASCII control characters: ord < 32 (SPACE)
+_CONTROL_CHAR_THRESHOLD = 32
+
 PRESETS: dict[str, dict] = {
     "cli": {
         "fastapi_enabled": False,
@@ -81,7 +84,7 @@ def validate_project_name(project_name: str) -> bool:
         if char in project_name:
             raise ValueError(f"Project name contains invalid character: {char}")
 
-    if any(ord(char) < 32 for char in project_name):
+    if any(ord(char) < _CONTROL_CHAR_THRESHOLD for char in project_name):
         raise ValueError("Project name contains control characters")
 
     reserved = ["CON", "PRN", "AUX", "NUL"] + [f"COM{i}" for i in range(1, 10)] + [f"LPT{i}" for i in range(1, 10)]
@@ -109,7 +112,7 @@ def run_create(
     dry_run: bool,
 ) -> None:
     """Run the create flow: validate, build copier options, run copy or dry-run."""
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
 
     try:
         validate_project_name(project_name)

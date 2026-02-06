@@ -52,6 +52,9 @@ rag_enabled: true
 # Dataset module – enable so templated dataset code is format/lint checked
 dataset_enabled: true
 
+# Documentation-only (tests use full template)
+docs_only: false
+
 # Insiders Program (not applicable for tests)
 insiders: false
 public_release: false

@@ -59,10 +59,11 @@ Funding = "https://{{ repository_provider }}/sponsors/{{ author_username }}"
 {{ python_package_command_line_name }} = "{{ python_package_import_name }}.cli:main"
 
 {% endif -%}
-
+{% if not docs_only %}
 [tool.uv.build-backend]
 module-root = "src"
 module-name = "{{python_package_import_name}}"
+{% endif %}
 
 [tool.uv]
 default-groups = ["maintain", "ci", "docs"{% if rag_enabled %}, "rag"{% endif %}{% if dataset_enabled %}, "dl"{% endif %}]

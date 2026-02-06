@@ -40,6 +40,16 @@ def test_create_command_with_answers_file(cli_runner: CliRunner, cli_app: Typer)
         assert "Using answers file" in output or "dry run" in output.lower() or "Would create" in output.lower()
 
 
+def test_create_command_with_preset(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test create command with --preset uses preset data."""
+    result = cli_runner.invoke(
+        cli_app,
+        ["create", "--dry-run", "--preset", "cli", "my-cli-project"],
+        input="",
+    )
+    assert result.exit_code == 0
+
+
 def test_create_command_answers_file_not_found(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test create with --answers when file does not exist (create/__init__.py 143-144)."""
     result = cli_runner.invoke(
@@ -308,7 +318,7 @@ def test_create_command_success_path(cli_runner: CliRunner, cli_app: Typer) -> N
     project_name = "test-project"
 
     # Mock copier.run_copy to simulate successful project creation
-    with patch("repoman.cli.commands.create.run_copy") as mock_run_copy:
+    with patch("repoman.cli.commands.create._shared.run_copy") as mock_run_copy:
         mock_run_copy.return_value = None
 
         result = cli_runner.invoke(
@@ -334,7 +344,7 @@ def test_create_command_copier_error(cli_runner: CliRunner, cli_app: Typer) -> N
     project_name = "test-project"
 
     # Mock copier.run_copy to raise CopierError
-    with patch("repoman.cli.commands.create.run_copy") as mock_run_copy:
+    with patch("repoman.cli.commands.create._shared.run_copy") as mock_run_copy:
         mock_run_copy.side_effect = CopierError("Template error occurred")
 
         result = cli_runner.invoke(
@@ -357,7 +367,7 @@ def test_create_command_os_error(cli_runner: CliRunner, cli_app: Typer) -> None:
     project_name = "test-project"
 
     # Mock copier.run_copy to raise OSError
-    with patch("repoman.cli.commands.create.run_copy") as mock_run_copy:
+    with patch("repoman.cli.commands.create._shared.run_copy") as mock_run_copy:
         mock_run_copy.side_effect = OSError("Permission denied")
 
         result = cli_runner.invoke(
@@ -380,7 +390,7 @@ def test_create_command_value_error(cli_runner: CliRunner, cli_app: Typer) -> No
     project_name = "test-project"
 
     # Mock copier.run_copy to raise ValueError
-    with patch("repoman.cli.commands.create.run_copy") as mock_run_copy:
+    with patch("repoman.cli.commands.create._shared.run_copy") as mock_run_copy:
         mock_run_copy.side_effect = ValueError("Invalid value")
 
         result = cli_runner.invoke(
@@ -403,7 +413,7 @@ def test_create_command_runtime_error(cli_runner: CliRunner, cli_app: Typer) -> 
     project_name = "test-project"
 
     # Mock copier.run_copy to raise RuntimeError
-    with patch("repoman.cli.commands.create.run_copy") as mock_run_copy:
+    with patch("repoman.cli.commands.create._shared.run_copy") as mock_run_copy:
         mock_run_copy.side_effect = RuntimeError("Runtime error occurred")
 
         result = cli_runner.invoke(
