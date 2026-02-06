@@ -149,15 +149,24 @@ def _make_debug_layout(env: Environment) -> Layout:
         f"{env.interpreter_name} {env.interpreter_version}  |  {env.interpreter_path}  |  {env.platform}",
         style="bold",
     )
-    header = Panel(header_text, title="Debug Info", title_align="left", border_style="bright_blue")
+    header = Panel(
+        header_text, title="Debug Info", title_align="left", border_style="bright_blue"
+    )
 
-    packages_table = Table(highlight=True, box=None, show_header=True, title=f"Packages ({len(env.packages)})")
+    packages_table = Table(
+        highlight=True,
+        box=None,
+        show_header=True,
+        title=f"Packages ({len(env.packages)})",
+    )
     packages_table.add_column("Package", style="rosewater")
     packages_table.add_column("Version", style="bold")
     for pkg in env.packages:
         packages_table.add_row(pkg.name, pkg.version)
 
-    env_table = Table(highlight=True, box=None, show_header=True, title="Environment Variables")
+    env_table = Table(
+        highlight=True, box=None, show_header=True, title="Environment Variables"
+    )
     env_table.add_column("Variable", style="rosewater")
     env_table.add_column("Value", style="bold")
     for var in env.variables:
@@ -169,8 +178,15 @@ def _make_debug_layout(env: Environment) -> Layout:
         Layout(name="main", ratio=1),
     )
     layout["main"].split_row(
-        Layout(Panel(packages_table, border_style="bright_blue"), name="packages", ratio=1),
-        Layout(Panel(env_table, border_style="bright_blue"), name="vars", ratio=1, minimum_size=30),
+        Layout(
+            Panel(packages_table, border_style="bright_blue"), name="packages", ratio=1
+        ),
+        Layout(
+            Panel(env_table, border_style="bright_blue"),
+            name="vars",
+            ratio=1,
+            minimum_size=30,
+        ),
     )
     return layout
 
@@ -209,7 +225,9 @@ def debug_info(console: Console | None = None) -> None:
 
     env = get_debug_info()
 
-    from repoman.cli.messages.layout import use_layout  # noqa: PLC0415 - deferred to avoid circular import
+    from repoman.cli.messages.layout import (
+        use_layout,  # noqa: PLC0415 - deferred to avoid circular import
+    )
 
     if use_layout(console):
         console.print(_make_debug_layout(env))

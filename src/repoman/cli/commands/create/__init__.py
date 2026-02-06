@@ -18,16 +18,23 @@ from repoman.utils.logging import get_logger_console
 app = Typer(add_completion=True)
 
 app.add_typer(cli_only_app, name="cli")
-app.add_typer(docs_only_app, name="docs-only")
+app.add_typer(docs_only_app, name="docs")
 app.add_typer(library_app, name="library")
 app.add_typer(fastapi_mvc_app, name="fastapi")
 app.add_typer(rag_service_app, name="rag")
 
 
-@app.callback(invoke_without_command=True)
+@app.callback(invoke_without_command=True, no_args_is_help=True)
 def create(
     ctx: Context,
-    project_name: str = Argument(..., help="Name of the project to create"),
+    project_name: Annotated[
+        str,
+        Option(
+            "--project_name",
+            "-pn",
+            help="Name of the project to create",
+        ),
+    ],
     template_path: Annotated[
         str | None,
         Option(
@@ -38,7 +45,9 @@ def create(
     ] = None,
     output_dir: Annotated[
         str | None,
-        Option("--output", "-o", help="Output directory (defaults to current directory)"),
+        Option(
+            "--output", "-o", help="Output directory (defaults to current directory)"
+        ),
     ] = None,
     answers_file: Annotated[
         Path | None,
@@ -58,49 +67,53 @@ def create(
     ] = None,
     dry_run: Annotated[
         bool,
-        Option("--dry-run", help="Show what would be created without actually creating"),
+        Option(
+            "--dry-run", help="Show what would be created without actually creating"
+        ),
     ] = False,
 ) -> None:
     """Create a new Python project using the repoman template."""
     logger, console = get_logger_console()
 
-    if template_path is None:
-        current_file = Path(__file__)
-        template_path_obj = current_file.parent.parent.parent.parent
-        logger.info(f"Using main template at {template_path_obj}")
-    else:
-        template_path_obj = Path(template_path)
+    # if template_path is None:
+    #     current_file = Path(__file__)
+    #     template_path_obj = current_file.parent.parent.parent.parent
+    #     logger.info(f"Using main template at {template_path_obj}")
+    # else:
+    #     template_path_obj = Path(template_path)
 
-    output_dir_base = Path.cwd() if output_dir is None else Path(output_dir)
+    # output_dir_base = Path.cwd() if output_dir is None else Path(output_dir)
 
-    if answers_file is not None:
-        answers_path = Path(answers_file).resolve()
-        if not answers_path.exists():
-            console.print(error_panel(answers_file_not_found(answers_path), console=console))
-            raise Exit(1) from None
-        console.print(f"Using answers file: {answers_path}")
-        with open(answers_path) as f:
-            data = yaml.safe_load(f) or {}
-    elif preset is not None:
-        preset_key = preset.replace("-", "_")  # docs-only -> docs_only
-        valid = ("cli", "docs_only", "library", "fastapi", "rag")
-        if preset_key not in valid:
-            console.print(
-                error_panel(
-                    f"Invalid preset '{preset}'. Choose from: cli, docs-only, library, fastapi, rag",
-                    console=console,
-                )
-            )
-            raise Exit(1) from None
-        data = build_preset_data(preset_key, project_name)
-    else:
-        data = None
+    # if answers_file is not None:
+    #     answers_path = Path(answers_file).resolve()
+    #     if not answers_path.exists():
+    #         console.print(
+    #             error_panel(answers_file_not_found(answers_path), console=console)
+    #         )
+    #         raise Exit(1) from None
+    #     console.print(f"Using answers file: {answers_path}")
+    #     with open(answers_path) as f:
+    #         data = yaml.safe_load(f) or {}
+    # elif preset is not None:
+    #     preset_key = preset.replace("-", "_")  # docs-only -> docs_only
+    #     valid = ("cli", "docs_only", "library", "fastapi", "rag")
+    #     if preset_key not in valid:
+    #         console.print(
+    #             error_panel(
+    #                 f"Invalid preset '{preset}'. Choose from: cli, docs-only, library, fastapi, rag",
+    #                 console=console,
+    #             )
+    #         )
+    #         raise Exit(1) from None
+    #     data = build_preset_data(preset_key, project_name)
+    # else:
+    #     data = None
 
-    run_create(
-        project_name=project_name,
-        output_dir=output_dir_base,
-        template_path=template_path_obj,
-        data=data,
-        force=force,
-        dry_run=dry_run or ctx.obj.get("dry_run", True),
-    )
+    # run_create(
+    #     project_name=project_name,
+    #     output_dir=output_dir_base,
+    #     template_path=template_path_obj,
+    #     data=data,
+    #     force=force,
+    #     dry_run=dry_run or ctx.obj.get("dry_run", True),
+    # )

@@ -35,6 +35,8 @@ def _create_theme(colors: Any) -> Theme:
         "base": colors.base.hex,
         "mantle": colors.mantle.hex,
         "crust": colors.crust.hex,
+        "ui.border": colors.overlay1.hex,
+        "ui.header": colors.overlay2.hex,
     }
 
     return Theme(styles=styles, inherit=True)
