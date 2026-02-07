@@ -4,7 +4,7 @@ This page describes how the **create** command and **config validate** flow are 
 
 ## Summary diagram
 
-The diagram shows how the create group, its subcommands, and config validate use the shared modules.
+The diagram shows how the create group, its subcommands, and config validate use the shared modules. The **update** and **generator add** commands are not shown; see the Update and generator section below.
 
 ```mermaid
 flowchart LR
