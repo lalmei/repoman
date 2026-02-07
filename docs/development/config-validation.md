@@ -1,6 +1,6 @@
 # Config validation
 
-The `repoman config validate` command checks `.copier-answers.yml` (or another answers file) against the repoman template schema (`copier.yml`). Validation is implemented with Pydantic: the schema is turned into a dynamic model, answers are validated against it, and any errors are mapped to a `ValidationReport`.
+The `repoman config validate` command checks `.copier-answers.yml` (or another answers file) against the repoman template schema (`copier.yml`). Validation is implemented in **repoman.copier** (schema loading and Pydantic-based validation) and **repoman.config** (loading the answers file and optional orchestration). See [Architecture](architecture.md) for how create and config commands use these modules.
 
 ## Data flow
 
@@ -10,12 +10,14 @@ flowchart LR
     schema[(copier.yml schema)]
     answers[(answers YAML)]
   end
-  subgraph config [config/utils.py]
+  subgraph repoman_copier [repoman.copier]
     load_schema[load_prompt_schema]
-    load_ans[load_answers]
     schema_to_model[_schema_to_model]
     validate[validate_answers]
     report[ValidationReport]
+  end
+  subgraph repoman_config [repoman.config]
+    load_ans[load_answers]
   end
   subgraph pydantic [Pydantic]
     model[AnswersModel]
@@ -54,10 +56,11 @@ flowchart LR
 
 ## Module roles
 
-- **load_prompt_schema()** — Reads `copier.yml` and returns the prompt schema dict (no `_` meta keys).
-- **load_answers(path)** — Loads answers from a YAML file; raises `FileNotFoundError` or `yaml.YAMLError` on failure.
-- **_schema_to_model(schema, strict)** — Builds a Pydantic model from the schema. Private helper.
-- **validate_answers(schema, answers, strict=False)** — Validates answers against the schema and returns a `ValidationReport`.
+- **repoman.copier**: `load_prompt_schema()`, `_schema_to_model()`, `validate_answers()`, `ValidationReport`. Schema and validation logic live here.
+- **repoman.config**: `load_answers(path)` loads the project's answers file; `validate_answers_file(path, template_path=..., strict=...)` orchestrates load + schema + validate.
+- **load_prompt_schema(template_path=None)** — Reads `copier.yml` (from template path or repoman root) and returns the prompt schema dict (no `_` meta keys).
+- **load_answers(path)** — In repoman.config; loads answers from a YAML file; raises `FileNotFoundError` or `yaml.YAMLError` on failure.
+- **validate_answers(schema, answers, strict=False)** — In repoman.copier; validates answers against the schema and returns a `ValidationReport`.
 
 ## ValidationReport
 
@@ -72,11 +75,8 @@ flowchart LR
 
 ```python
 from pathlib import Path
-from repoman.cli.commands.config.utils import (
-    load_prompt_schema,
-    load_answers,
-    validate_answers,
-)
+from repoman.config import load_answers
+from repoman.copier import load_prompt_schema, validate_answers
 
 schema = load_prompt_schema()
 answers_path = Path(".copier-answers.yml")
