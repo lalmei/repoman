@@ -41,6 +41,7 @@ nav:
   - repoman: reference/
 - Development:
   - Development Guide: development/README.md
+  - Architecture: development/architecture.md
   - Tools: development/tools.md
   - Code Quality: development/code-quality.md
   - CLI messages: development/cli-messages.md
