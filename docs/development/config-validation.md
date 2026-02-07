@@ -1,6 +1,6 @@
 # Config validation
 
-The `repoman config validate` command checks `.copier-answers.yml` (or another answers file) against the repoman template schema (`copier.yml`). Validation is implemented with Pydantic: the schema is turned into a dynamic model, answers are validated against it, and any errors are mapped to a `ValidationReport`.
+The `repoman config validate` command checks `.copier-answers.yml` (or another answers file) against the repoman template schema (`copier.yml`). Validation is implemented in **repoman.copier** (schema loading and Pydantic-based validation) and **repoman.config** (loading the answers file and optional orchestration). See [Architecture](architecture.md) for how create and config commands use these modules.
 
 ## Data flow
 
