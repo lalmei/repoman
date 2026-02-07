@@ -15,9 +15,11 @@ git.sha := $(strip $(or $(CI_COMMIT_SHORT_SHA),$(shell git rev-parse --short=8 H
 # Final docker image tag
 image.tag := $(if $(git.tag),$(git.tag),$(version)-$(git.sha))
 
+{% if not docs_only %}
 src.python := $(shell find ./src -type f -name "*.py" || :)
 test.unit.python := $(shell find ./tests -type f -name "*.py" || :)
 src.python.pyc := $(shell find ./src -type f -name "*.pyc")
+{% endif %}
 cache.dir := $(shell find . -type d -name __pycache__)
 checkpoint.dir := $(shell find . -type d -name .ipynb_checkpoints)
 mypy.cache.dir := $(shell find . -type d -name ".mypy_cache")
@@ -49,10 +51,14 @@ build.wheel := $(dist.dir)/{{python_package_distribution_name}}-$(version).tar.g
 uv.project.enviroment := .venv
 
 include make_cmds/uv.mk
+{% if not docs_only %}
 include make_cmds/quality.mk
 include make_cmds/tests.mk
+{% endif %}
 include make_cmds/documentation.mk
+{% if not docs_only %}
 include make_cmds/build.mk
+{% endif %}
 {% if python_notebooks %}
 include make_cmds/notebooks.mk
 {% endif %}

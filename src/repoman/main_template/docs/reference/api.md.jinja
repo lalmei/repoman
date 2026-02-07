@@ -4,4 +4,10 @@ hide:
 - navigation
 ---
 
+{% if docs_only %}
+# API reference
+
+This is a documentation-only project. Add a Python package to generate API documentation.
+{% else %}
 # ::: {{ python_package_import_name }}
+{% endif %}

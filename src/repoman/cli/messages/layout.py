@@ -7,7 +7,7 @@ fallback to single-panel output for narrow terminals or piped output.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from repoman.cli.commands.config.utils import ValidationReport
+    from repoman.copier import ValidationReport
 
 from rich.console import Console
 from rich.json import JSON

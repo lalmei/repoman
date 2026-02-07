@@ -51,3 +51,6 @@ rag_enabled: false
 
 # Dataset module (PyTorch-oriented)
 dataset_enabled: false
+
+# Documentation-only project (no src package, no tests)
+docs_only: false

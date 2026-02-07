@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 
 from pydantic import BaseModel, ValidationError
 
-from repoman.cli.commands.config.utils import load_answers, load_prompt_schema, validate_answers
+from repoman.cli.commands.config.utils import load_answers
+from repoman.copier import load_prompt_schema, validate_answers
 
 
 def test_validate_answers_valid_complete() -> None:
@@ -168,7 +169,7 @@ def test_validate_answers_type_error_with_empty_loc() -> None:
         e.errors = errors_with_empty_loc
         mock_model = MagicMock()
         mock_model.model_validate.side_effect = e
-        with patch("repoman.cli.commands.config.utils._schema_to_model", return_value=mock_model):
+        with patch("repoman.copier.validation._schema_to_model", return_value=mock_model):
             report = validate_answers({"a": {"type": "str"}}, {"a": "x"})
         assert report.valid is False
         assert "root error" in report.type_errors
@@ -185,7 +186,7 @@ def test_validate_answers_duplicate_missing_key_skipped() -> None:
     exc = ValidationError.from_exception_data("Config", errs)
     mock_model = MagicMock()
     mock_model.model_validate.side_effect = exc
-    with patch("repoman.cli.commands.config.utils._schema_to_model", return_value=mock_model):
+    with patch("repoman.copier.validation._schema_to_model", return_value=mock_model):
         report = validate_answers({"count": {"type": "int"}}, {})
     assert report.valid is False
     assert report.missing_keys == ["count"]
@@ -200,7 +201,7 @@ def test_validate_answers_duplicate_extra_key_skipped() -> None:
     exc = ValidationError.from_exception_data("Config", errs)
     mock_model = MagicMock()
     mock_model.model_validate.side_effect = exc
-    with patch("repoman.cli.commands.config.utils._schema_to_model", return_value=mock_model):
+    with patch("repoman.copier.validation._schema_to_model", return_value=mock_model):
         report = validate_answers({"name": {"type": "str"}}, {"name": "x", "foo": 1}, strict=True)
     assert report.valid is False
     assert report.extra_keys == ["foo"]

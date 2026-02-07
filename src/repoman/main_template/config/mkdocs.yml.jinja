@@ -4,7 +4,7 @@ site_url: "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.',
 repo_url: "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}"
 repo_name: "{{ repository_namespace }}/{{ repository_name }}"
 site_dir: "{% if repository_provider == 'github.com' %}site{% endif %}"
-watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, AI_POLICY.md, src/{{ python_package_import_name }}]
+watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, AI_POLICY.md{% if not docs_only %}, src/{{ python_package_import_name }}{% endif %}]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
 edit_uri: edit/main/docs/
 
@@ -27,7 +27,9 @@ nav:
   - Contributing: contributing.md
   - Code of Conduct: code_of_conduct.md
   - AI Usage Policy: ai_policy.md
+{% if not docs_only %}
   - Coverage report: coverage.md
+{% endif %}
 {%- if insiders %}
 - Insiders:
   - insiders/index.md
@@ -115,6 +117,7 @@ plugins:
 - autorefs
 - markdown-exec
 - section-index
+{% if not docs_only %}
 - coverage
 - mkdocstrings:
     handlers:
@@ -140,6 +143,7 @@ plugins:
           show_symbol_type_toc: true
           signature_crossrefs: true
           summary: true
+{% endif %}
 - llmstxt:
     full_output: llms-full.txt
     sections:
