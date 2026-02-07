@@ -6,12 +6,6 @@ from typing import Annotated
 import yaml
 from typer import Exit, Option, Typer
 
-from repoman.cli.commands.config.utils import (
-    ValidationReport,
-    load_answers,
-    load_prompt_schema,
-    validate_answers,
-)
 from repoman.cli.messages import (
     error_panel,
     invalid_yaml,
@@ -19,6 +13,8 @@ from repoman.cli.messages import (
     warning_panel,
 )
 from repoman.cli.messages.layout import layout_validation_failed, use_layout
+from repoman.config import load_answers
+from repoman.copier import ValidationReport, load_prompt_schema, validate_answers
 from repoman.utils.logging import get_logger_console
 
 app = Typer(

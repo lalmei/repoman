@@ -8,8 +8,8 @@ from typing import Annotated
 from rich.table import Table
 from typer import Exit, Option, Typer
 
-from repoman.cli.commands.config.utils import load_prompt_schema
 from repoman.cli.messages import error_panel, schema_not_found, unknown_format
+from repoman.copier import load_prompt_schema
 from repoman.utils.logging import get_logger_console
 
 app = Typer(
