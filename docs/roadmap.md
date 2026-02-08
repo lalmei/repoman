@@ -13,6 +13,12 @@ The roadmap is indicative. It helps align ideas and contributions; it does not g
 - **License and copyright:** More license options or easier customization of copyright text in generated files.
 - **Template variants:** Consider a “minimal” vs “full” variant (e.g. library-only vs app + CLI + FastAPI) to reduce generated surface area when not needed.
 
+## Configuration
+
+- **Hierarchical config:** Merge global (`~/.config/repoman/config.json`) with project-level config (e.g. `.repoman/config.json`) so project overrides can layer on top of system defaults.
+- **`repoman config path` or `repoman config init`:** Subcommand to show the system config file path or create an initial config file with defaults.
+- **Full env-overrides-file behavior:** Ensure environment variables (e.g. `REPOMAN_LOG_FORMAT`) properly override values loaded from the JSON config file via pydantic-settings source chain.
+
 ## CLI and UX
 
 - **Additional repoman subcommands:** For example, list available templates, validate answers file, or show diff before update.
