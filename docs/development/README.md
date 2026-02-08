@@ -69,7 +69,6 @@ Welcome to the repoman development environment! This guide will help you set up 
 Generated with `make docs-trees` from `eza --tree` (see [Documentation](documentation.md)).
 
 <!-- TREE_START:repoman -->
-
 ```
 repoman
 ├── ' .github'
@@ -100,14 +99,18 @@ repoman
 │   ├── concepts
 │   │   ├── copier-and-answers.md
 │   │   ├── generated-project.md
-│   │   └── overview.md
+│   │   ├── overview.md
+│   │   └── template-architecture.md
 │   ├── css
 │   │   ├── material.css
 │   │   └── mkdocstrings.css
 │   ├── development
 │   │   ├── additional-resources.md
+│   │   ├── architecture.md
 │   │   ├── ci.md
+│   │   ├── cli-messages.md
 │   │   ├── code-quality.md
+│   │   ├── config-validation.md
 │   │   ├── configuration.md
 │   │   ├── contributing.md
 │   │   ├── debugging.md
@@ -158,10 +161,20 @@ repoman
 │       │   ├── main_cli.py
 │       │   ├── messages
 │       │   └── register_commands.py
-│       ├── config.py
+│       ├── config
+│       │   ├── __init__.py
+│       │   ├── loader.py
+│       │   ├── models.py
+│       │   └── validation.py
+│       ├── copier
+│       │   ├── __init__.py
+│       │   ├── presets.py
+│       │   ├── schema.py
+│       │   └── validation.py
 │       ├── copier.yml
 │       ├── extensions.py
 │       ├── extentions
+│       │   ├── command.yml
 │       │   ├── command_template
 │       │   └── routers_template
 │       ├── main_template
@@ -179,11 +192,14 @@ repoman
 │       │   ├── scripts
 │       │   ├── src
 │       │   ├── tests
-│       │   ├── "{% if ci == 'azure' %}.azuredevops{% endif %}"
-│       │   ├── "{% if ci == 'github' %}.github{% endif %}"
-│       │   ├── "{% if ci == 'gitlab' %}.gitlab{% endif %}"
 │       │   ├── '{% if python_notebooks %}notebooks{% endif %}'
+│       │   ├── "{% if repository_provider == 'azure' %}.azuredevops{% endif %}"
+│       │   ├── "{% if repository_provider == 'github' %}.github{% endif %}"
+│       │   ├── "{% if repository_provider == 'gitlab' %}.gitlab{% endif %}"
 │       │   └── {{_copier_conf.answers_file}}.jinja
+│       ├── resources
+│       │   ├── __init__.py
+│       │   └── copier_answers_template.yml
 │       └── utils
 │           ├── __init__.py
 │           ├── logging.py
@@ -199,9 +215,14 @@ repoman
 │   │   ├── __init__.py
 │   │   ├── test_cli.py
 │   │   ├── test_command_registration.py
+│   │   ├── test_config.py
+│   │   ├── test_config_validation.py
 │   │   ├── test_create.py
 │   │   ├── test_generator.py
+│   │   ├── test_messages.py
 │   │   └── test_update.py
+│   ├── test_config.py
+│   ├── test_copier.py
 │   ├── test_input
 │   │   ├── __init__.py
 │   │   └── test_extensions.py
@@ -219,7 +240,6 @@ repoman
 │   └── test_version.py
 └── uv.lock
 ```
-
 <!-- TREE_END -->
 
 ## 🔧 Development Workflow

@@ -15,7 +15,7 @@
 
 ## Generated project layout (high-level)
 
-After you run `repoman create my-project` (with typical defaults, e.g. CLI + FastAPI enabled), the generated tree looks like this at a high level. Regenerate with `make docs-trees`.
+After you run `repoman create --project_name my-project` (with typical defaults, e.g. CLI + FastAPI enabled), the generated tree looks like this at a high level. Regenerate with `make docs-trees`.
 
 ### Instantiated project file tree
 
@@ -27,6 +27,7 @@ my_project
 ├── CODE_OF_CONDUCT.md
 ├── config
 │   ├── coverage.ini
+│   ├── dataset_config.json
 │   ├── git-changelog.toml
 │   ├── mkdocs.yml
 │   ├── mypy.ini
@@ -51,7 +52,8 @@ my_project
 │   │   └── feedback.js
 │   ├── license.md
 │   └── reference
-│       └── api.md
+│       ├── api.md
+│       └── architecture.md
 ├── LICENSE
 ├── make_cmds
 │   ├── build.mk
@@ -80,6 +82,7 @@ my_project
 │       │   ├── controllers
 │       │   │   ├── __init__.py
 │       │   │   ├── health_check.py
+│       │   │   ├── rag
 │       │   │   └── ready.py
 │       │   ├── exceptions
 │       │   │   ├── __init__.py
@@ -98,15 +101,60 @@ my_project
 │       ├── cli
 │       │   ├── __init__.py
 │       │   ├── commands
-│       │   │   └── __init__.py
+│       │   │   ├── __init__.py
+│       │   │   └── rag
 │       │   ├── main_cli.py
+│       │   ├── messages
+│       │   │   ├── __init__.py
+│       │   │   ├── capability.py
+│       │   │   ├── error.py
+│       │   │   ├── layout.py
+│       │   │   ├── message.py
+│       │   │   └── warning.py
 │       │   └── register.py
 │       ├── config
 │       │   ├── __init__.py
+│       │   ├── dataset_config.py
 │       │   ├── fastapi_config.py
-│       │   └── main_config.py
+│       │   ├── main_config.py
+│       │   └── rag_config.py
 │       ├── config.py
+│       ├── datasets
+│       │   ├── __init__.py
+│       │   ├── base.py
+│       │   ├── loaders.py
+│       │   ├── rag_eval.py
+│       │   ├── tabular.py
+│       │   ├── text.py
+│       │   └── types.py
 │       ├── py.typed
+│       ├── rag
+│       │   ├── __init__.py
+│       │   ├── adapters
+│       │   │   ├── __init__.py
+│       │   │   ├── docstore_sqlite.py
+│       │   │   ├── embedder_sentence_transformers.py
+│       │   │   ├── llm_stub.py
+│       │   │   ├── reranker_sentence_transformers.py
+│       │   │   └── vector_faiss.py
+│       │   ├── core
+│       │   │   ├── __init__.py
+│       │   │   ├── pipeline
+│       │   │   ├── ports
+│       │   │   └── types.py
+│       │   ├── eval
+│       │   │   └── __init__.py
+│       │   ├── infra
+│       │   │   ├── __init__.py
+│       │   │   └── config.py
+│       │   ├── prompts
+│       │   │   ├── __init__.py
+│       │   │   ├── builder.py
+│       │   │   └── templates
+│       │   ├── service.py
+│       │   └── wiring
+│       │       ├── __init__.py
+│       │       └── container.py
 │       └── utils
 │           ├── __init__.py
 │           ├── logging.py
@@ -115,33 +163,53 @@ my_project
 │               ├── __init__.py
 │               ├── terminal_colors.py
 │               └── theme.py
-└── tests
-    ├── __init__.py
-    ├── conftest.py
-    ├── test_app
-    │   ├── __init__.py
-    │   ├── conftest.py
-    │   ├── test_aiohttp_client.py
-    │   ├── test_asgi.py
-    │   ├── test_exceptions.py
-    │   ├── test_health_ready.py
-    │   ├── test_router.py
-    │   └── test_views_error.py
-    ├── test_cli
-    │   ├── __init__.py
-    │   ├── test_cli.py
-    │   └── test_command_registration.py
-    ├── test_config.py
-    ├── test_utils
-    │   ├── __init__.py
-    │   ├── test_logging.py
-    │   ├── test_progress_bar.py
-    │   └── test_theme.py
-    └── test_version.py
+├── tests
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── fixtures
+│   │   ├── eval_sample.jsonl
+│   │   ├── rag_sample.txt
+│   │   └── text_sample.jsonl
+│   ├── test_app
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   ├── test_aiohttp_client.py
+│   │   ├── test_asgi.py
+│   │   ├── test_exceptions.py
+│   │   ├── test_health_ready.py
+│   │   ├── test_rag_routes.py
+│   │   ├── test_router.py
+│   │   ├── test_state.py
+│   │   └── test_views_error.py
+│   ├── test_cli
+│   │   ├── __init__.py
+│   │   ├── test_cli.py
+│   │   ├── test_command_registration.py
+│   │   └── test_messages.py
+│   ├── test_config.py
+│   ├── test_datasets
+│   │   ├── __init__.py
+│   │   ├── test_loaders.py
+│   │   └── test_tabular.py
+│   ├── test_rag
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   ├── test_chunking.py
+│   │   ├── test_rag_commands.py
+│   │   ├── test_rag_eval.py
+│   │   ├── test_rag_integration.py
+│   │   └── test_retrieve.py
+│   ├── test_utils
+│   │   ├── __init__.py
+│   │   ├── test_logging.py
+│   │   ├── test_progress_bar.py
+│   │   └── test_theme.py
+│   └── test_version.py
+└── uv.lock
 ```
 <!-- TREE_END -->
 
-You can compare this with the output of `repoman create my-project` to see the exact files and structure for your choices.
+You can compare this with the output of `repoman create --project_name my-project` to see the exact files and structure for your choices.
 
 ## Key generated artifacts
 

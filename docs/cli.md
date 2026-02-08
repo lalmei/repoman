@@ -37,34 +37,55 @@ These options apply to the main `repoman` command and can be used with any subco
 
 ### create
 
-Create a new Python project using the repoman template.
+Create a new Python project using the repoman template. For the default (interactive or answers-based) flow, use options; project name is passed with `--project_name` / `-pn`. Alternatively, use a subcommand (e.g. `create cli`) and pass the project name as a positional argument.
 
 ```bash
-repoman create PROJECT_NAME [OPTIONS]
+repoman create [OPTIONS]
+# or with a preset subcommand (positional project name):
+repoman create cli PROJECT_NAME [OPTIONS]
 ```
 
-**Arguments**
+**Options (default create)**
 
-| Argument       | Required | Description                   |
-| -------------- | -------- | ----------------------------- |
-| `PROJECT_NAME` | Yes      | Name of the project to create |
+| Option          | Short | Description                                                                 |
+| --------------- | ----- | --------------------------------------------------------------------------- |
+| `--project_name` | `-pn` | **Required** for default create. Name of the project to create.             |
+| `--template`    | `-t`  | Path to custom template (defaults to bundled main template)                 |
+| `--output`      | `-o`  | Output directory (defaults to current directory)                             |
+| `--answers`     | `-a`  | Path to answers file for non-interactive use                                |
+| `--preset`      | `-p`  | Use a preset: `cli`, `docs-only`, `library`, `fastapi`, `rag` (non-interactive) |
+| `--force`       | `-f`  | Force overwrite of existing files                                          |
+| `--dry-run`     |       | Show what would be created without creating                                 |
 
-**Options**
-
-| Option       | Short | Description                                                 |
-| ------------ | ----- | ----------------------------------------------------------- |
-| `--template` | `-t`  | Path to custom template (defaults to bundled main template) |
-| `--output`   | `-o`  | Output directory (defaults to current directory)            |
-| `--answers`  | `-a`  | Path to answers file for non-interactive use                |
-| `--force`    | `-f`  | Force overwrite of existing files                           |
-| `--dry-run`  |       | Show what would be created without creating                 |
-
-**Examples**
+**Examples (default create)**
 
 ```bash
-repoman create my-new-project
-repoman create my-app --output /path/to/parent --force
-repoman create my-app --answers .copier-answers.yml --dry-run
+repoman create --project_name my-new-project
+repoman create -pn my-app --output /path/to/parent --force
+repoman create --project_name my-app --answers .copier-answers.yml --dry-run
+repoman create -pn my-app --preset cli
+```
+
+**Create subcommands (preset-based, positional project name)**
+
+Each subcommand creates a project using a preset and takes the project name as a positional argument:
+
+| Subcommand | Preset   | Description                                              |
+| ---------- | -------- | -------------------------------------------------------- |
+| `create cli`     | cli      | Plain CLI project (no FastAPI, RAG, dataset)             |
+| `create docs`    | docs_only| Documentation-only project                                |
+| `create library` | library  | Library-style project (no CLI entry point)               |
+| `create fastapi` | fastapi  | Project with FastAPI enabled                             |
+| `create rag`     | rag      | Project with FastAPI + RAG + dataset                     |
+
+**Examples (subcommands)**
+
+```bash
+repoman create cli my-cli-app
+repoman create library my-lib --dry-run
+repoman create docs docs-project --output /path/to/parent
+repoman create fastapi my-api
+repoman create rag my-rag-service --force
 ```
 
 ### update

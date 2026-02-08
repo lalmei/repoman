@@ -7,21 +7,24 @@ The project uses **MkDocs** with the **Material theme** for documentation. This 
 Generated with `make docs-trees` from `eza --tree`.
 
 <!-- TREE_START:docs -->
-
 ```
 docs
 ├── cli.md
 ├── concepts
 │   ├── copier-and-answers.md
 │   ├── generated-project.md
-│   └── overview.md
+│   ├── overview.md
+│   └── template-architecture.md
 ├── css
 │   ├── material.css
 │   └── mkdocstrings.css
 ├── development
 │   ├── additional-resources.md
+│   ├── architecture.md
 │   ├── ci.md
+│   ├── cli-messages.md
 │   ├── code-quality.md
+│   ├── config-validation.md
 │   ├── configuration.md
 │   ├── contributing.md
 │   ├── debugging.md
@@ -54,7 +57,6 @@ docs
 ├── template-structure.md
 └── template.md
 ```
-
 <!-- TREE_END -->
 
 MkDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.

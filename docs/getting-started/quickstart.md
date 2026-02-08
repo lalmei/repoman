@@ -11,10 +11,10 @@ Install repoman as described in [Installation](installation.md) (e.g. `uv sync` 
 From the directory where you want the new project folder to appear:
 
 ```bash
-uv run repoman create my-project
+uv run repoman create --project_name my-project
 ```
 
-(Or run `repoman create my-project` if repoman is installed globally.)
+(Or run `repoman create --project_name my-project` if repoman is installed globally.)
 
 Repoman will prompt you for project name, description, author, CI system, Python package name, and optional features (FastAPI, RAG, etc.). You can accept the defaults by pressing Enter, or change them. See [Template prompts](../template-prompts.md) for the full list of prompts.
 

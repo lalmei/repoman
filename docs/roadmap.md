@@ -29,6 +29,14 @@ The roadmap is indicative. It helps align ideas and contributions; it does not g
 - **“What changed” on update:** After `repoman update`, summarize or list which files were updated and how, to make upgrades easier to review.
 - **Migration notes:** Document breaking or notable changes between template versions so users can migrate safely.
 
+## Documentation and maintenance (post-review follow-ups)
+
+Potential improvements identified during documentation and project reviews:
+
+- **Positional project name for create:** Consider adding a positional project name to the default `repoman create` command so `repoman create my-project` works without `--project_name` (would require a small CLI change for simpler UX).
+- **Rename extentions/ to extensions/:** Consider renaming the `extentions/` directory to `extensions/` with a documented migration plan (update paths, templates, tests, and docs).
+- **Keep CLI reference in sync:** When adding new create options or subcommands, update the CLI reference and all create examples across the docs so they stay consistent.
+
 ---
 
 If you have ideas or want to work on any of these, open an issue or start a discussion in the repository.

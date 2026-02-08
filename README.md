@@ -12,7 +12,7 @@ uv sync
 make test
 
 # Generate a new project
-uv run python -m repoman create my-new-project
+uv run python -m repoman create --project_name my-new-project
 ```
 
 ## Documentation
@@ -36,7 +36,7 @@ uv run python -m repoman create my-new-project
 
 Repoman provides three main commands:
 
-- **`create`** — Create a new project from the template (`uv run repoman create my-project`)
+- **`create`** — Create a new project from the template (`uv run repoman create --project_name my-project`)
 - **`update`** — Update an existing project with the latest template
 - **`generator add`** — Add a new CLI command to a repoman-generated project
 
@@ -90,9 +90,10 @@ repoman/
 ├── tests/                 # Test suite
 ├── docs/                  # Documentation
 │   └── development/       # Development guides
-├── config/                # Configuration files
-└── deployment/            # Deployment configurations
+└── config/                # Configuration files
 ```
+
+(The `deployment/` directory appears in **generated** projects, not in this repo.)
 
 ## Contributing
 
