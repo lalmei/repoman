@@ -107,7 +107,7 @@ def _attach_rotating_file_handler(
         maxBytes=maximum_log_file_size_mb * 1024 * 1024,
         backupCount=maximum_log_file_time_days,
     )
-    handler.setFormatter(Formatter(Config().log_format))
+    handler.setFormatter(Formatter(Config.load().log_format))
     handler.set_name("rotating_file_handler")
     logger.addHandler(handler)
     return logger

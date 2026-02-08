@@ -27,6 +27,7 @@ Dependencies:
 """
 
 import logging
+from pathlib import Path
 
 from pydantic import ValidationError
 from rich.console import Console
@@ -96,13 +97,20 @@ def main(
         is_eager=True,
     ),
     theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
+    config_path: str | None = Option(
+        None,
+        "--config",
+        "-c",
+        envvar="REPOMAN_CONFIG_PATH",
+        help="Path to repoman config JSON",
+    ),
 ) -> None:
     r"""Welcome to repoman CLI App."""
     logger, _console = get_logger_console()
 
     config: Config | None = None
     try:
-        config = Config()
+        config = Config.load(custom_path=Path(config_path) if config_path else None)
         if verbose:
             logger.setLevel(logging.DEBUG)
             logger.info(Text("Setting verbose mode ON", style="orange"))
