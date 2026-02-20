@@ -5,10 +5,10 @@ This guide walks you through running `repoman create`, answering prompts, and wh
 ## Basic usage
 
 ```bash
-repoman create <project_name>
+repoman create --project_name <project_name>
 ```
 
-Or with uv from the repoman repo: `uv run repoman create <project_name>`.
+Or with uv from the repoman repo: `uv run repoman create --project_name <project_name>`. For preset-based creation without prompts, you can use a subcommand with a positional project name: `repoman create cli my-app`, `repoman create library my-lib`, `repoman create docs my-docs`, `repoman create fastapi my-api`, or `repoman create rag my-rag`.
 
 You will be prompted for project name, description, author, repository and copyright details, Python package and CLI names, CI system, and optional features (FastAPI, RAG, notebooks, dataset). See [Template prompts](../template-prompts.md) for the full list. You can press Enter to accept defaults.
 
@@ -37,7 +37,7 @@ To create a project without prompts (e.g. in CI or scripts):
 2. Run:
 
    ```bash
-   repoman create my-project --answers path/to/answers.yml
+   repoman create --project_name my-project --answers path/to/answers.yml
    ```
 
 Defaults are defined in the template; your answers file overrides them.

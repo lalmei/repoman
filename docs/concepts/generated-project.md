@@ -4,7 +4,7 @@ This page summarizes what a repoman-generated project contains. For conditional 
 
 ## Layout (high-level)
 
-After you run `repoman create my-project` with typical options, the generated project includes:
+After you run `repoman create --project_name my-project` with typical options, the generated project includes:
 
 - **`src/<package>/`** — Main Python package (config, utils, optional CLI, optional `app/` for FastAPI, optional `rag/` for RAG).
 - **`tests/`** — Test package and test modules (pytest).

@@ -47,7 +47,7 @@ Use `--format json` for machine-readable output, or `--include-meta` to show typ
 To run repoman without prompts (e.g. in CI or scripts), pass an answers file:
 
 ```bash
-repoman create my-project --answers path/to/.copier-answers.yml
+repoman create --project_name my-project --answers path/to/.copier-answers.yml
 repoman update ./my-project --answers ./my-project/.copier-answers.yml
 ```
 

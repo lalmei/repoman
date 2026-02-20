@@ -4,7 +4,7 @@ Repoman uses a single **Copier** template to generate Python projects. This page
 
 ## What the template is
 
-- **Single Copier template** used by `repoman create` and `repoman update`. When you run `repoman create my-project`, Copier runs against this template with your answers and writes the generated project to disk.
+- **Single Copier template** used by `repoman create` and `repoman update`. When you run `repoman create --project_name my-project`, Copier runs against this template with your answers and writes the generated project to disk.
 - **Location:** The template lives under `src/repoman/main_template/`. Copier is configured in `src/repoman/copier.yml` (in the repoman repo), which defines prompts, defaults, and `_subdirectory: main_template/` so Copier uses that directory as the template root.
 - **Rendering:** All template files use the `.jinja` suffix. Copier + Jinja2 render them with your answers and repoman's custom Jinja extensions (e.g. `slugify`, `git_user_name`, `current_year`). Answers are stored in `.copier-answers.yml` in the generated project and are used again by `repoman update` to re-apply the template.
 

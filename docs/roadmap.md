@@ -13,6 +13,12 @@ The roadmap is indicative. It helps align ideas and contributions; it does not g
 - **License and copyright:** More license options or easier customization of copyright text in generated files.
 - **Template variants:** Consider a “minimal” vs “full” variant (e.g. library-only vs app + CLI + FastAPI) to reduce generated surface area when not needed.
 
+## Configuration
+
+- **Hierarchical config:** Merge global (`~/.config/repoman/config.json`) with project-level config (e.g. `.repoman/config.json`) so project overrides can layer on top of system defaults.
+- **`repoman config path` or `repoman config init`:** Subcommand to show the system config file path or create an initial config file with defaults.
+- **Full env-overrides-file behavior:** Ensure environment variables (e.g. `REPOMAN_LOG_FORMAT`) properly override values loaded from the JSON config file via pydantic-settings source chain.
+
 ## CLI and UX
 
 - **Additional repoman subcommands:** For example, list available templates, validate answers file, or show diff before update.
@@ -28,6 +34,14 @@ The roadmap is indicative. It helps align ideas and contributions; it does not g
 - **More in-template docs:** Richer generated docs (e.g. usage examples, API overview) that are tailored to the chosen options.
 - **“What changed” on update:** After `repoman update`, summarize or list which files were updated and how, to make upgrades easier to review.
 - **Migration notes:** Document breaking or notable changes between template versions so users can migrate safely.
+
+## Documentation and maintenance (post-review follow-ups)
+
+Potential improvements identified during documentation and project reviews:
+
+- **Positional project name for create:** Consider adding a positional project name to the default `repoman create` command so `repoman create my-project` works without `--project_name` (would require a small CLI change for simpler UX).
+- **Rename extentions/ to extensions/:** Consider renaming the `extentions/` directory to `extensions/` with a documented migration plan (update paths, templates, tests, and docs).
+- **Keep CLI reference in sync:** When adding new create options or subcommands, update the CLI reference and all create examples across the docs so they stay consistent.
 
 ---
 

@@ -4,7 +4,7 @@ This page describes how the **create** command and **config validate** flow are 
 
 ## Summary diagram
 
-The diagram shows how the create group, its subcommands, and config validate use the shared modules.
+The diagram shows how the create group, its subcommands, and config validate use the shared modules. The **update** and **generator add** commands are not shown; see the Update and generator section below.
 
 ```mermaid
 flowchart LR
@@ -75,3 +75,10 @@ flowchart TB
 - **copier/schema.py**: `load_prompt_schema(template_path)` — load prompt keys from copier.yml.
 - **copier/validation.py**: `ValidationReport`, `validate_answers`, `validate_project_name`, and internal `_schema_to_model`.
 - **copier/presets.py**: `PRESETS`, `build_preset_data`, `build_copier_options`.
+
+## Update and generator
+
+- **update**: The `repoman update` command re-runs Copier on an existing project. It reads the project’s `.copier-answers.yml` (or the path given by `--answers`), optionally overrides template path or VCS ref, and calls Copier to apply the template again. The CLI does not use `repoman.copier` presets or `run_create`; it invokes Copier directly with the project as destination. This fits alongside create and config: same answers file and template, different flow (update in place vs. create new).
+- **generator add**: The `repoman generator add <command_name>` command adds a new CLI command to a repoman-generated project. It uses the **command template** under `src/repoman/extentions/command_template/` (Jinja2 templates), the project directory (default current directory or `--project-dir`), and the project’s `.copier-answers.yml` (for package name etc.). It generates a command module under `src/<package>/cli/commands/<command_name>/` and a test file. It does not call `repoman.copier` or `repoman.config` for schema/answers validation in the same way as create/config; it only needs the project’s answers for template variables.
+
+**Conventions or quirks:** The directory `src/repoman/extentions` (note the spelling) is intentionally named that way for historical reasons; do not rename it without a documented migration (paths, templates, and tests all reference it).
