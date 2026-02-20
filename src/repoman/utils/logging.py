@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from logging import DEBUG, INFO, Formatter, Logger, getLogger
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -80,7 +80,7 @@ def _set_up_logger(
     module_logger.addHandler(rich_handler)
 
     if use_rotating_file_handler and log_file_base_path is not None:
-        current_date = datetime.now(timezone.utc).strftime("%Y_m_%d")
+        current_date = datetime.now(UTC).strftime("%Y_m_%d")
         log_file_path = log_file_base_path / f"log_{current_date}.log"
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 

@@ -1,7 +1,7 @@
 """CLI success message utilities."""
 
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from rich.console import Console, Group
 from rich.json import JSON
@@ -48,7 +48,7 @@ def project_created(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
     console: Console | None = None,
-) -> Union[Panel, Layout]:
+) -> Panel | Layout:
     """Build a green success Panel or Layout for project creation.
 
     Uses a two-panel Layout on wide terminals (console.width >= 100); falls back
@@ -117,7 +117,7 @@ def project_updated(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
     console: Console | None = None,
-) -> Union[Panel, Layout]:
+) -> Panel | Layout:
     """Build a green success Panel or Layout for project update.
 
     Uses a two-panel Layout on wide terminals; falls back to single Panel on narrow.
@@ -169,7 +169,7 @@ def command_created(
     *,
     summary_section: str | None = None,
     next_steps_section: str | None = None,
-) -> Union[Panel, Layout]:
+) -> Panel | Layout:
     """Build a green success Panel or Layout for command creation (generator add, config init).
 
     When summary_section and next_steps_section are provided and use_layout(console),
