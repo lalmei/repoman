@@ -4,6 +4,78 @@ For **development environment** setup (environment variables, IDE), see [Develop
 
 This page describes **project configuration**: the answers file, non-interactive use, defaults, and where they are stored.
 
+## Repoman application configuration
+
+Repoman loads system-wide configuration from a JSON file. Use this to customize repoman's behavior (e.g. log format).
+
+### Config file location
+
+| Platform   | Default path                                  |
+| ---------- | ---------------------------------------------- |
+| Linux/macOS| `~/.config/repoman/config.json`                |
+| Windows    | `%APPDATA%\repoman\config.json`                |
+
+On Linux and macOS, `$XDG_CONFIG_HOME` is respected when set (defaults to `~/.config`). On Windows, `%APPDATA%` is used (typically `~/AppData/Roaming`).
+
+### Overriding the config path
+
+- **`--config` / `-c`**: Pass a path on the command line.
+- **`REPOMAN_CONFIG_PATH`**: Set this environment variable to a custom config file path.
+
+Example:
+
+```bash
+repoman --config ~/my-repoman-config.json create ...
+REPOMAN_CONFIG_PATH=/etc/repoman/config.json repoman create ...
+```
+
+### Config file format
+
+Create `~/.config/repoman/config.json` (or your custom path) with:
+
+```json
+{
+  "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+}
+```
+
+### Environment overrides
+
+Environment variables override values from the config file. Use the `REPOMAN_` prefix:
+
+- **`REPOMAN_LOG_FORMAT`**: Override the log format string.
+
+Example:
+
+```bash
+REPOMAN_LOG_FORMAT="%(levelname)s: %(message)s" repoman create ...
+```
+
+### Config load flow
+
+```mermaid
+flowchart TB
+    subgraph cli [CLI Layer]
+        main_callback[main callback]
+        config_option["--config / REPOMAN_CONFIG_PATH"]
+    end
+    subgraph config [repoman.config]
+        load[Config.load]
+        resolve_path[Resolve path]
+        json_source[JSON file source]
+        env_source[Env vars]
+        config_model[Config instance]
+    end
+    main_callback --> config_option
+    main_callback --> load
+    load --> resolve_path
+    resolve_path --> json_source
+    json_source --> config_model
+    env_source --> config_model
+```
+
+---
+
 ## Configuration = answers
 
 Repoman does not use a separate config file for itself. **Configuration** is the set of **answers** to the template prompts (project name, author, CI, optional FastAPI/RAG, etc.). Those answers drive what gets generated.
