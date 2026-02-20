@@ -1,0 +1,12 @@
+---
+description: Jinja2 and Copier patterns for main_template editing
+globs: "src/repoman/main_template/**/*.jinja"
+alwaysApply: false
+---
+
+# Template development
+
+- **Jinja2**: Use `{{ variable }}` for output, `{% if condition %}...{% endif %}` for conditionals. See [Jinja2 docs](https://jinja.palletsprojects.com/).
+- **Copier**: Variables come from prompts and `.copier-answers.yml`. Schema in [copier.yml](src/repoman/main_template/copier.yml).
+- **File associations**: `.py.jinja` and `**/*.py{% endif %}.jinja` get Python highlighting (see config/vscode/settings.json).
+- **Exclusions**: Ruff excludes `src/repoman/main_template`; template files are not linted directly.

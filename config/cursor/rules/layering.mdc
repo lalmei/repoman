@@ -1,6 +1,6 @@
 ---
 description: Keep CLI (Typer/Rich) in cli/; core logic in repoman.copier and repoman.config; no CLI imports in core.
-globs: "src/repoman/**/*.py"
+globs: "src/repoman/**/*.py", "src/repoman/main_template/**/*.py.jinja"
 alwaysApply: true
 ---
 
