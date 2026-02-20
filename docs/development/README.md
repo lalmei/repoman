@@ -174,6 +174,7 @@ repoman
 │       │   ├── __init__.py
 │       │   ├── loader.py
 │       │   ├── models.py
+│       │   ├── paths.py
 │       │   └── validation.py
 │       ├── copier
 │       │   ├── __init__.py
