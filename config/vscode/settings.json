@@ -1,6 +1,8 @@
 {
   "files.associations": {
-    "*.py.jinja": "python"
+    "*.py.jinja": "python",
+    "**/src/**/*.jinja": "python",
+    "**/tests/**/*.jinja": "python"
   },
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
   "python.analysis.extraPaths": ["${workspaceFolder}/src"],
