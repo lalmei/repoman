@@ -23,9 +23,15 @@ def get_os_config_path(app_name: str) -> Path:
     home = Path.home()
     system = platform.system()
 
-    if system == "Windows":
-        base = Path(os.environ.get("APPDATA", home / "AppData" / "Roaming"))
-    else:
-        base = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config"))
+    match system:
+        case "Windows":
+            base = Path(os.environ.get("APPDATA", home / "AppData" / "Roaming"))
+        case "Darwin":  # macOS
+            base = Path(os.environ.get(home / ".config", home / "Library" / "Application Support"))
+        case "Linux":
+            base = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config"))
+        case _:
+            # Fallback to XDG-like config for unknown OS
+            base = Path(os.environ.get(home / ".config"))
 
     return base / app_name / "config.json"
