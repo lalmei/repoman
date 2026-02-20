@@ -87,11 +87,18 @@ repoman
 │   ├── cursor
 │   │   ├── hooks.json
 │   │   └── rules
-│   │       └── checks.md
+│   │       ├── layering.mdc
+│   │       ├── plan-todos.mdc
+│   │       └── ruff.mdc
 │   ├── mkdocs.yml
 │   ├── mypy.ini
 │   ├── pytest.ini
-│   └── ruff.toml
+│   ├── ruff.toml
+│   └── vscode
+│       ├── extensions.json
+│       ├── launch.json
+│       ├── settings.json
+│       └── tasks.json
 ├── CONTRIBUTING.md
 ├── coverage.xml
 ├── docs
@@ -146,9 +153,11 @@ repoman
 ├── pyproject.toml
 ├── README.md
 ├── scripts
+│   ├── clean_transcript.py
 │   ├── gen_credits.py
 │   ├── gen_ref_nav.py
 │   ├── gen_tree_docs.py
+│   ├── semantic_relations.py
 │   └── update_instantiated_template_coverage.py
 ├── src
 │   └── repoman

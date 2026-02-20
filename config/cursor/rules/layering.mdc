@@ -1,0 +1,11 @@
+---
+description: Keep CLI (Typer/Rich) in cli/; core logic in repoman.copier and repoman.config; no CLI imports in core.
+globs: "src/repoman/**/*.py"
+alwaysApply: true
+---
+
+# Layering
+
+- **repoman.copier** and **repoman.config**: Pure logic—no Typer, Rich, or `cli` imports. Inputs/outputs are data (paths, dicts, dataclasses). See [architecture](docs/development/architecture.md).
+- **cli/**: Commands call into `repoman.copier` and `repoman.config`; all Typer/Rich/UX live here.
+- **Direction**: `cli` → `repoman.copier` / `repoman.config`. Never the reverse.

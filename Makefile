@@ -126,3 +126,10 @@ setup-cursor: ## Copy cursor configuration from config/cursor to .cursor
 	@mkdir -p .cursor
 	@cp -r config/cursor/* .cursor/
 	@echo "Cursor configuration synced to .cursor/"
+
+setup-vscode: ## Copy VS Code configuration from config/vscode to .vscode
+	@mkdir -p .vscode
+	@cp -r config/vscode/* .vscode/
+	@echo "VS Code configuration synced to .vscode/"
+
+setup-ide: setup-cursor setup-vscode ## Copy Cursor and VS Code config from config/ to project root

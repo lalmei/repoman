@@ -16,15 +16,10 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 
 ### VS Code
 
-Create `.vscode/settings.json`:
+Copy the shared configuration to your workspace:
 
-```json
-{
-  "python.defaultInterpreterPath": "./.venv/bin/python",
-  "python.testing.pytestEnabled": true,
-  "python.testing.pytestArgs": ["tests"],
-  "python.linting.enabled": true,
-  "python.linting.ruffEnabled": true,
-  "python.formatting.provider": "ruff"
-}
+```bash
+make setup-vscode
 ```
+
+This copies `config/vscode/*` to `.vscode/` (settings, tasks, launch configs, recommended extensions). For both Cursor and VS Code, run `make setup-ide`.
