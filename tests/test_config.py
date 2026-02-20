@@ -66,14 +66,24 @@ def test_validate_answers_file_nonexistent() -> None:
 # --- get_os_config_path tests ---
 
 
-def test_get_os_config_path_linux_and_macos(tmp_path: Path) -> None:
-    """get_os_config_path returns ~/.config/app/config.json on Linux/macOS."""
+def test_get_os_config_path_linux(tmp_path: Path) -> None:
+    """get_os_config_path returns ~/.config/app/config.json on Linux."""
     with (
         patch("repoman.config.paths.platform.system", return_value="Linux"),
         patch("repoman.config.paths.Path.home", return_value=tmp_path),
     ):
         result = get_os_config_path("myapp")
     assert result == tmp_path / ".config" / "myapp" / "config.json"
+
+
+def test_get_os_config_path_darwin(tmp_path: Path) -> None:
+    """get_os_config_path returns ~/Library/Application Support/app/config.json on macOS."""
+    with (
+        patch("repoman.config.paths.platform.system", return_value="Darwin"),
+        patch("repoman.config.paths.Path.home", return_value=tmp_path),
+    ):
+        result = get_os_config_path("myapp")
+    assert result == tmp_path / "Library" / "Application Support" / "myapp" / "config.json"
 
 
 def test_get_os_config_path_linux_xdg_config_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

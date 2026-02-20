@@ -10,9 +10,9 @@ from pathlib import Path
 def get_os_config_path(app_name: str) -> Path:
     """Return the standard OS-specific config file path.
 
-    Linux and macOS use $XDG_CONFIG_HOME/app_name/config.json or
-    ~/.config/app_name/config.json. Windows uses %APPDATA%/app_name/config.json
-    (fallback: ~/AppData/Roaming/app_name/config.json).
+    Linux uses $XDG_CONFIG_HOME (default ~/.config). macOS uses
+    ~/Library/Application Support (no env var). Windows uses %APPDATA%
+    (fallback: ~/AppData/Roaming).
 
     Args:
         app_name: Application name (e.g. "repoman").
@@ -25,13 +25,13 @@ def get_os_config_path(app_name: str) -> Path:
 
     match system:
         case "Windows":
-            base = Path(os.environ.get("APPDATA", home / "AppData" / "Roaming"))
+            base = Path(os.environ.get("APPDATA", str(home / "AppData" / "Roaming")))
         case "Darwin":  # macOS
-            base = Path(os.environ.get(home / ".config", home / "Library" / "Application Support"))
+            base = home / "Library" / "Application Support"
         case "Linux":
-            base = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config"))
+            base = Path(os.environ.get("XDG_CONFIG_HOME", str(home / ".config")))
         case _:
             # Fallback to XDG-like config for unknown OS
-            base = Path(os.environ.get(home / ".config"))
+            base = Path(os.environ.get("XDG_CONFIG_HOME", str(home / ".config")))
 
     return base / app_name / "config.json"
