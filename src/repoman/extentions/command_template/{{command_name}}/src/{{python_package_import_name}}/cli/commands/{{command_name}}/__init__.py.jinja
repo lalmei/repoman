@@ -6,6 +6,7 @@ logger, console = get_logger_console()
 
 app = Typer(add_completion=True, no_args_is_help=True)
 
+
 @app.callback(invoke_without_command=True, no_args_is_help=True)
 def {{command_name}}(
     ctx: Context,
@@ -24,4 +25,4 @@ def {{command_name}}(
     console.print("test")
 
 
-## <-------- import subcommands --------> 
+## <-------- import subcommands -------->

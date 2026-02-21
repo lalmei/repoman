@@ -35,6 +35,7 @@ Example: from the repo root, `repoman update ./my-project`. Repoman (and Copier)
 | `--force`, `-f`    | Overwrite without asking.                                                            |
 | `--dry-run`        | Show what would be updated without writing files.                                    |
 | `--conflict`       | Conflict resolution: `inline` or `rej` (default: inline).                            |
+| `--skip-extensions`| Skip syncing Copier-managed extensions after the base template update.                |
 
 ## Handling conflicts
 
@@ -44,3 +45,13 @@ If you have edited generated files and the template has changed, Copier may repo
 - **`rej`** — Reject files (e.g. `.rej` files) are written; apply or discard changes as needed.
 
 Use `--dry-run` to see what would be updated before applying. For more help, see [Troubleshooting](../reference/troubleshooting.md) and the [CLI reference](../cli.md).
+
+## Extension sync
+
+Repoman also supports syncing extension instances directly:
+
+```bash
+repoman extensions sync <project_dir>
+```
+
+Use this when you want to re-sync extension templates without re-running the full base template update.

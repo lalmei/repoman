@@ -112,6 +112,7 @@ repoman update PROJECT_DIR [OPTIONS]
 | `--force`    | `-f`  | Force overwrite without asking                                              |
 | `--dry-run`  |       | Show what would be updated without making changes                           |
 | `--conflict` |       | Conflict resolution: `inline` or `rej` (default: inline)                    |
+| `--skip-extensions` | | Skip syncing Copier-managed extensions after the base update               |
 
 **Examples**
 
@@ -233,7 +234,7 @@ repoman config list-keys --include-meta
 
 ### generator add
 
-Add a new CLI command to a repoman-generated project. Generates a command module and a test file.
+Add a new CLI command to a repoman-generated project. Generates a command module and a test file, and stores extension instance metadata for future sync/update.
 
 ```bash
 repoman generator add COMMAND_NAME [OPTIONS]
@@ -262,6 +263,31 @@ repoman generator add mycommand
 repoman generator add mycommand --project-dir /path/to/project --dry-run
 ```
 
+### extensions sync
+
+Sync Copier-managed extension instances in a repoman-generated project.
+
+```bash
+repoman extensions sync PROJECT_DIR [OPTIONS]
+```
+
+**Options**
+
+| Option       | Short | Description                               |
+| ------------ | ----- | ----------------------------------------- |
+| `--type`     |       | Sync only a specific extension type       |
+| `--name`     |       | Sync only a specific extension name       |
+| `--force`    | `-f`  | Force overwrite without asking            |
+| `--dry-run`  |       | Show what would be synced                 |
+| `--conflict` |       | Conflict resolution: `inline` or `rej`    |
+
+**Examples**
+
+```bash
+repoman extensions sync ./my-project
+repoman extensions sync ./my-project --type command --name report --dry-run
+```
+
 ## Getting help
 
 ```bash
@@ -274,4 +300,5 @@ repoman config validate --help
 repoman config show --help
 repoman config list-keys --help
 repoman generator add --help
+repoman extensions sync --help
 ```

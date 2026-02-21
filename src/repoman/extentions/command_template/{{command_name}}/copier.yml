@@ -1,0 +1,16 @@
+_min_copier_version: "9"
+_templates_suffix: .jinja
+
+command_name:
+  type: str
+
+command_description:
+  type: str
+  default: "{{ command_name }} command"
+
+python_package_import_name:
+  type: str
+
+python_package_command_line_name:
+  type: str
+  default: "{{ python_package_import_name }}"
