@@ -51,6 +51,7 @@ build.wheel := $(dist.dir)/{{python_package_distribution_name}}-$(version).tar.g
 uv.project.enviroment := .venv
 
 include make_cmds/uv.mk
+include make_cmds/setup-ide.mk
 {% if not docs_only %}
 include make_cmds/quality.mk
 include make_cmds/tests.mk
