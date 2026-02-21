@@ -51,6 +51,8 @@ The following sections group targets by purpose.
 | `make clean` | Clean up cache and build files |
 | `make update-instantiated-template-coverage` | Update instantiated template coverage % in docs/development/testing.md |
 | `make setup-cursor` | Copy cursor configuration from config/cursor to .cursor |
+| `make setup-vscode` | Copy VS Code configuration from config/vscode to .vscode |
+| `make setup-ide` | Copy Cursor and VS Code config from config/ to project root |
 
 ## Typical workflow
 

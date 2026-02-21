@@ -19,7 +19,7 @@
   },
   "ruff.configuration": "${workspaceFolder}/config/ruff.toml",
   "ruff.lineLength": 120,
-  "ruff.exclude": ["tests/fixtures"],
+  "ruff.exclude": ["src/repoman/main_template"],
   "mypy-type-checker.args": ["--config-file", "config/mypy.ini"],
   "search.exclude": {
     "**/.venv": true,
@@ -38,21 +38,5 @@
   },
   "terminal.integrated.env.windows": {
     "PYTHONPATH": "${workspaceFolder}/src"
-  },
-  "files.watcherExclude": {
-    "**/.venv*/**": true,
-    "**/.venvs*/**": true,
-    "**/venv*/**": true
-  },
-  "yaml.schemas": {
-    "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
-  },
-  "yaml.customTags": [
-    "!ENV scalar",
-    "!ENV sequence",
-    "!relative scalar",
-    "tag:yaml.org,2002:python/name:materialx.emoji.to_svg",
-    "tag:yaml.org,2002:python/name:materialx.emoji.twemoji",
-    "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format"
-  ]
+  }
 }

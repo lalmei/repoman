@@ -77,6 +77,8 @@ make clean                   # Clean cache and build files
 make help                    # Print all targets
 make update-instantiated-template-coverage  # Update coverage % in docs/development/testing.md
 make setup-cursor            # Copy cursor config from config/cursor to .cursor
+make setup-vscode            # Copy VS Code config from config/vscode to .vscode
+make setup-ide               # Copy Cursor and VS Code config (setup-cursor + setup-vscode)
 ```
 
 See [Make commands](../make-commands.md) for the full reference.

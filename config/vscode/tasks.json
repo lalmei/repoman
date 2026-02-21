@@ -26,13 +26,9 @@
       "command": "make",
       "args": ["docs-serve"],
       "isBackground": true,
-      "presentation": { "reveal": "always" }
-    },
-    {
-      "label": "setup-ide",
-      "type": "shell",
-      "command": "make",
-      "args": ["setup-ide"]
+      "presentation": {
+        "reveal": "always"
+      }
     }
   ]
 }

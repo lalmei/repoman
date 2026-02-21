@@ -1,0 +1,12 @@
+---
+description: Use pytest with markers and make test-* targets
+globs: "tests/**/*.py", "**/test_*.py"
+alwaysApply: false
+---
+
+# Testing
+
+- **Runner**: Use pytest. Config in [config/pytest.ini](config/pytest.ini).
+- **Markers**: Use markers (unit, cli, isolated, slow) for test organization. Run `make test-unit`, `make test-cli`, `make test-isolated`, `make test-fast` as appropriate.
+- **Coverage**: Config in [config/coverage.ini](config/coverage.ini). Run `make test-coverage` for reports.
+- **Paths**: Tests live under `tests/`; source under `src/`. `pythonpath = src/` in pytest.ini.
