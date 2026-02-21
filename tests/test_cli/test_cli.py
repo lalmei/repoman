@@ -1,5 +1,6 @@
 """Tests for the main CLI application."""
 
+from pathlib import Path
 from unittest.mock import patch
 
 from pydantic import ValidationError
@@ -90,3 +91,12 @@ def test_config_validation_error_with_subcommand(cli_runner: CliRunner, cli_app:
         result = cli_runner.invoke(cli_app, ["create", "--help"], input="")
         assert result.exit_code == 0
         assert "create" in result.output.lower()
+
+
+def test_invalid_json_config_is_handled(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Malformed JSON config should not crash CLI callback."""
+    bad_config = tmp_path / "repoman-config.json"
+    bad_config.write_text("{invalid", encoding="utf-8")
+
+    result = cli_runner.invoke(cli_app, ["--config", str(bad_config), "--verbose"], input="")
+    assert result.exit_code == 0

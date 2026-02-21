@@ -78,7 +78,7 @@ flowchart TB
 
 ## Configuration = answers
 
-Repoman does not use a separate config file for itself. **Configuration** is the set of **answers** to the template prompts (project name, author, CI, optional FastAPI/RAG, etc.). Those answers drive what gets generated.
+For generated projects, **configuration** is the set of **answers** to the template prompts (project name, author, CI, optional FastAPI/RAG, etc.). Those answers drive what gets generated.
 
 ## Where configuration is stored
 
