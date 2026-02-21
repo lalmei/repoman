@@ -1,7 +1,7 @@
 """CLI dry-run message panels."""
 
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from rich.console import Console, Group
 from rich.json import JSON
@@ -24,7 +24,7 @@ def dry_run_create(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
     _console: Console | None = None,
-) -> Union[Panel, Layout]:
+) -> Panel | Layout:
     """Build a blue dry-run Panel or Layout for project creation.
 
     Uses a two-panel Layout on wide terminals (console.width >= 100); falls back
@@ -85,7 +85,7 @@ def dry_run_update(
     copier_options_serializable: dict[str, Any],
     next_steps_text: str,
     _console: Console | None = None,
-) -> Union[Panel, Layout]:
+) -> Panel | Layout:
     """Build a blue dry-run Panel or Layout for project update.
 
     Uses a two-panel Layout on wide terminals; falls back to single Panel on narrow.
@@ -139,7 +139,7 @@ def dry_run_command_add(
     test_output_file: Path | str,
     context_lines: str,
     _console: Console | None = None,
-) -> Union[Panel, Layout]:
+) -> Panel | Layout:
     """Build a blue dry-run Panel or Layout for generator add command.
 
     Uses a two-panel Layout on wide terminals; falls back to single Panel on narrow.

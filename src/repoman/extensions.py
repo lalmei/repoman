@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import subprocess
 import unicodedata
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from jinja2 import Environment
 from jinja2.ext import Extension
@@ -87,4 +87,4 @@ class CurrentYearExtension(Extension):
             environment: Jinja2 environment to register globals with
         """
         super().__init__(environment)
-        environment.globals["current_year"] = datetime.now(timezone.utc).date().year
+        environment.globals["current_year"] = datetime.now(UTC).date().year

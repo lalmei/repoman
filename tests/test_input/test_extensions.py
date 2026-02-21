@@ -1,7 +1,7 @@
 """Unit tests for repoman extensions module."""
 
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import patch
 
@@ -274,7 +274,7 @@ class TestCurrentYearExtension:
         CurrentYearExtension(env)
 
         assert "current_year" in env.globals
-        assert env.globals["current_year"] == datetime.now(timezone.utc).date().year
+        assert env.globals["current_year"] == datetime.now(UTC).date().year
 
     def test_current_year_extension_global_in_template(self) -> None:
         """Test CurrentYearExtension global in Jinja2 template."""
@@ -284,7 +284,7 @@ class TestCurrentYearExtension:
         template = env.from_string("Current year: {{ current_year }}")
         result = template.render()
 
-        assert result == f"Current year: {datetime.now(timezone.utc).date().year}"
+        assert result == f"Current year: {datetime.now(UTC).date().year}"
 
     def test_current_year_extension_math_operations(self) -> None:
         """Test CurrentYearExtension with math operations in template."""
@@ -294,7 +294,7 @@ class TestCurrentYearExtension:
         template = env.from_string("Next year: {{ current_year + 1 }}")
         result = template.render()
 
-        assert result == f"Next year: {datetime.now(timezone.utc).date().year + 1}"
+        assert result == f"Next year: {datetime.now(UTC).date().year + 1}"
 
 
 class TestExtensionsIntegration:
@@ -326,7 +326,7 @@ class TestExtensionsIntegration:
         template = env.from_string("User: {{ 'default' | git_user_name | slugify }}, Year: {{ current_year }}")
         result = template.render()
 
-        assert result == f"User: john-doe, Year: {datetime.now(timezone.utc).date().year}"
+        assert result == f"User: john-doe, Year: {datetime.now(UTC).date().year}"
         mock_git_name.assert_called_once_with("default")
 
 
@@ -371,4 +371,4 @@ class TestExtensionsErrorHandling:
         year2 = env.globals["current_year"]
 
         assert year1 == year2
-        assert year1 == datetime.now(timezone.utc).date().year
+        assert year1 == datetime.now(UTC).date().year
