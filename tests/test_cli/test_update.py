@@ -360,9 +360,10 @@ def test_update_command_runs_extension_sync_after_update(tmp_path: Path, cli_run
     mock_worker.__enter__.return_value = mock_worker
     mock_worker.__exit__.return_value = None
 
-    with patch("repoman.cli.commands.update.Worker", return_value=mock_worker), patch(
-        "repoman.cli.commands.update.sync_extensions"
-    ) as mock_sync:
+    with (
+        patch("repoman.cli.commands.update.Worker", return_value=mock_worker),
+        patch("repoman.cli.commands.update.sync_extensions") as mock_sync,
+    ):
         result = cli_runner.invoke(cli_app, ["update", str(project_dir)], input="")
 
     assert result.exit_code == 0

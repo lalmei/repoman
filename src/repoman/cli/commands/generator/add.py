@@ -122,13 +122,7 @@ def add(
         raise Exit(1) from e
 
     command_output_file = (
-        project_dir_path
-        / "src"
-        / python_package_import_name
-        / "cli"
-        / "commands"
-        / command_name
-        / "__init__.py"
+        project_dir_path / "src" / python_package_import_name / "cli" / "commands" / command_name / "__init__.py"
     )
     test_output_file = project_dir_path / "tests" / "test_cli" / f"test_{command_name}.py"
 

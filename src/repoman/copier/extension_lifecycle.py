@@ -197,19 +197,11 @@ def create_command_extension(
     if not python_package_import_name:
         raise ExtensionLifecycleError("Missing required answer: python_package_import_name")
 
-    python_package_command_line_name = str(
-        answers.get("python_package_command_line_name", python_package_import_name)
-    )
+    python_package_command_line_name = str(answers.get("python_package_command_line_name", python_package_import_name))
     command_description = str(answers.get("command_description", f"{command_name} command"))
 
     command_output_file = (
-        project_dir
-        / "src"
-        / python_package_import_name
-        / "cli"
-        / "commands"
-        / command_name
-        / "__init__.py"
+        project_dir / "src" / python_package_import_name / "cli" / "commands" / command_name / "__init__.py"
     )
     test_output_file = project_dir / "tests" / "test_cli" / f"test_{command_name}.py"
 
@@ -290,9 +282,7 @@ def sync_extensions(
 
         answers_file = project_dir / instance.answers_file
         if not answers_file.exists():
-            raise ExtensionLifecycleError(
-                f"Extension answers file is missing for {instance.id}: {answers_file}"
-            )
+            raise ExtensionLifecycleError(f"Extension answers file is missing for {instance.id}: {answers_file}")
 
         copier_options: dict[str, Any] = {
             "src_path": str(template_dir),
