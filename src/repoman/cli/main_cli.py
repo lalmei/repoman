@@ -27,6 +27,7 @@ Dependencies:
 """
 
 import logging
+from json import JSONDecodeError
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -119,7 +120,7 @@ def main(
 
         logger.debug(config.model_dump())
         logger.debug(Text("Configuration set", style="yellow"))
-    except ValidationError:
+    except (JSONDecodeError, ValidationError):
         logger.exception("Unable to load configuration: ")
         logger.exception("Obtained the following validating Errors loading configuration")
         config = None
