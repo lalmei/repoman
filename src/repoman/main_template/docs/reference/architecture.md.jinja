@@ -30,6 +30,11 @@ When RAG is enabled, this project includes a retrieval-augmented generation (RAG
   - **health():** Returns which RAG components are configured (for `/rag/health` when FastAPI is on).
 
 - **RAGContainer** builds concrete implementations from `RAGConfig`: embedder (sentence-transformers), vector index (FAISS), docstore (SQLite), reranker (sentence-transformers), stub LLM, and prompt builder. These are used by the pipelines.
+- **RAGContainer** builds concrete implementations from `RAGConfig`: embedder (`sentence_transformers` or `modernbert`), vector index (FAISS), docstore (SQLite), reranker (sentence-transformers), stub LLM, and prompt builder. These are used by the pipelines.
+
+  - Set `RAG_EMBEDDER_PROVIDER=sentence_transformers` with a sentence-transformers model id (default: `all-MiniLM-L6-v2`).
+  - Set `RAG_EMBEDDER_PROVIDER=modernbert` with a ModernBERT model id (for example `answerdotai/ModernBERT-base`).
+  - ModernBERT requires additional dependencies (`uv sync --group rag --group rag-modernbert`).
 
 ### Pipelines
 

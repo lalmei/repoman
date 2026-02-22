@@ -1,0 +1,102 @@
+"""Tests for ModernBERT embedder adapter."""
+
+import sys
+from types import SimpleNamespace
+
+import numpy as np
+
+from {{ python_package_import_name }}.rag.adapters.embedder_modernbert import ModernBERTEmbedder
+
+
+class _FakeTensor:
+    """Tiny tensor-like wrapper exposing detach/cpu/numpy."""
+
+    def __init__(self, arr: np.ndarray) -> None:
+        self._arr = arr
+
+    def detach(self) -> "_FakeTensor":
+        return self
+
+    def cpu(self) -> "_FakeTensor":
+        return self
+
+    def numpy(self) -> np.ndarray:
+        return self._arr
+
+
+class _FakeTokenizer:
+    def __call__(
+        self,
+        texts: list[str],
+        padding: bool,
+        truncation: bool,
+        return_tensors: str,
+    ) -> dict[str, _FakeTensor]:
+        assert padding
+        assert truncation
+        assert return_tensors == "pt"
+        batch = len(texts)
+        # sequence length = 2 for deterministic tests
+        attention_mask = np.ones((batch, 2), dtype=np.float32)
+        return {"attention_mask": _FakeTensor(attention_mask)}
+
+
+class _FakeModel:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(hidden_size=3)
+
+    def eval(self) -> None:
+        return None
+
+    def __call__(self, **encoded: object) -> SimpleNamespace:
+        mask = encoded["attention_mask"]
+        if isinstance(mask, _FakeTensor):
+            batch = mask.numpy().shape[0]
+        else:
+            batch = 1
+        hidden = np.array(
+            [[[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]] for _ in range(batch)],
+            dtype=np.float32,
+        )
+        return SimpleNamespace(last_hidden_state=_FakeTensor(hidden))
+
+
+class _FakeAutoTokenizer:
+    @staticmethod
+    def from_pretrained(_model_name: str) -> _FakeTokenizer:
+        return _FakeTokenizer()
+
+
+class _FakeAutoModel:
+    @staticmethod
+    def from_pretrained(_model_name: str) -> _FakeModel:
+        return _FakeModel()
+
+
+def _install_fake_transformers() -> None:
+    fake_module = SimpleNamespace(
+        AutoTokenizer=_FakeAutoTokenizer,
+        AutoModel=_FakeAutoModel,
+    )
+    sys.modules["transformers"] = fake_module  # type: ignore[assignment]
+
+
+def test_modernbert_embedder_dimension() -> None:
+    """Dimension comes from model config.hidden_size."""
+    _install_fake_transformers()
+    embedder = ModernBERTEmbedder("answerdotai/ModernBERT-base")
+    assert embedder.dimension == 3
+
+
+def test_modernbert_embedder_outputs_normalized_vectors() -> None:
+    """embed and embed_batch return vectors with expected shape and norm."""
+    _install_fake_transformers()
+    embedder = ModernBERTEmbedder("answerdotai/ModernBERT-base")
+
+    single = embedder.embed("hello")
+    assert len(single) == 3
+    assert np.isclose(np.linalg.norm(np.array(single, dtype=np.float32)), 1.0, atol=1e-5)
+
+    batch = embedder.embed_batch(["a", "b"])
+    assert len(batch) == 2
+    assert all(len(v) == 3 for v in batch)
