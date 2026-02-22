@@ -15,7 +15,7 @@ For the full list of prompts and defaults, see [Template prompts](template-promp
 Generated projects that have a CLI can add new subcommands without editing repoman's core template:
 
 - **Command:** `repoman generator add <command_name>`
-- **What it does:** Uses the **command template** under `src/repoman/extentions/command_template/` (the directory is named `extentions` in the repo—historical spelling). It creates a new command module under `src/{{ package }}/cli/commands/<command_name>/` and a test file under `tests/test_cli/test_<command_name>.py`.
+- **What it does:** Uses a **Copier-backed command extension template** under `src/repoman/extentions/command_template/` (the directory is named `extentions` in the repo—historical spelling). It creates a new command module under `src/{{ package }}/cli/commands/<command_name>/` and a test file under `tests/test_cli/test_<command_name>.py`, and records extension lifecycle metadata in `.repoman/extensions.yml`.
 
 So the generated project's CLI stays extensible by adding commands that follow the same pattern (e.g. user-added subcommands).
 

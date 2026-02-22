@@ -13,7 +13,7 @@ repoman generator add <command_name>
 Example: `repoman generator add mycommand` creates a new CLI subcommand `mycommand` in your project.
 
 - **`<command_name>`** must be a valid Python identifier (e.g. `mycommand`, `my_command`).
-- Repoman uses the **command template** (under `src/repoman/extentions/command_template/` in the repoman repo) to generate files in your project.
+- Repoman uses a **Copier-backed command extension template** (under `src/repoman/extentions/command_template/` in the repoman repo) to generate files and track extension lifecycle metadata for future sync/update.
 
 ## What gets created
 

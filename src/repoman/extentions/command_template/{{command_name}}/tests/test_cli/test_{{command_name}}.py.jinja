@@ -27,50 +27,28 @@ def test_{{command_name}}_help(runner: CliRunner) -> None:
 
 def test_{{command_name}}_basic_invocation(runner: CliRunner) -> None:
     """Test basic {{command_name}} command invocation."""
-    # Mock the context object that would normally be set by the main CLI
-    with patch("{{python_package_import_name}}.cli.commands.{{command_name}}.get_logger_console") as mock_logger:
-        # Create a mock context-like object
-        class MockContext:
-            obj = {"dry_run": False}
-
-        # The command expects ctx.obj to have dry_run
-        # Since we're testing the command app directly, we need to provide context
+    with patch("{{python_package_import_name}}.cli.commands.{{command_name}}.get_logger_console"):
         result = runner.invoke(app, [])
-        
-        # Should show help or execute (depending on no_args_is_help setting)
         assert result.exit_code in (0, 2)
 
 
 def test_{{command_name}}_with_project_id(runner: CliRunner) -> None:
     """Test {{command_name}} command with project_id option."""
-    with patch("{{python_package_import_name}}.cli.commands.{{command_name}}.get_logger_console") as mock_logger:
-        # Mock logger and console
-        mock_console = mock_logger.return_value[1]
-        
+    with patch("{{python_package_import_name}}.cli.commands.{{command_name}}.get_logger_console"):
         result = runner.invoke(app, ["--project_id", "test-project-123"])
-        
-        # Command should execute (exit code 0) or show help
-        # The actual behavior depends on the command implementation
         assert result.exit_code in (0, 2)
 
 
 def test_{{command_name}}_with_short_project_id_flag(runner: CliRunner) -> None:
     """Test {{command_name}} command with short project_id flag."""
-    with patch("{{python_package_import_name}}.cli.commands.{{command_name}}.get_logger_console") as mock_logger:
-        mock_console = mock_logger.return_value[1]
-        
+    with patch("{{python_package_import_name}}.cli.commands.{{command_name}}.get_logger_console"):
         result = runner.invoke(app, ["-p", "test-project-456"])
-        
-        # Command should execute
         assert result.exit_code in (0, 2)
 
 
 def test_{{command_name}}_command_registered(cli_runner, cli_app) -> None:
     """Test that {{command_name}} command is registered in the main CLI."""
-    # Test that the command exists by invoking it with --help through the main CLI
     result = cli_runner.invoke(cli_app, ["{{command_name}}", "--help"])
-    
-    # Should show help for the command
     assert result.exit_code == 0
     assert "{{command_name}}" in result.output.lower()
     assert "Usage:" in result.output or "{{command_description}}" in result.output.lower()

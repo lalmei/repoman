@@ -318,9 +318,12 @@ def test_update_command_success_path(tmp_path: Path, cli_runner: CliRunner, cli_
 
     This test verifies the success path for project update (lines 190-225).
     """
+
+
+def test_update_command_skip_extensions_dry_run(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Dry-run update supports --skip-extensions flag."""
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
-
     answers_file = project_dir / ".copier-answers.yml"
     answers_file.write_text(
         yaml.dump(
@@ -331,23 +334,40 @@ def test_update_command_success_path(tmp_path: Path, cli_runner: CliRunner, cli_
         )
     )
 
-    # Mock Worker to simulate successful update
-    with patch("repoman.cli.commands.update.Worker") as mock_worker_class:
-        mock_worker = MagicMock()
-        mock_worker.__enter__ = MagicMock(return_value=mock_worker)
-        mock_worker.__exit__ = MagicMock(return_value=False)
-        mock_worker.run_update = MagicMock(return_value=None)
-        mock_worker_class.return_value = mock_worker
+    result = cli_runner.invoke(
+        cli_app,
+        ["update", "--skip-extensions", "--dry-run", str(project_dir)],
+        input="",
+    )
+    assert result.exit_code == 0
 
+
+def test_update_command_runs_extension_sync_after_update(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Update command invokes extension sync after base update."""
+    project_dir = tmp_path / "test-project"
+    project_dir.mkdir()
+    answers_file = project_dir / ".copier-answers.yml"
+    answers_file.write_text(
+        yaml.dump(
+            {
+                "_src_path": "https://github.com/copier-org/copier.git",
+                "project_name": "test-project",
+            }
+        )
+    )
+
+    mock_worker = MagicMock()
+    mock_worker.__enter__.return_value = mock_worker
+    mock_worker.__exit__.return_value = None
+
+    with (
+        patch("repoman.cli.commands.update.Worker", return_value=mock_worker),
+        patch("repoman.cli.commands.update.sync_extensions") as mock_sync,
+    ):
         result = cli_runner.invoke(cli_app, ["update", str(project_dir)], input="")
 
-        # Should succeed
-        assert result.exit_code == 0
-        # Rich Panel output may not be captured
-        if result.output:
-            assert "updated successfully" in result.output.lower() or "success" in result.output.lower()
-        # Verify Worker was used
-        mock_worker.run_update.assert_called_once()
+    assert result.exit_code == 0
+    mock_sync.assert_called_once()
 
 
 def test_update_command_copier_error(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:

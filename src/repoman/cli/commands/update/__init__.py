@@ -18,6 +18,7 @@ from repoman.cli.messages import (
     project_updated,
     template_path_does_not_exist,
 )
+from repoman.copier import ExtensionLifecycleError, sync_extensions
 from repoman.utils.logging import get_logger_console
 
 app = Typer(add_completion=True)
@@ -48,6 +49,7 @@ def update(
     force: bool = Option(False, "--force", "-f", help="Force overwrite without asking"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be updated without making changes"),
     conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
+    skip_extensions: bool = Option(False, "--skip-extensions", help="Skip syncing Copier-managed extensions"),
 ) -> None:
     """Update an existing Python project using the repoman template."""
     logger, console = get_logger_console()
@@ -123,9 +125,27 @@ def update(
     steps_text = format_next_steps(next_steps, console=console)
 
     if dry_run or ctx.obj.get("dry_run", False):
+        extension_dry_run_options: dict[str, str | bool | None | int] | None = None
+        if not skip_extensions:
+            try:
+                extension_result = sync_extensions(
+                    project_dir=project_dir_obj,
+                    force=force,
+                    conflict=conflict,
+                    dry_run=True,
+                )
+                extension_dry_run_options = {
+                    "extension_count": len(extension_result.synced),
+                }
+            except ExtensionLifecycleError as e:
+                console.print(error_panel(str(e), console=console))
+                raise Exit(1) from e
+
         copier_options_serializable = {
             k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items() if v is not None
         }
+        if extension_dry_run_options is not None:
+            copier_options_serializable["extensions"] = extension_dry_run_options
         console.print(
             dry_run_update(
                 project_dir_obj,
@@ -153,6 +173,14 @@ def update(
             with Worker(**copier_options) as worker:  # type: ignore[arg-type]  # copier accepts dict with mixed types
                 worker.run_update()
 
+            if not skip_extensions:
+                sync_extensions(
+                    project_dir=project_dir_obj,
+                    force=force,
+                    conflict=conflict,
+                    dry_run=False,
+                )
+
             progress.update(task, description="Project updated successfully!")
 
         copier_options_serializable = {
@@ -168,6 +196,9 @@ def update(
         )
 
     except CopierError as e:
+        console.print(error_panel(str(e), console=console))
+        raise Exit(1) from e
+    except ExtensionLifecycleError as e:
         console.print(error_panel(str(e), console=console))
         raise Exit(1) from e
     except (OSError, ValueError, RuntimeError) as e:
