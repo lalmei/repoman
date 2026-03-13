@@ -50,10 +50,7 @@ class _FakeModel:
 
     def __call__(self, **encoded: object) -> SimpleNamespace:
         mask = encoded["attention_mask"]
-        if isinstance(mask, _FakeTensor):
-            batch = mask.numpy().shape[0]
-        else:
-            batch = 1
+        batch = mask.numpy().shape[0] if isinstance(mask, _FakeTensor) else 1
         hidden = np.array(
             [[[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]] for _ in range(batch)],
             dtype=np.float32,
@@ -89,7 +86,7 @@ def test_modernbert_embedder_dimension() -> None:
 
 
 def test_modernbert_embedder_outputs_normalized_vectors() -> None:
-    """embed and embed_batch return vectors with expected shape and norm."""
+    """Embed and embed_batch return vectors with expected shape and norm."""
     _install_fake_transformers()
     embedder = ModernBERTEmbedder("answerdotai/ModernBERT-base")
 

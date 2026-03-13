@@ -4,12 +4,6 @@ import importlib.util
 from pathlib import Path
 
 from {{ python_package_import_name }}.config import Config{% if dataset_enabled %}, DatasetConfig{% endif %}
-{% if rag_enabled %}
-import pytest
-from pydantic import ValidationError
-
-from {{ python_package_import_name }}.config.rag_config import RAGConfig
-{% endif %}
 
 
 def test_config_defaults() -> None:
@@ -38,6 +32,8 @@ def test_root_config_module() -> None:
 
 def test_rag_config_defaults() -> None:
     """RAGConfig defaults to sentence_transformers provider."""
+    from {{ python_package_import_name }}.config.rag_config import RAGConfig
+
     cfg = RAGConfig()
     assert cfg.embedder_provider == "sentence_transformers"
     assert cfg.embedder_model == "all-MiniLM-L6-v2"
@@ -45,6 +41,8 @@ def test_rag_config_defaults() -> None:
 
 def test_rag_config_accepts_modernbert_provider_and_model() -> None:
     """RAGConfig accepts modernbert provider with ModernBERT model id."""
+    from {{ python_package_import_name }}.config.rag_config import RAGConfig
+
     cfg = RAGConfig(
         embedder_provider="modernbert",
         embedder_model="answerdotai/ModernBERT-base",
@@ -54,6 +52,11 @@ def test_rag_config_accepts_modernbert_provider_and_model() -> None:
 
 def test_rag_config_rejects_provider_model_mismatch() -> None:
     """RAGConfig rejects mismatched provider/model combinations."""
+    import pytest
+    from pydantic import ValidationError
+
+    from {{ python_package_import_name }}.config.rag_config import RAGConfig
+
     with pytest.raises(ValidationError):
         RAGConfig(
             embedder_provider="modernbert",

@@ -1,6 +1,7 @@
 """ModernBERT embedder adapter based on Hugging Face transformers."""
 
 from types import SimpleNamespace
+from typing import Any
 
 import numpy as np
 
@@ -39,13 +40,13 @@ class ModernBERTEmbedder(EmbedderPort):
         return int(self._hidden_size)
 
     def _as_numpy(self, value: object) -> np.ndarray:
-        tensor = value
+        tensor: Any = value
         if hasattr(tensor, "detach"):
-            tensor = tensor.detach()  # type: ignore[assignment]
+            tensor = tensor.detach()
         if hasattr(tensor, "cpu"):
-            tensor = tensor.cpu()  # type: ignore[assignment]
+            tensor = tensor.cpu()
         if hasattr(tensor, "numpy"):
-            tensor = tensor.numpy()  # type: ignore[assignment]
+            tensor = tensor.numpy()
         return np.asarray(tensor, dtype=np.float32)
 
     def _encode(self, texts: list[str]) -> list[list[float]]:
