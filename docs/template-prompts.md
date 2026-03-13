@@ -94,6 +94,8 @@ When true, the template includes a `notebooks/` folder and ipykernel support.
 
 When true, the template generates the RAG package, CLI subcommands (`rag ingest`, `rag query`), and when FastAPI is enabled, API routes under `/rag`. See [Template architecture](concepts/template-architecture.md) for structure.
 
+GraphRAG extension overlay (installed with `repoman generator add graphrag --kind graphrag`) requires `rag_enabled: true` in the project answers.
+
 ## Dataset (optional)
 
 | Prompt            | Description                                                | Default |

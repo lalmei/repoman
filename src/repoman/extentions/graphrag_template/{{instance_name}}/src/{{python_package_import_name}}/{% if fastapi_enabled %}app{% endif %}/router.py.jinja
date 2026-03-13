@@ -1,0 +1,30 @@
+{% if fastapi_enabled %}"""Application configuration - root APIRouter.
+
+Defines all FastAPI application endpoints, including GraphRAG when installed.
+"""
+
+from fastapi import APIRouter
+
+from {{python_package_import_name}}.app.controllers import {% if include_health_endpoints %}health_check, {% endif %}{% if rag_enabled %}rag, {% endif %}{% if include_health_endpoints %}ready{% endif %}
+from {{python_package_import_name}}.app.controllers.graphrag.routes import router as graphrag_router
+from {{python_package_import_name}}.config import Config
+
+
+def _get_root_api_router() -> APIRouter:
+    """Build root API router with prefix from config."""
+    config = Config()
+    prefix = config.fastapi_config.api_prefix
+    router = APIRouter(prefix=prefix)
+{% if include_health_endpoints %}
+    router.include_router(ready.router, tags=["ready"])
+    router.include_router(health_check.router, tags=["health check"])
+{% endif %}
+{% if rag_enabled %}
+    router.include_router(rag.router)
+{% endif %}
+    router.include_router(graphrag_router)
+    return router
+
+
+root_api_router = _get_root_api_router()
+{% endif %}

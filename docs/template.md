@@ -10,12 +10,13 @@ Repoman uses a single **Copier** template to generate Python projects. This page
 
 For the full list of prompts and defaults, see [Template prompts](template-prompts.md). For conditional structure and generated layout, see [Template structure](template-structure.md).
 
-## Adding new CLI commands (generator add)
+## Adding commands and feature overlays (generator add)
 
 Generated projects that have a CLI can add new subcommands without editing repoman's core template:
 
 - **Command:** `repoman generator add <command_name>`
 - **What it does:** Uses a **Copier-backed command extension template** under `src/repoman/extentions/command_template/` (the directory is named `extentions` in the repo—historical spelling). It creates a new command module under `src/{{ package }}/cli/commands/<command_name>/` and a test file under `tests/test_cli/test_<command_name>.py`, and records extension lifecycle metadata in `.repoman/extensions.yml`.
+- **Hybrid feature overlays:** `repoman generator add graphrag --kind graphrag` installs a GraphRAG extension overlay. This keeps the base template prompts (such as `rag_enabled`) and adds GraphRAG-specific files as a managed extension instance.
 
 So the generated project's CLI stays extensible by adding commands that follow the same pattern (e.g. user-added subcommands).
 

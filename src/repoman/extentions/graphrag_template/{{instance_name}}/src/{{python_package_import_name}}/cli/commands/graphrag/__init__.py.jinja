@@ -1,0 +1,15 @@
+"""GraphRAG CLI command scaffold."""
+
+from typer import Typer
+
+from {{python_package_import_name}}.graphrag import GraphRAGService
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+@app.command()
+def status() -> None:
+    """Show GraphRAG extension status."""
+    service = GraphRAGService()
+    result = service.status()
+    print(f"graphrag: {result['status']}")

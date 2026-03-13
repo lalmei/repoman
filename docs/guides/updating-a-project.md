@@ -55,3 +55,5 @@ repoman extensions sync <project_dir>
 ```
 
 Use this when you want to re-sync extension templates without re-running the full base template update.
+
+For example, if you installed GraphRAG via `repoman generator add graphrag --kind graphrag`, `repoman update` will sync that extension by default (unless `--skip-extensions` is used), and you can also run `repoman extensions sync <project_dir> --type graphrag`.
