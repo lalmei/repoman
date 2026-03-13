@@ -159,7 +159,15 @@ def test_create_command_force_overwrite(
     # In Typer, options must come before positional arguments
     result = cli_runner.invoke(
         cli_app,
-        ["create", "--output", str(tmp_path), "--force", "--dry-run", "--project_name", project_name],
+        [
+            "create",
+            "--output",
+            str(tmp_path),
+            "--force",
+            "--dry-run",
+            "--project_name",
+            project_name,
+        ],
         input="",
     )
     console.print(result.output)

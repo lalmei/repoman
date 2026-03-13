@@ -14,7 +14,7 @@ project conventions, architecture, and quality standards.
 
 Repoman is intentionally layered. Keep the direction of dependencies intact:
 
-- `repoman.copier` and `repoman.config` are pure logic (no Typer/Rich/CLI).
+- `repoman.copier`, `repoman.config`, and `repoman.hotspots` are pure logic (no Typer/Rich/CLI).
 - `repoman.cli` contains all UX, Typer, and Rich usage.
 - Call flow is `cli` → `repoman.copier` / `repoman.config`, never the reverse.
 

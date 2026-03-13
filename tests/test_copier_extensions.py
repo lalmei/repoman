@@ -21,7 +21,14 @@ def _write_base_answers(project_dir: Path) -> Path:
     answers_file = project_dir / ".copier-answers.yml"
     answers_file.write_text(
         yaml.safe_dump(
-            {"python_package_import_name": "pkg", "python_package_command_line_name": "pkg"}, sort_keys=False
+            {
+                "python_package_import_name": "pkg",
+                "python_package_command_line_name": "pkg",
+                "rag_enabled": True,
+                "fastapi_enabled": True,
+                "include_health_endpoints": True,
+            },
+            sort_keys=False,
         )
     )
     return answers_file
