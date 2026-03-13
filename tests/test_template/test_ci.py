@@ -8,6 +8,11 @@ from tests.ci_runner import CommandResult, parse_coverage_percent, run_make_comm
 from tests.template_testing import instantiate_template
 
 
+def _read_text(path: Path) -> str:
+    """Read a generated text file using UTF-8."""
+    return path.read_text(encoding="utf-8")
+
+
 def test_instantiated_template_format_check(setup_template: Any) -> None:
     """Test that make format-check runs successfully in instantiated template."""
     result: CommandResult = run_make_command(setup_template, "format-check")
@@ -112,6 +117,111 @@ def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
             f"make {make_target} failed with exit code {result.returncode}\n"
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
+
+
+def test_cli_only_template_omits_optional_feature_references(tmp_path: Path) -> None:
+    """CLI-only projects should not render optional feature files or stale references."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={
+            "fastapi_enabled": False,
+            "rag_enabled": False,
+            "dataset_enabled": False,
+        },
+    )
+
+    package_dir = project_dir / "src" / "test_project"
+    assert not (package_dir / "app").exists()
+    assert not (package_dir / "rag").exists()
+    assert not (package_dir / "datasets").exists()
+    assert not (project_dir / "config" / "dataset_config.json").exists()
+
+    cli_init = _read_text(package_dir / "cli" / "__init__.py")
+    assert "dataset command" not in cli_init
+    assert "my_dataset" not in cli_init
+
+    main_config = _read_text(package_dir / "config" / "main_config.py")
+    assert "Template note" not in main_config
+    assert "JsonConfigSettingsSource" not in main_config
+    assert "json_file=" not in main_config
+
+    architecture = _read_text(project_dir / "docs" / "reference" / "architecture.md")
+    assert "## CLI" in architecture
+    assert "## Configuration" in architecture
+    assert "## FastAPI app" not in architecture
+    assert "## RAG pipeline" not in architecture
+    assert "## Datasets" not in architecture
+    assert "Enable FastAPI or RAG when generating the project" not in architecture
+
+    layering = _read_text(project_dir / "config" / "cursor" / "rules" / "layering.mdc")
+    assert "app, rag, datasets" not in layering
+    assert "`config` and domain modules" in layering
+
+    coverage = _read_text(project_dir / "config" / "coverage.ini")
+    assert "main_template" not in coverage
+    assert "RAG + datasets" not in coverage
+
+
+def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path) -> None:
+    """Dataset-specific config artifacts should only exist in dataset-enabled projects."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+
+    disabled_dir = instantiate_template(
+        output_dir=tmp_path / "disabled",
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={
+            "fastapi_enabled": False,
+            "rag_enabled": False,
+            "dataset_enabled": False,
+        },
+    )
+    assert not (disabled_dir / "config" / "dataset_config.json").exists()
+
+    enabled_dir = instantiate_template(
+        output_dir=tmp_path / "enabled",
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={
+            "fastapi_enabled": False,
+            "rag_enabled": False,
+            "dataset_enabled": True,
+        },
+    )
+    dataset_config = enabled_dir / "config" / "dataset_config.json"
+    assert dataset_config.exists()
+    assert '"modality": "image"' in _read_text(dataset_config)
+
+    architecture = _read_text(enabled_dir / "docs" / "reference" / "architecture.md")
+    assert "## Datasets" in architecture
+
+
+def test_feature_enabled_template_keeps_optional_architecture_sections(tmp_path: Path) -> None:
+    """FastAPI and RAG-enabled projects should still render their architecture docs."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={
+            "fastapi_enabled": True,
+            "rag_enabled": True,
+            "dataset_enabled": True,
+        },
+    )
+
+    architecture = _read_text(project_dir / "docs" / "reference" / "architecture.md")
+    assert "## FastAPI app" in architecture
+    assert "## RAG pipeline" in architecture
+    assert "## Datasets" in architecture
+
+    layering = _read_text(project_dir / "config" / "cursor" / "rules" / "layering.mdc")
+    assert "`app`" in layering
+    assert "`rag`" in layering
+    assert "`datasets`" in layering
 
 
 def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:

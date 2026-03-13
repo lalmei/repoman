@@ -17,6 +17,9 @@ MANIFEST_RELATIVE_PATH = Path(".repoman/extensions.yml")
 EXTENSION_ANSWERS_ROOT = Path(".repoman/extensions")
 MIRROR_KEY = "_repoman_extensions"
 
+EXTENSION_TYPE_COMMAND = "command"
+EXTENSION_TYPE_GRAPHRAG = "graphrag"
+
 
 @dataclass
 class ExtensionInstance:
@@ -59,6 +62,10 @@ def _command_template_dir() -> Path:
     return _repoman_root() / "extentions" / "command_template" / "{{command_name}}"
 
 
+def _graphrag_template_dir() -> Path:
+    return _repoman_root() / "extentions" / "graphrag_template" / "{{instance_name}}"
+
+
 def _manifest_path(project_dir: Path) -> Path:
     return project_dir / MANIFEST_RELATIVE_PATH
 
@@ -75,10 +82,7 @@ def _dump_yaml(path: Path, data: dict[str, Any]) -> None:
 
 
 def _seed_extension_answers_file(path: Path, template_dir: Path, data: dict[str, Any]) -> None:
-    """Create a minimal answers file when Copier does not materialize one.
-
-    In normal runtime Copier writes the answers file. Tests or mocked Workers may not.
-    """
+    """Create a minimal answers file when Copier does not materialize one."""
     if path.exists():
         return
     payload: dict[str, Any] = {
@@ -179,39 +183,63 @@ def _upsert_instance(manifest: ExtensionManifest, instance: ExtensionInstance) -
     return ExtensionManifest(version=manifest.version, extensions=new_extensions)
 
 
-def create_command_extension(
+def _ensure_no_conflicting_instance(
+    *,
+    manifest: ExtensionManifest,
+    extension_type: str,
+    name: str,
+    force: bool,
+    singleton: bool,
+) -> None:
+    same_type = [ext for ext in manifest.extensions if ext.type == extension_type]
+    same_id = [ext for ext in same_type if ext.name == name]
+
+    if same_id and not force:
+        raise ExtensionLifecycleError(
+            f"Extension instance already exists for {extension_type}:{name}. Use --force to overwrite."
+        )
+
+    if singleton and same_type and all(ext.name != name for ext in same_type) and not force:
+        existing = ", ".join(f"{ext.type}:{ext.name}" for ext in same_type)
+        raise ExtensionLifecycleError(
+            f"Only one {extension_type} extension is supported in v1. Existing: {existing}. Use --force to replace it."
+        )
+
+
+def _run_copy_or_raise(copier_options: dict[str, Any]) -> None:
+    try:
+        with Worker(**copier_options) as worker:
+            worker.run_copy()
+    except CopierError as e:
+        raise ExtensionLifecycleError(str(e)) from e
+
+
+def _create_extension_instance(
     *,
     project_dir: Path,
     base_answers_file: Path,
-    answers: dict[str, Any],
-    command_name: str,
+    template_dir: Path,
+    extension_type: str,
+    name: str,
+    extension_data: dict[str, Any],
+    singleton: bool,
     force: bool,
     dry_run: bool,
+    expected_files: tuple[Path, Path],
 ) -> tuple[ExtensionInstance, dict[str, Any], Path, Path]:
-    """Create a command extension instance and persist lifecycle metadata."""
-    template_dir = _command_template_dir()
     if not template_dir.exists():
         raise ExtensionLifecycleError(f"Extension template not found: {template_dir}")
 
-    python_package_import_name = str(answers.get("python_package_import_name", "")).strip()
-    if not python_package_import_name:
-        raise ExtensionLifecycleError("Missing required answer: python_package_import_name")
-
-    python_package_command_line_name = str(answers.get("python_package_command_line_name", python_package_import_name))
-    command_description = str(answers.get("command_description", f"{command_name} command"))
-
-    command_output_file = (
-        project_dir / "src" / python_package_import_name / "cli" / "commands" / command_name / "__init__.py"
+    manifest = load_manifest(project_dir)
+    _ensure_no_conflicting_instance(
+        manifest=manifest,
+        extension_type=extension_type,
+        name=name,
+        force=force,
+        singleton=singleton,
     )
-    test_output_file = project_dir / "tests" / "test_cli" / f"test_{command_name}.py"
 
-    extension_answers_file = _answers_path_for(project_dir, "command", command_name)
-    extension_data = {
-        "command_name": command_name,
-        "command_description": command_description,
-        "python_package_import_name": python_package_import_name,
-        "python_package_command_line_name": python_package_command_line_name,
-    }
+    extension_answers_file = _answers_path_for(project_dir, extension_type, name)
 
     copier_options: dict[str, Any] = {
         "src_path": str(template_dir),
@@ -224,28 +252,123 @@ def create_command_extension(
     }
 
     instance = ExtensionInstance(
-        id=f"command:{command_name}",
-        type="command",
-        name=command_name,
+        id=f"{extension_type}:{name}",
+        type=extension_type,
+        name=name,
         status="active",
         answers_file=str(extension_answers_file.relative_to(project_dir)),
-        template_id="command",
+        template_id=extension_type,
         created_with_repoman_version=get_version(),
     )
 
     if not dry_run:
-        try:
-            with Worker(**copier_options) as worker:  # type: ignore[arg-type]
-                worker.run_copy()
-        except CopierError as e:
-            raise ExtensionLifecycleError(str(e)) from e
-
+        _run_copy_or_raise(copier_options)
         _seed_extension_answers_file(extension_answers_file, template_dir, extension_data)
-        manifest = _upsert_instance(load_manifest(project_dir), instance)
-        save_manifest(project_dir, manifest)
-        _set_copier_answers_mirror(manifest, base_answers_file)
+        updated_manifest = _upsert_instance(manifest, instance)
+        save_manifest(project_dir, updated_manifest)
+        _set_copier_answers_mirror(updated_manifest, base_answers_file)
 
-    return instance, copier_options, command_output_file, test_output_file
+    return instance, copier_options, expected_files[0], expected_files[1]
+
+
+def create_command_extension(
+    *,
+    project_dir: Path,
+    base_answers_file: Path,
+    answers: dict[str, Any],
+    command_name: str,
+    force: bool,
+    dry_run: bool,
+) -> tuple[ExtensionInstance, dict[str, Any], Path, Path]:
+    """Create a command extension instance and persist lifecycle metadata."""
+    python_package_import_name = str(answers.get("python_package_import_name", "")).strip()
+    if not python_package_import_name:
+        raise ExtensionLifecycleError("Missing required answer: python_package_import_name")
+
+    python_package_command_line_name = str(answers.get("python_package_command_line_name", python_package_import_name))
+    command_description = str(answers.get("command_description", f"{command_name} command"))
+
+    command_output_file = (
+        project_dir / "src" / python_package_import_name / "cli" / "commands" / command_name / "__init__.py"
+    )
+    test_output_file = project_dir / "tests" / "test_cli" / f"test_{command_name}.py"
+
+    extension_data = {
+        "command_name": command_name,
+        "command_description": command_description,
+        "python_package_import_name": python_package_import_name,
+        "python_package_command_line_name": python_package_command_line_name,
+    }
+
+    return _create_extension_instance(
+        project_dir=project_dir,
+        base_answers_file=base_answers_file,
+        template_dir=_command_template_dir(),
+        extension_type=EXTENSION_TYPE_COMMAND,
+        name=command_name,
+        extension_data=extension_data,
+        singleton=False,
+        force=force,
+        dry_run=dry_run,
+        expected_files=(command_output_file, test_output_file),
+    )
+
+
+def create_graphrag_extension(
+    *,
+    project_dir: Path,
+    base_answers_file: Path,
+    answers: dict[str, Any],
+    instance_name: str,
+    force: bool,
+    dry_run: bool,
+) -> tuple[ExtensionInstance, dict[str, Any], Path, Path]:
+    """Create a GraphRAG extension instance and persist lifecycle metadata."""
+    python_package_import_name = str(answers.get("python_package_import_name", "")).strip()
+    if not python_package_import_name:
+        raise ExtensionLifecycleError("Missing required answer: python_package_import_name")
+
+    rag_enabled = bool(answers.get("rag_enabled", False))
+    if not rag_enabled:
+        raise ExtensionLifecycleError("GraphRAG extension requires rag_enabled=true in .copier-answers.yml")
+
+    fastapi_enabled = bool(answers.get("fastapi_enabled", False))
+    python_package_command_line_name = str(answers.get("python_package_command_line_name", python_package_import_name))
+
+    command_output_file = (
+        project_dir / "src" / python_package_import_name / "cli" / "commands" / "graphrag" / "__init__.py"
+    )
+    test_output_file = project_dir / "tests" / "test_cli" / "test_graphrag.py"
+
+    extension_data = {
+        "instance_name": instance_name,
+        "python_package_import_name": python_package_import_name,
+        "python_package_command_line_name": python_package_command_line_name,
+        "fastapi_enabled": fastapi_enabled,
+        "rag_enabled": rag_enabled,
+        "include_health_endpoints": bool(answers.get("include_health_endpoints", True)),
+    }
+
+    return _create_extension_instance(
+        project_dir=project_dir,
+        base_answers_file=base_answers_file,
+        template_dir=_graphrag_template_dir(),
+        extension_type=EXTENSION_TYPE_GRAPHRAG,
+        name=instance_name,
+        extension_data=extension_data,
+        singleton=True,
+        force=force,
+        dry_run=dry_run,
+        expected_files=(command_output_file, test_output_file),
+    )
+
+
+def _template_dir_for_type(extension_type: str) -> Path:
+    if extension_type == EXTENSION_TYPE_COMMAND:
+        return _command_template_dir()
+    if extension_type == EXTENSION_TYPE_GRAPHRAG:
+        return _graphrag_template_dir()
+    raise ExtensionLifecycleError(f"Unsupported extension type: {extension_type}")
 
 
 def sync_extensions(
@@ -273,10 +396,7 @@ def sync_extensions(
         if extension_name is not None and instance.name != extension_name:
             continue
 
-        if instance.type != "command":
-            raise ExtensionLifecycleError(f"Unsupported extension type: {instance.type}")
-
-        template_dir = _command_template_dir()
+        template_dir = _template_dir_for_type(instance.type)
         if not template_dir.exists():
             raise ExtensionLifecycleError(f"Extension template not found: {template_dir}")
 
@@ -300,7 +420,7 @@ def sync_extensions(
             continue
 
         try:
-            with Worker(**copier_options) as worker:  # type: ignore[arg-type]
+            with Worker(**copier_options) as worker:
                 worker.run_update()
         except CopierError as e:
             raise ExtensionLifecycleError(str(e)) from e

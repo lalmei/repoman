@@ -19,7 +19,7 @@ nav:
   - Changelog: changelog.md
   - Credits: credits.md
   - License: license.md
-{% if fastapi_enabled or rag_enabled %}
+{% if not docs_only %}
 - Architecture: reference/architecture.md
 {% endif %}
 - API reference: reference/api.md

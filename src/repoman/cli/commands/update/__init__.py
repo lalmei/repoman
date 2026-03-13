@@ -141,7 +141,7 @@ def update(
                 console.print(error_panel(str(e), console=console))
                 raise Exit(1) from e
 
-        copier_options_serializable = {
+        copier_options_serializable: dict[str, object] = {
             k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items() if v is not None
         }
         if extension_dry_run_options is not None:

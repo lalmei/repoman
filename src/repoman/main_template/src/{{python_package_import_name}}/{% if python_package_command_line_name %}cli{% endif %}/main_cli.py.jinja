@@ -1,31 +1,7 @@
-"""{{project_name}} CLI Application Main Entry Point.
+"""Main Typer entry point for {{project_name}}.
 
-------------------------
-
-This module defines the main Typer-based CLI application for {{project_name}}. It serves as the entry point
-for various subcommands related to building and managing repositories.
-
-Features:
-- Uses `Typer` for CLI structure and command dispatch.
-- Employs `pydantic-settings` for configuration management.
-- Integrates with `Rich` for improved terminal output formatting and theming.
-- Displays version and debug information.
-- Supports subcommands like
-
-Behavior:
-- When run with no arguments, displays help.
-- Common options include verbosity, dry-run simulation, theme selection, and version/debug flags.
-
-Example usage:
-
-    python -m {{python_package_import_name}}.cli --version
-    python -m {{python_package_import_name}}.cli --debug-info
-
-Dependencies:
-- typer
-- pydantic
-- pydantic-settings
-- rich
+This module wires together the shared CLI options, command registration, and
+terminal theming used by the generated command line interface.
 """
 
 import logging  # noqa: I001 - Import order is correct; isort may flag due to template variable substitution
@@ -50,7 +26,7 @@ _register_commands(cli_app)
 
 
 def _version_callback(value: bool) -> None:  # noqa: FBT001 - Typer callbacks require bool positional args
-    """Print model version information.
+    """Print package version information.
 
     Parameters
     ----------
@@ -98,20 +74,20 @@ def main(
     ),
     theme: str | None = Option("dark", "--theme", help="Set the theme, 'light' or 'dark' "),
 ) -> None:
-    r"""Welcome to {{project_name}} CLI App.
+    r"""Initialize the root CLI context for {{project_name}}.
 
     \f
 
     Parameters
     ----------
     ctx : typer.Context
-        typer context that lives throughout model command
+        typer context shared across the current command invocation
     verbose : bool | None
         set logging to DEBUG , by default typer.Option(False, "--verbose", help="verbose mode")
         it is also saved in the ctx obj so it can be referred for other noisy output
     version : bool | None
         outputs version information, by default typer.Option(None, "--version",
-        help="check model version", callback=_version_callback)
+        help="check package version", callback=_version_callback)
 
     """
     logger, _ = get_logger_console()

@@ -36,7 +36,12 @@ def _create_test_artifacts(project_dir: Path, artifact_types: list[str] | None =
             artifacts[name] = path
 
     if artifact_types is None or "cache" in artifact_types:
-        for name in ["__pycache__", ".pytest_cache", ".mypy_cache", ".ipynb_checkpoints"]:
+        for name in [
+            "__pycache__",
+            ".pytest_cache",
+            ".mypy_cache",
+            ".ipynb_checkpoints",
+        ]:
             path = project_dir / name
             path.mkdir()
             artifacts[name] = path

@@ -1,6 +1,40 @@
 # Architecture
 
-This page describes how this project's optional FastAPI app and RAG pipeline are structured.
+This page describes the generated structure of the `{{ python_package_import_name }}` package.
+
+## Package layout
+
+The generated project keeps reusable logic in `src/{{ python_package_import_name }}/`
+and separates optional interfaces by feature flag.
+
+{% if python_package_command_line_name %}
+## CLI
+
+When CLI support is enabled, the Typer application lives in
+`src/{{ python_package_import_name }}/cli/`.
+
+- `main_cli.py` defines the root Typer app, global options, and context setup.
+- `register.py` discovers command packages under `cli/commands/` and registers
+  any Typer app exported as `app`.
+- Command modules call into core logic in the package; Rich and Typer usage stay
+  in the CLI layer.
+{% endif %}
+
+## Configuration
+
+Shared configuration is loaded through `Config()` in
+`src/{{ python_package_import_name }}/config/`.
+
+- `main_config.py` defines the common application settings.
+{% if fastapi_enabled %}
+- `fastapi_config.py` adds FastAPI-specific settings.
+{% endif %}
+{% if rag_enabled %}
+- `rag_config.py` adds retrieval pipeline settings.
+{% endif %}
+{% if dataset_enabled %}
+- `dataset_config.py` adds dataset-specific settings.
+{% endif %}
 
 {% if fastapi_enabled %}
 ## FastAPI app
@@ -29,7 +63,6 @@ When RAG is enabled, this project includes a retrieval-augmented generation (RAG
   - **ingest(path, corpus_id):** Load a document from path, chunk it, embed chunks, and write to the vector index and docstore. Returns an `IngestResult`.
   - **health():** Returns which RAG components are configured (for `/rag/health` when FastAPI is on).
 
-- **RAGContainer** builds concrete implementations from `RAGConfig`: embedder (sentence-transformers), vector index (FAISS), docstore (SQLite), reranker (sentence-transformers), stub LLM, and prompt builder. These are used by the pipelines.
 - **RAGContainer** builds concrete implementations from `RAGConfig`: embedder (`sentence_transformers` or `modernbert`), vector index (FAISS), docstore (SQLite), reranker (sentence-transformers), stub LLM, and prompt builder. These are used by the pipelines.
 
   - Set `RAG_EMBEDDER_PROVIDER=sentence_transformers` with a sentence-transformers model id (default: `all-MiniLM-L6-v2`).
@@ -46,8 +79,12 @@ The full RAG flow composes retrieve then generate to produce a `RAGAnswer` with 
 
 ### CLI and API
 
-- **CLI:** When the project has a CLI, use `{{ python_package_command_line_name }} rag ingest` and `{{ python_package_command_line_name }} rag query` to ingest documents and run queries.
+{% if python_package_command_line_name %}
+- **CLI:** Use `{{ python_package_command_line_name }} rag ingest` and `{{ python_package_command_line_name }} rag query` to ingest documents and run queries.
+{% endif %}
+{% if fastapi_enabled %}
 - **API:** When FastAPI is enabled, use `GET {{ fastapi_api_prefix }}/rag/health`, `POST {{ fastapi_api_prefix }}/rag/query`, and `POST {{ fastapi_api_prefix }}/rag/ingest` to interact with RAG via HTTP.
+{% endif %}
 
 ### RAG architecture (ASCII)
 
@@ -83,6 +120,10 @@ The full RAG flow composes retrieve then generate to produce a `RAGAnswer` with 
   +-------------+   +---------------+   +----------------+
 ```
 {% endif %}
-{% if not fastapi_enabled and not rag_enabled %}
-Enable FastAPI or RAG when generating the project to see architecture documentation here.
+{% if dataset_enabled %}
+## Datasets
+
+When dataset support is enabled, dataset loaders and types live in
+`src/{{ python_package_import_name }}/datasets/` and use
+`config/dataset_config.json` plus `DatasetConfig` for defaults and overrides.
 {% endif %}
