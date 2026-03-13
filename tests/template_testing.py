@@ -44,7 +44,15 @@ def _run_ruff_format(project_dir: Path) -> None:
         return
     with contextlib.suppress(FileNotFoundError, subprocess.TimeoutExpired):
         subprocess.run(  # noqa: S603
-            [uv_path, "run", "ruff", "format", "src/", "tests/", f"--config={ruff_config}"],
+            [
+                uv_path,
+                "run",
+                "ruff",
+                "format",
+                "src/",
+                "tests/",
+                f"--config={ruff_config}",
+            ],
             cwd=project_dir,
             capture_output=True,
             check=False,
