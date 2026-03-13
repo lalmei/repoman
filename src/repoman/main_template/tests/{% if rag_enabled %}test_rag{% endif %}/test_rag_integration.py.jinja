@@ -36,12 +36,16 @@ def sample_file(tmp_path: Path) -> Path:
 
 def test_ingest_then_query_roundtrip(rag_config: RAGConfig, sample_file: Path) -> None:
     """Ingest a file then query; assert answer has citations."""
-    container = RAGContainer(rag_config)
-    service = RAGService(container)
-    result = service.ingest(path=str(sample_file), corpus_id="test")
+    try:
+        container = RAGContainer(rag_config)
+        service = RAGService(container)
+        result = service.ingest(path=str(sample_file), corpus_id="test")
+        answer = service.query(text="What does RAG stand for?", top_k=3)
+    except ImportError as exc:
+        pytest.skip(f"Optional RAG dependency import failed: {exc}")
+
     assert result.success
     assert result.chunks_ingested >= 1
-    answer = service.query(text="What does RAG stand for?", top_k=3)
     assert answer.query == "What does RAG stand for?"
     assert len(answer.text) > 0
     assert len(answer.citations) >= 1
