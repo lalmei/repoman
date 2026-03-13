@@ -69,8 +69,7 @@ my_project
 ├── README.md
 ├── scripts
 │   ├── colors.py
-│   ├── gen_credits.py
-│   └── get_version.py
+│   └── gen_credits.py
 ├── src
 │   └── test_project
 │       ├── __init__.py
