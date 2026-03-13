@@ -1,6 +1,6 @@
 # Create and config architecture
 
-This page describes how the **create** command and **config validate** flow are structured: the CLI layer delegates to two core modules, `repoman.copier` (template and copy operations) and `repoman.config` (project configuration and answers loading).
+This page describes how the **create** command and **config validate** flow are structured: the CLI layer delegates to core modules `repoman.copier` (template and copy operations), `repoman.config` (project configuration and answers loading), and `repoman.hotspots` (code hotspot analysis).
 
 ## Summary diagram
 
@@ -80,5 +80,6 @@ flowchart TB
 
 - **update**: The `repoman update` command re-runs Copier on an existing project. It reads the project’s `.copier-answers.yml` (or the path given by `--answers`), optionally overrides template path or VCS ref, and calls Copier to apply the base template. After that, it also syncs active Copier-managed extensions unless `--skip-extensions` is set.
 - **generator add**: The `repoman generator add <command_name>` command adds a new CLI command by invoking a Copier-backed extension template under `src/repoman/extentions/command_template/`. It also records extension lifecycle metadata in `.repoman/extensions.yml` and mirrors summary data under `_repoman_extensions` in `.copier-answers.yml`.
+- **hotspots**: The `repoman hotspots` command uses `repoman.hotspots` to analyze git history via PyDriller process metrics (commits count, code churn, contributors count), returning files that may benefit from refactoring.
 
 **Conventions or quirks:** The directory `src/repoman/extentions` (note the spelling) is intentionally named that way for historical reasons; do not rename it without a documented migration (paths, templates, and tests all reference it).
