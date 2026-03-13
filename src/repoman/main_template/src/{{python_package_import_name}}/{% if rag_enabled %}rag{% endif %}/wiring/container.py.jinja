@@ -2,6 +2,7 @@
 
 from {{python_package_import_name}}.rag.adapters import (
     FAISSVectorIndex,
+    ModernBERTEmbedder,
     SentenceTransformersEmbedder,
     SentenceTransformersReranker,
     SQLiteDocstore,
@@ -34,7 +35,16 @@ class RAGContainer:
     def embedder(self) -> EmbedderPort:
         """Lazy-init embedder."""
         if self._embedder is None:
-            self._embedder = SentenceTransformersEmbedder(model_name=self._config.embedder_model)
+            provider = self._config.embedder_provider
+            if provider == "sentence_transformers":
+                self._embedder = SentenceTransformersEmbedder(model_name=self._config.embedder_model)
+            elif provider == "modernbert":
+                self._embedder = ModernBERTEmbedder(model_name=self._config.embedder_model)
+            else:
+                raise ValueError(
+                    f"Unsupported embedder_provider '{provider}'. "
+                    "Expected one of: sentence_transformers, modernbert.",
+                )
         return self._embedder
 
     @property

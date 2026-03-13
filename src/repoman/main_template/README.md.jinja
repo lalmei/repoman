@@ -39,6 +39,30 @@ This project includes optional RAG (retrieval-augmented generation) modules. Ins
 uv sync --group rag
 ```
 
+Use ModernBERT embeddings (optional):
+
+```bash
+uv sync --group rag --group rag-modernbert
+```
+
+### Choose embedding provider
+
+By default, embeddings use sentence-transformers:
+
+```bash
+export RAG_EMBEDDER_PROVIDER=sentence_transformers
+export RAG_EMBEDDER_MODEL=all-MiniLM-L6-v2
+```
+
+To use ModernBERT embeddings:
+
+```bash
+export RAG_EMBEDDER_PROVIDER=modernbert
+export RAG_EMBEDDER_MODEL=answerdotai/ModernBERT-base
+```
+
+Reranking remains sentence-transformers based in this template.
+
 ### CLI
 
 Ingest a document, then run a query:
