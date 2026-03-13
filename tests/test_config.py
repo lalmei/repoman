@@ -8,7 +8,15 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from repoman.config import Config, get_os_config_path, load_answers, validate_answers_file
+from repoman.config import (
+    Config,
+    get_config_file_path,
+    get_os_config_path,
+    get_project_config_path,
+    load_answers,
+    load_hierarchical,
+    validate_answers_file,
+)
 
 
 def test_load_answers_file_exists(tmp_path: Path) -> None:
@@ -167,3 +175,79 @@ def test_config_load_env_overrides_json(tmp_path: Path, monkeypatch: pytest.Monk
 
     config = Config.load(custom_path=config_file)
     assert config.log_format == "from env"
+
+
+# --- get_config_file_path tests ---
+
+
+def test_get_config_file_path_custom_path(tmp_path: Path) -> None:
+    """get_config_file_path returns custom_path when provided."""
+    custom = tmp_path / "my" / "config.json"
+    result = get_config_file_path(custom_path=custom)
+    assert result == custom.resolve()
+
+
+def test_get_config_file_path_env_override(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """get_config_file_path uses REPOMAN_CONFIG_PATH when custom_path is None."""
+    env_path = tmp_path / "from_env" / "config.json"
+    monkeypatch.setenv("REPOMAN_CONFIG_PATH", str(env_path))
+    result = get_config_file_path(custom_path=None)
+    assert result == env_path.resolve()
+
+
+def test_get_config_file_path_os_default(tmp_path: Path) -> None:
+    """get_config_file_path uses get_os_config_path when no override."""
+    with (
+        patch("repoman.config.models.get_os_config_path", return_value=tmp_path / "default" / "config.json"),
+    ):
+        result = get_config_file_path(custom_path=None)
+    assert result == (tmp_path / "default" / "config.json").resolve()
+
+
+# --- get_project_config_path and load_hierarchical tests ---
+
+
+def test_get_project_config_path() -> None:
+    """get_project_config_path returns .repoman/config.json inside project."""
+    result = get_project_config_path(Path("/home/proj"))
+    assert result == Path("/home/proj/.repoman/config.json")
+
+
+def test_load_hierarchical_global_only(tmp_path: Path) -> None:
+    """load_hierarchical with no project_dir uses global config only."""
+    global_cfg = tmp_path / "global" / "repoman" / "config.json"
+    global_cfg.parent.mkdir(parents=True)
+    global_cfg.write_text('{"log_format": "global %(message)s"}')
+    config = load_hierarchical(project_dir=None, custom_path=global_cfg)
+    assert config.log_format == "global %(message)s"
+
+
+def test_load_hierarchical_project_overrides_global(tmp_path: Path) -> None:
+    """load_hierarchical merges project config over global."""
+    global_cfg = tmp_path / "global" / "config.json"
+    global_cfg.parent.mkdir(parents=True)
+    global_cfg.write_text('{"log_format": "global"}')
+    project_dir = tmp_path / "myproject"
+    project_cfg = project_dir / ".repoman" / "config.json"
+    project_cfg.parent.mkdir(parents=True)
+    project_cfg.write_text('{"log_format": "project override"}')
+    config = load_hierarchical(project_dir=project_dir, custom_path=global_cfg)
+    assert config.log_format == "project override"
+
+
+def test_load_hierarchical_no_project_config_uses_global(tmp_path: Path) -> None:
+    """load_hierarchical with project_dir but no project config uses global."""
+    global_cfg = tmp_path / "global" / "config.json"
+    global_cfg.parent.mkdir(parents=True)
+    global_cfg.write_text('{"log_format": "from global"}')
+    project_dir = tmp_path / "empty_project"
+    project_dir.mkdir()
+    config = load_hierarchical(project_dir=project_dir, custom_path=global_cfg)
+    assert config.log_format == "from global"
+
+
+def test_load_hierarchical_empty_global_uses_defaults(tmp_path: Path) -> None:
+    """load_hierarchical with empty/missing global returns defaults."""
+    global_cfg = tmp_path / "nonexistent" / "config.json"
+    config = load_hierarchical(project_dir=None, custom_path=global_cfg)
+    assert config.log_format == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

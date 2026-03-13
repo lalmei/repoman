@@ -31,6 +31,7 @@ def test_config_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     assert "Usage:" in result.output
     assert "config" in result.output.lower()
     assert "init" in result.output.lower()
+    assert "path" in result.output.lower()
     assert "validate" in result.output.lower()
     assert "show" in result.output.lower()
     assert "list-keys" in result.output.lower()
@@ -316,6 +317,38 @@ def test_config_validate_format_report_branches() -> None:
     assert out_empty == "All checks passed."
 
 
+# --- config path ---
+
+
+def test_config_path_help(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test config path --help."""
+    result = cli_runner.invoke(cli_app, ["config", "path", "--help"], input="")
+    assert result.exit_code == 0
+    assert "--config" in result.output or "-c" in result.output
+
+
+def test_config_path_prints_default_path(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config path prints resolved config file path."""
+    with patch(
+        "repoman.cli.commands.config.path_.get_config_file_path", return_value=tmp_path / "repoman" / "config.json"
+    ):
+        result = cli_runner.invoke(cli_app, ["config", "path"], input="")
+    assert result.exit_code == 0
+    plain = result.output.strip()
+    assert str(tmp_path) in plain
+    assert "config.json" in plain
+
+
+def test_config_path_custom_config(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Test config path --config prints custom path."""
+    custom = tmp_path / "custom" / "repoman.json"
+    result = cli_runner.invoke(cli_app, ["config", "path", "--config", str(custom)], input="")
+    assert result.exit_code == 0
+    plain = result.output.strip()
+    assert str(tmp_path) in plain
+    assert "repoman.json" in plain
+
+
 # --- config show ---
 
 
@@ -384,7 +417,11 @@ def test_config_show_output_force_overwrite(cli_runner: CliRunner, cli_app: Type
 def test_config_show_key_output_writes_value(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
     """Test config show --key X --output writes only that key's value to file."""
     out = tmp_path / "val.txt"
-    result = cli_runner.invoke(cli_app, ["config", "show", "--key", "project_name", "--output", str(out)], input="")
+    result = cli_runner.invoke(
+        cli_app,
+        ["config", "show", "--key", "project_name", "--output", str(out)],
+        input="",
+    )
     assert result.exit_code == 0
     assert out.exists()
     assert out.read_text().strip() == "my-awesome-project"
@@ -421,7 +458,11 @@ def test_config_show_key_output_refuses_overwrite(cli_runner: CliRunner, cli_app
     """Test config show --key X --output <existing> without --force fails."""
     out = tmp_path / "val.txt"
     out.write_text("old")
-    result = cli_runner.invoke(cli_app, ["config", "show", "--key", "project_name", "--output", str(out)], input="")
+    result = cli_runner.invoke(
+        cli_app,
+        ["config", "show", "--key", "project_name", "--output", str(out)],
+        input="",
+    )
     assert result.exit_code == 1
     assert out.read_text() == "old"
 
@@ -506,8 +547,15 @@ def test_config_list_keys_json_include_meta(cli_runner: CliRunner, cli_app: Type
         "tags": {"type": "str", "default": ["a", "b"]},
         "nested": {"type": "str", "default": {"k": 1}},
     }
-    with patch("repoman.cli.commands.config.list_keys.load_prompt_schema", return_value=minimal_schema):
-        result = cli_runner.invoke(cli_app, ["config", "list-keys", "--format", "json", "--include-meta"], input="")
+    with patch(
+        "repoman.cli.commands.config.list_keys.load_prompt_schema",
+        return_value=minimal_schema,
+    ):
+        result = cli_runner.invoke(
+            cli_app,
+            ["config", "list-keys", "--format", "json", "--include-meta"],
+            input="",
+        )
     assert result.exit_code == 0
 
 
@@ -519,6 +567,9 @@ def test_list_keys_serialize_value() -> None:
     assert _serialize_value(True) is True  # noqa: FBT003
     assert _serialize_value(None) is None
     assert _serialize_value([1, "a"]) == [1, "a"]
-    assert _serialize_value({"k": 1, "nested": ["a", "b"]}) == {"k": 1, "nested": ["a", "b"]}
+    assert _serialize_value({"k": 1, "nested": ["a", "b"]}) == {
+        "k": 1,
+        "nested": ["a", "b"],
+    }
     # Non-JSON types become str
     assert isinstance(_serialize_value(object()), str)

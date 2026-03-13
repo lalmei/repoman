@@ -17,6 +17,18 @@ Repoman loads system-wide configuration from a JSON file. Use this to customize 
 
 On Linux and macOS, `$XDG_CONFIG_HOME` is respected when set (defaults to `~/.config`). On Windows, `%APPDATA%` is used (typically `~/AppData/Roaming`).
 
+### Hierarchical config
+
+When running repoman from within a project directory, you can override global config with project-level settings. Create `.repoman/config.json` in your project root:
+
+```json
+{
+  "log_format": "%(levelname)s: %(message)s"
+}
+```
+
+Project values override global for overlapping keys. Use `load_hierarchical(project_dir=Path("."))` programmatically to load merged config when running from within a project.
+
 ### Overriding the config path
 
 - **`--config` / `-c`**: Pass a path on the command line.
