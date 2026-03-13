@@ -134,6 +134,7 @@ repoman config [COMMAND] [OPTIONS]
 | Subcommand   | Description                                                |
 | ------------ | ---------------------------------------------------------- |
 | `init`       | Generate a template answers file for use with `repoman create --answers` |
+| `path`       | Show the path where repoman loads/writes config            |
 | `validate`   | Validate an answers file against the template schema       |
 | `show`       | Print the bundled template answers or a single key         |
 | `list-keys`  | List prompt keys expected by the template (from copier.yml) |
@@ -160,6 +161,27 @@ repoman config init [OPTIONS]
 repoman config init
 repoman config init --output path/to/.copier-answers.yml
 repoman config init -o my-answers.yml --force
+```
+
+#### config path
+
+Print the path where repoman loads or writes its JSON config (respects `REPOMAN_CONFIG_PATH` and `--config`).
+
+```bash
+repoman config path [OPTIONS]
+```
+
+**Options**
+
+| Option    | Short | Description                                                        |
+| --------- | ----- | ------------------------------------------------------------------ |
+| `--config`| `-c`  | Override config path (default: REPOMAN_CONFIG_PATH or OS default)  |
+
+**Examples**
+
+```bash
+repoman config path
+repoman config path --config /custom/path/config.json
 ```
 
 #### config validate
