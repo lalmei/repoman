@@ -43,7 +43,14 @@ def test_create_command_with_answers_file(cli_runner: CliRunner, cli_app: Typer)
     assert fixture.exists(), "Need default_copier_answers.yml fixture"
     result = cli_runner.invoke(
         cli_app,
-        ["create", "--dry-run", "--answers", str(fixture), "--project_name", "my-project"],
+        [
+            "create",
+            "--dry-run",
+            "--answers",
+            str(fixture),
+            "--project_name",
+            "my-project",
+        ],
         input="",
     )
     assert result.exit_code == 0
@@ -66,7 +73,14 @@ def test_create_command_answers_file_not_found(cli_runner: CliRunner, cli_app: T
     """Test create with --answers when file does not exist (create/__init__.py 143-144)."""
     result = cli_runner.invoke(
         cli_app,
-        ["create", "--dry-run", "--answers", "/nonexistent/answers.yml", "--project_name", "my-project"],
+        [
+            "create",
+            "--dry-run",
+            "--answers",
+            "/nonexistent/answers.yml",
+            "--project_name",
+            "my-project",
+        ],
         input="",
     )
     assert result.exit_code == 1
@@ -80,7 +94,11 @@ def test_create_command_dry_run(sample_project_names: list[str], cli_runner: Cli
     project_name = sample_project_names[0]
 
     # In Typer, options must come before positional arguments
-    result = cli_runner.invoke(cli_app, ["create", "--dry-run", "--force", "--project_name", project_name], input="")
+    result = cli_runner.invoke(
+        cli_app,
+        ["create", "--dry-run", "--force", "--project_name", project_name],
+        input="",
+    )
     console.print(result.output)
 
     assert result.exit_code == 0
@@ -108,7 +126,14 @@ def test_create_command_invalid_template_path(cli_runner: CliRunner, cli_app: Ty
     # In Typer, options must come before positional arguments
     result = cli_runner.invoke(
         cli_app,
-        ["create", "--template", invalid_template, "--force", "--project_name", project_name],
+        [
+            "create",
+            "--template",
+            invalid_template,
+            "--force",
+            "--project_name",
+            project_name,
+        ],
         input="",
     )
     console.print(result.output)
@@ -133,7 +158,14 @@ def test_create_command_output_directory(tmp_path: Path, cli_runner: CliRunner, 
 
     result = cli_runner.invoke(
         cli_app,
-        ["--dry-run", "create", "--output", str(custom_output), "--project_name", project_name],
+        [
+            "--dry-run",
+            "create",
+            "--output",
+            str(custom_output),
+            "--project_name",
+            project_name,
+        ],
         input="",
     )
     console.print(result.output)
@@ -188,7 +220,14 @@ def test_create_command_verbose_mode(cli_runner: CliRunner, cli_app: Typer) -> N
     # --verbose is a global option, so it comes before the command
     result = cli_runner.invoke(
         cli_app,
-        ["--verbose", "create", "--dry-run", "--force", "--project_name", "test-project"],
+        [
+            "--verbose",
+            "create",
+            "--dry-run",
+            "--force",
+            "--project_name",
+            "test-project",
+        ],
         input="",
     )
     console.print(result.output)

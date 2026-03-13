@@ -97,7 +97,12 @@ def test_validate_answers_choices_invalid() -> None:
 
 def test_validate_answers_choices_dict() -> None:
     """Choices as dict (label -> value) validates against values."""
-    schema = {"license": {"type": "str", "choices": {"MIT License": "MIT", "ISC License": "ISC"}}}
+    schema = {
+        "license": {
+            "type": "str",
+            "choices": {"MIT License": "MIT", "ISC License": "ISC"},
+        }
+    }
     answers = {"license": "MIT"}
     report = validate_answers(schema, answers)
     assert report.valid is True
@@ -164,7 +169,10 @@ def test_validate_answers_type_error_with_empty_loc() -> None:
         original_errors = e.errors()
 
         def errors_with_empty_loc() -> list:
-            return [*[{"type": "value_error", "loc": (), "msg": "root error"}], *original_errors]
+            return [
+                *[{"type": "value_error", "loc": (), "msg": "root error"}],
+                *original_errors,
+            ]
 
         e.errors = errors_with_empty_loc
         mock_model = MagicMock()
@@ -195,8 +203,16 @@ def test_validate_answers_duplicate_missing_key_skipped() -> None:
 def test_validate_answers_duplicate_extra_key_skipped() -> None:
     """Same key in multiple extra_forbidden errors is only added once (utils branch 149->138)."""
     errs = [
-        {"type": "extra_forbidden", "loc": ("foo",), "msg": "Extra inputs are not permitted"},
-        {"type": "extra_forbidden", "loc": ("foo",), "msg": "Extra inputs are not permitted"},
+        {
+            "type": "extra_forbidden",
+            "loc": ("foo",),
+            "msg": "Extra inputs are not permitted",
+        },
+        {
+            "type": "extra_forbidden",
+            "loc": ("foo",),
+            "msg": "Extra inputs are not permitted",
+        },
     ]
     exc = ValidationError.from_exception_data("Config", errs)
     mock_model = MagicMock()

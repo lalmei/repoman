@@ -77,7 +77,12 @@ def create(
     logger.info("In create callback")
 
     if project_name is None:
-        console.print(error_panel("Project name is required (--project_name / -pn).", console=console))
+        console.print(
+            error_panel(
+                "Project name is required (--project_name / -pn).",
+                console=console,
+            )
+        )
         raise Exit(1) from None
 
     if template_path is None:

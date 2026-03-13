@@ -328,7 +328,9 @@ class TestEdgeCases:
             (),
             {
                 "metadata": type(
-                    "MockMeta", (), {"get": lambda self, key, default=None: (_ for _ in ()).throw(KeyError("key"))}
+                    "MockMeta",
+                    (),
+                    {"get": lambda self, key, default=None: (_ for _ in ()).throw(KeyError("key"))},
                 )()
             },
         )()
