@@ -254,6 +254,37 @@ repoman config list-keys --format json
 repoman config list-keys --include-meta
 ```
 
+### hotspots
+
+Find code hotspots that may need refactoring by analyzing git history. Uses commits count, code churn, and contributor count to identify files with high change activity.
+
+```bash
+repoman hotspots [OPTIONS]
+```
+
+**Options**
+
+| Option       | Short | Description                                                         |
+| ------------ | ----- | ------------------------------------------------------------------- |
+| `--path`     | `-p`  | Path to the git repository (default: current directory)              |
+| `--limit`    | `-n`  | Maximum number of files to show (default: 20)                        |
+| `--since`    |       | Start date (YYYY-MM-DD) for commit range                            |
+| `--to`       |       | End date (YYYY-MM-DD) for commit range                               |
+| `--extensions` | `-e` | Comma-separated file extensions to include (e.g. `.py,.ts`)         |
+| `--format`   | `-f`  | Output format: `table` (default), `json`, or `html`                  |
+| `--output`   | `-o`  | Output directory for html report (default: `hotspot_report`)         |
+| `--no-header`|       | Hide column headers (for piping)                                    |
+
+**Examples**
+
+```bash
+repoman hotspots
+repoman hotspots --path /path/to/repo --limit 10
+repoman hotspots --format html -o hotspot_report
+repoman hotspots --since 2024-01-01 --extensions .py,.ts --format json
+repoman hotspots -n 5 -f json
+```
+
 ### generator add
 
 Add a new CLI command to a repoman-generated project. Generates a command module and a test file, and stores extension instance metadata for future sync/update.
@@ -274,6 +305,7 @@ repoman generator add COMMAND_NAME [OPTIONS]
 | --------------- | ----- | ------------------------------------------------- |
 | `--project-dir` | `-d`  | Project directory (defaults to current directory) |
 | `--answers`     | `-a`  | Path to `.copier-answers.yml` file                |
+| `--kind`        |       | Extension kind: `command` (default) or `graphrag` |
 | `--force`       | `-f`  | Overwrite existing files                          |
 | `--dry-run`     |       | Show what would be created without creating       |
 
@@ -283,6 +315,7 @@ repoman generator add COMMAND_NAME [OPTIONS]
 cd my-repoman-project
 repoman generator add mycommand
 repoman generator add mycommand --project-dir /path/to/project --dry-run
+repoman generator add graphrag --kind graphrag
 ```
 
 ### extensions sync
@@ -318,9 +351,11 @@ repoman create --help
 repoman update --help
 repoman config --help
 repoman config init --help
+repoman config path --help
 repoman config validate --help
 repoman config show --help
 repoman config list-keys --help
+repoman hotspots --help
 repoman generator add --help
 repoman extensions sync --help
 ```

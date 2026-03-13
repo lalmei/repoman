@@ -1,0 +1,11 @@
+"""Minimal GraphRAG service scaffold."""
+
+from __future__ import annotations
+
+
+class GraphRAGService:
+    """Small vertical-slice service for GraphRAG extension integration."""
+
+    def status(self) -> dict[str, str]:
+        """Return a simple status payload for CLI/API smoke checks."""
+        return {"status": "ok", "component": "graphrag"}

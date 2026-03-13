@@ -1,0 +1,15 @@
+{% if fastapi_enabled %}"""GraphRAG routes scaffold."""
+
+from fastapi import APIRouter
+
+from {{python_package_import_name}}.graphrag import GraphRAGService
+
+router = APIRouter(prefix="/graphrag", tags=["graphrag"])
+
+
+@router.get("/status")
+def graphrag_status() -> dict[str, str]:
+    """GraphRAG route smoke endpoint."""
+    service = GraphRAGService()
+    return service.status()
+{% endif %}
