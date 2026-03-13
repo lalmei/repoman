@@ -8,7 +8,6 @@ data_file = .coverage
 omit =
   src/{{ python_package_import_name }}/__init__.py
   src/{{ python_package_import_name }}/__main__.py
-  src/{{ python_package_import_name }}/main_template/*
   tests/__init__.py
   tests/conftest.py
 
@@ -21,7 +20,6 @@ equivalent =
 [report]
 format = text
 precision = 2
-# Full template (RAG + datasets) yields ~73% with existing tests; keep threshold achievable for CI
 fail_under = 70
 show_missing = true
 skip_covered = false

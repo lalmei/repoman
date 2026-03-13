@@ -1,17 +1,6 @@
 """Configuration management for {{python_package_import_name}}."""
 
-# Template note: These imports are kept for potential future use in template expansions
-# They may be used conditionally based on template variables or in extended configurations
-import json  # noqa: F401 - Reserved for future JSON config file handling
-from pathlib import Path  # noqa: F401 - Reserved for future path-based config loading
-
-from pydantic import Field, field_validator, model_validator  # noqa: F401 - Reserved for future field validation
-from pydantic_settings import (
-    BaseSettings,
-    JsonConfigSettingsSource,  # noqa: F401 - Reserved for future JSON config source
-    PydanticBaseSettingsSource,  # noqa: F401 - Reserved for future custom config sources
-    SettingsConfigDict,
-)
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from {{python_package_import_name}}._version import get_version
 {% if dataset_enabled %}from {{python_package_import_name}}.config.dataset_config import DatasetConfig
@@ -34,7 +23,6 @@ class Config(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env", ".env.dev", ".env.prod"),
         env_file_encoding="utf-8",
-        json_file="ml_config.json",
     )
     # Configurations for the application
     app_name: str = "{{python_package_import_name}}"
