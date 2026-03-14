@@ -165,6 +165,22 @@ def test_cli_only_template_omits_optional_feature_references(tmp_path: Path) -> 
     assert "RAG + datasets" not in coverage
 
 
+def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
+    """GitHub projects should render the Pages docs workflow."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+    )
+
+    docs_workflow = _read_text(project_dir / ".github" / "workflows" / "docs.yml")
+    assert "name: docs" in docs_workflow
+    assert "actions/upload-pages-artifact@v3" in docs_workflow
+    assert "actions/deploy-pages@v4" in docs_workflow
+    assert "python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json" in docs_workflow
+
+
 def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path) -> None:
     """Dataset-specific config artifacts should only exist in dataset-enabled projects."""
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
