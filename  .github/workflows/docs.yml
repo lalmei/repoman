@@ -3,10 +3,10 @@ name: docs
 on:
   push:
     branches:
-    - main
+    - mainline
   pull_request:
     branches:
-    - main
+    - mainline
 
 
 defaults:
