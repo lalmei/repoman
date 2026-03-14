@@ -181,6 +181,23 @@ def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
     assert "python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json" in docs_workflow
 
 
+def test_template_drops_python_310_from_ci_and_metadata(tmp_path: Path) -> None:
+    """Generated projects should target Python 3.11+ in CI and packaging metadata."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+    )
+
+    github_ci = _read_text(project_dir / ".github" / "workflows" / "ci.yml")
+    pyproject = _read_text(project_dir / "pyproject.toml")
+
+    assert '"3.10"' not in github_ci
+    assert 'requires-python = ">=3.11"' in pyproject
+    assert "Programming Language :: Python :: 3.10" not in pyproject
+
+
 def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path) -> None:
     """Dataset-specific config artifacts should only exist in dataset-enabled projects."""
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
