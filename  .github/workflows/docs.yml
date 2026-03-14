@@ -1,0 +1,47 @@
+name: docs
+
+on:
+  push:
+    branches:
+    - mainline
+  pull_request:
+    branches:
+    - mainline
+
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  LANG: en_US.utf-8
+  LC_ALL: en_US.utf-8
+  PYTHONIOENCODING: UTF-8
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        cache-dependency-glob: pyproject.toml
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Build docs in strict mode
+      run: make docs-check
