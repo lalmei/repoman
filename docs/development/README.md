@@ -71,7 +71,7 @@ Generated with `make docs-trees` from `eza --tree` (see [Documentation](document
 <!-- TREE_START:repoman -->
 ```
 repoman
-├── ' .github'
+├── .github
 │   ├── ISSUE_TEMPLATE
 │   │   ├── 1-bug.md
 │   │   ├── 2-feature.md

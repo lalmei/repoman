@@ -9,7 +9,7 @@ The following prompts are defined in `src/repoman/copier.yml` (in the repoman re
 | `ci`    | Which CI system to use | `github.com`                            |
 | Choices | Provider URL           | `github.com`, `gitlab.com`, `azure.com` |
 
-Only the chosen CI directory (`.github/`, `.gitlab/`, or `.azuredevops/`) is included in the generated project (workflows, issue templates).
+Only the chosen CI setup is included in the generated project: `.github/` for GitHub, `.gitlab-ci.yml` plus optional `.gitlab/` metadata for GitLab, or `.azuredevops/` for Azure DevOps.
 
 ## Project
 

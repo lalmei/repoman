@@ -16,7 +16,7 @@ After you run `repoman create --project_name my-project` with typical options, t
 
 ## CI
 
-Exactly **one** CI system is included, depending on your answer: **GitHub Actions** (`.github/`), **GitLab CI** (`.gitlab/`), or **Azure DevOps** (`.azuredevops/`). Each includes workflows (e.g. ci, release) and issue templates.
+Exactly **one** CI system is included, depending on your answer: **GitHub Actions** (`.github/`), **GitLab CI** (`.gitlab-ci.yml` with optional `.gitlab/` metadata), or **Azure DevOps** (`.azuredevops/`). Each includes provider-specific CI definitions.
 
 ## Optional features
 

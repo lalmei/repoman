@@ -178,6 +178,7 @@ def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
     assert "name: docs" in docs_workflow
     assert "actions/upload-pages-artifact@v3" in docs_workflow
     assert "actions/deploy-pages@v4" in docs_workflow
+    assert "make test-ci-coverage" in docs_workflow
     assert "python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json" in docs_workflow
 
 
@@ -196,6 +197,76 @@ def test_template_drops_python_310_from_ci_and_metadata(tmp_path: Path) -> None:
     assert '"3.10"' not in github_ci
     assert 'requires-python = ">=3.11"' in pyproject
     assert "Programming Language :: Python :: 3.10" not in pyproject
+
+
+def test_generated_gitlab_ci_is_gitlab_native(tmp_path: Path) -> None:
+    """GitLab projects should render a real GitLab CI file."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="gitlab-project",
+        answers_file=answers_file,
+        copier_data={"repository_provider": "gitlab"},
+    )
+
+    gitlab_ci = _read_text(project_dir / ".gitlab-ci.yml")
+
+    assert "stages:" in gitlab_ci
+    assert "quality:" in gitlab_ci
+    assert "test:" in gitlab_ci
+    assert "release:" in gitlab_ci
+    assert "make check" in gitlab_ci
+    assert "make test-ci-coverage" in gitlab_ci
+    assert "actions/checkout" not in gitlab_ci
+    assert "{{" not in gitlab_ci
+    assert "{%" not in gitlab_ci
+    assert not (project_dir / ".gitlab" / "workflows").exists()
+
+
+def test_generated_azure_ci_renders_and_uses_valid_targets(tmp_path: Path) -> None:
+    """Azure projects should render current-target pipeline files without literal Jinja."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="azure-project",
+        answers_file=answers_file,
+        copier_data={"repository_provider": "azure"},
+    )
+
+    azure_files = [
+        project_dir / ".azuredevops" / "pr.yml",
+        project_dir / ".azuredevops" / "post_merge.yml",
+        project_dir / ".azuredevops" / "docs.yml",
+        project_dir / ".azuredevops" / "stages" / "ci.yml",
+        project_dir / ".azuredevops" / "stages" / "docs.yml",
+    ]
+    for path in azure_files:
+        text = _read_text(path)
+        assert "{{" not in text
+        assert "{%" not in text
+
+    ci_pipeline = _read_text(project_dir / ".azuredevops" / "stages" / "ci.yml")
+    assert "make check" in ci_pipeline
+    assert "make docs-check" in ci_pipeline
+    assert "make test-ci-coverage" in ci_pipeline
+    assert "summaryFileLocation: coverage.xml" in ci_pipeline
+    assert "check-format" not in ci_pipeline
+    assert "coverage-unit.xml" not in ci_pipeline
+    assert "uv_cache_dir" not in ci_pipeline
+
+
+def test_repo_github_workflow_uses_existing_targets() -> None:
+    """The repo's own GitHub workflow should live in .github and use valid targets."""
+    workflow = _read_text(Path(__file__).parent.parent.parent / ".github" / "workflows" / "ci.yml")
+
+    assert "run: uv sync" in workflow
+    assert "run: make docs-check" in workflow
+    assert "run: make check" in workflow
+    assert "run: make test" in workflow
+    assert "make setup" not in workflow
+    assert "make check-docs" not in workflow
+    assert "make check-quality" not in workflow
+    assert "make check-api" not in workflow
 
 
 def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path) -> None:

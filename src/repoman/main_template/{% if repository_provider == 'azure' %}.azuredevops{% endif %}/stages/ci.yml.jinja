@@ -1,0 +1,69 @@
+stages:
+  - stage: quality_and_tests
+    displayName: Quality and tests
+    jobs:
+      - job: quality
+        displayName: Run quality checks
+        pool:
+          vmImage: ubuntu-22.04
+        variables:
+          python.version: "3.12"
+          UV_CACHE_DIR: $(Pipeline.Workspace)/.uv-cache
+        steps:
+          - checkout: self
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "$(python.version)"
+            displayName: Use Python $(python.version)
+          - script: curl -LsSf https://astral.sh/uv/install.sh | sh
+            displayName: Install uv
+          - task: Cache@2
+            inputs:
+              key: '"uv" | "$(Agent.OS)" | pyproject.toml | uv.lock'
+              restoreKeys: |
+                "uv" | "$(Agent.OS)" | pyproject.toml
+                "uv" | "$(Agent.OS)"
+              path: $(UV_CACHE_DIR)
+            displayName: Restore uv cache
+          - script: |
+              export PATH="$HOME/.local/bin:$PATH"
+              uv sync
+              make check
+              make docs-check
+            displayName: Run quality checks
+
+      - job: tests
+        displayName: Run tests with coverage
+        dependsOn: quality
+        pool:
+          vmImage: ubuntu-22.04
+        variables:
+          python.version: "3.12"
+          UV_CACHE_DIR: $(Pipeline.Workspace)/.uv-cache
+        steps:
+          - checkout: self
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "$(python.version)"
+            displayName: Use Python $(python.version)
+          - script: curl -LsSf https://astral.sh/uv/install.sh | sh
+            displayName: Install uv
+          - task: Cache@2
+            inputs:
+              key: '"uv" | "$(Agent.OS)" | pyproject.toml | uv.lock'
+              restoreKeys: |
+                "uv" | "$(Agent.OS)" | pyproject.toml
+                "uv" | "$(Agent.OS)"
+              path: $(UV_CACHE_DIR)
+            displayName: Restore uv cache
+          - script: |
+              export PATH="$HOME/.local/bin:$PATH"
+              uv sync
+              make test-ci-coverage
+            displayName: Run tests
+          - task: PublishCodeCoverageResults@2
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: coverage.xml
+              failIfCoverageEmpty: true
+            displayName: Publish coverage

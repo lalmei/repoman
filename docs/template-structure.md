@@ -2,7 +2,7 @@
 
 ## Conditional structure (what changes with answers)
 
-- **CI:** Only one of `.github/`, `.gitlab/`, or `.azuredevops/` is rendered. The rest are omitted. Each includes workflows (e.g. ci, release) and issue templates (bug, feature, docs, change).
+- **CI:** Only one provider-specific CI setup is rendered. GitHub uses `.github/`, GitLab uses `.gitlab-ci.yml` plus optional `.gitlab/` metadata, and Azure uses `.azuredevops/`. The other provider CI files are omitted.
 - **CLI:** If `python_package_command_line_name` is set, the template generates:
   - `src/{{ python_package_import_name }}/cli/` (main_cli, register, commands/),
   - `__main__.py`,
