@@ -1,0 +1,41 @@
+# Canonical non-interactive answers used to manage lalmei/repoman_test from CI.
+
+ci: github.com
+
+project_name: repoman-test
+project_description: Smoke-test repository instantiated from the repoman template.
+
+author_fullname: Leandro G. Almeida
+author_email: leandro.g.almeida@gmail.com
+author_username: lalmei
+
+repository_provider: github
+repository_namespace: lalmei
+repository_name: repoman_test
+
+copyright_holder: Leandro G. Almeida
+copyright_holder_email: leandro.g.almeida@gmail.com
+copyright_date: "2026"
+copyright_license: MIT
+
+python_package_distribution_name: repoman-test
+python_package_import_name: repoman_test
+python_package_command_line_name: repoman-test
+python_distribution_name: repoman-test
+
+container_registry: docker.io
+
+python_notebooks: true
+
+fastapi_enabled: true
+fastapi_docs_url: "/docs"
+fastapi_api_prefix: "/api"
+fastapi_debug: false
+include_health_endpoints: true
+aiohttp_timeout: 2
+aiohttp_pool_size: 100
+
+rag_enabled: true
+dataset_enabled: true
+
+docs_only: false
