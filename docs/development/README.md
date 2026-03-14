@@ -328,6 +328,18 @@ make check
 
 See the [Testing Guide](testing.md) for comprehensive documentation on test categories, running tests, fixtures, troubleshooting, and best practices.
 
+## 🔄 Smoke Repo Sync
+
+`repoman` manages `lalmei/repoman_test` through [.github/workflows/sync-repoman-test.yml](/Users/lalmei/projects/repoman/.github/workflows/sync-repoman-test.yml). The workflow:
+
+- checks out `repoman_test` with the `REPOMAN_TEST_SYNC_TOKEN` secret
+- renders or updates the generated project in a staging directory via [scripts/sync_repoman_test.py](/Users/lalmei/projects/repoman/scripts/sync_repoman_test.py)
+- normalizes volatile Copier metadata before validating the staged repo with `uv sync` and `make test`
+- force-updates the automation branch `sync/from-repoman-mainline` and opens or refreshes a PR in `lalmei/repoman_test`
+
+The canonical bootstrap answers live in [config/repoman_test_answers.yml](/Users/lalmei/projects/repoman/config/repoman_test_answers.yml). If you need to run a manual update in `repoman_test`, pass `--template` explicitly so the repo does not depend on CI-specific Copier metadata.
+The workflow expects `REPOMAN_TEST_SYNC_TOKEN` to be configured in the `lalmei/repoman` repository with write access to `lalmei/repoman_test` and permission to create or update pull requests.
+
 ## 🤝 Contributing
 
 See [Contributing](contributing.md) for setup, workflow, commit conventions, and where to get help. Before submitting:

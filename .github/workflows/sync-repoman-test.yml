@@ -1,0 +1,151 @@
+name: sync repoman_test
+
+on:
+  push:
+    branches:
+      - mainline
+    paths:
+      - ".github/workflows/sync-repoman-test.yml"
+      - "src/repoman/main_template/**"
+      - "src/repoman/extentions/**"
+      - "src/repoman/copier.yml"
+      - "src/repoman/copier/**"
+      - "src/repoman/cli/commands/create/**"
+      - "src/repoman/cli/commands/update/**"
+      - "scripts/sync_repoman_test.py"
+      - "config/repoman_test_answers.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-repoman-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_REPOSITORY: lalmei/repoman_test
+      SYNC_BRANCH: sync/from-repoman-mainline
+      TARGET_REPO_PATH: repoman_test
+      ANSWERS_FILE: config/repoman_test_answers.yml
+      PROJECT_NAME: repoman-test
+      GH_TOKEN: ${{ secrets.REPOMAN_TEST_SYNC_TOKEN }}
+
+    steps:
+      - name: Checkout repoman
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install repoman dependencies
+        run: make setup
+
+      - name: Checkout repoman_test
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TARGET_REPOSITORY }}
+          token: ${{ secrets.REPOMAN_TEST_SYNC_TOKEN }}
+          path: ${{ env.TARGET_REPO_PATH }}
+          fetch-depth: 0
+
+      - name: Sync generated smoke repo
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python scripts/sync_repoman_test.py \
+            --repoman-repo "$GITHUB_WORKSPACE" \
+            --target-repo "$GITHUB_WORKSPACE/${TARGET_REPO_PATH}" \
+            --answers-file "$GITHUB_WORKSPACE/${ANSWERS_FILE}" \
+            --project-name "${PROJECT_NAME}" \
+            2>&1 | tee "$GITHUB_WORKSPACE/repoman_test-sync.log"
+
+      - name: Detect repository changes
+        id: changes
+        shell: bash
+        working-directory: ${{ env.TARGET_REPO_PATH }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$(git status --short)" ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push sync branch
+        if: steps.changes.outputs.has_changes == 'true'
+        shell: bash
+        working-directory: ${{ env.TARGET_REPO_PATH }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "${SYNC_BRANCH}" || true
+          git checkout -B "${SYNC_BRANCH}"
+          git add -A
+          git commit -m "chore: sync repoman template from ${GITHUB_SHA::7}"
+          git push --force-with-lease origin "HEAD:${SYNC_BRANCH}"
+
+      - name: Create or update sync PR
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.REPOMAN_TEST_SYNC_TOKEN }}
+          script: |
+            const [owner, repo] = process.env.TARGET_REPOSITORY.split("/");
+            const headBranch = `${owner}:${process.env.SYNC_BRANCH}`;
+            const title = `chore: sync repoman template from ${process.env.GITHUB_SHA.slice(0, 7)}`;
+            const body = [
+              `Automated sync from [\`${process.env.GITHUB_REPOSITORY}@${process.env.GITHUB_SHA.slice(0, 7)}\`](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}).`,
+              "",
+              `Workflow run: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+            ].join("\n");
+
+            const repoInfo = await github.rest.repos.get({ owner, repo });
+            const defaultBranch = repoInfo.data.default_branch;
+            const pulls = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: "open",
+              head: headBranch,
+            });
+
+            if (pulls.data.length > 0) {
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: pulls.data[0].number,
+                title,
+                body,
+                base: defaultBranch,
+              });
+            } else {
+              await github.rest.pulls.create({
+                owner,
+                repo,
+                title,
+                body,
+                head: process.env.SYNC_BRANCH,
+                base: defaultBranch,
+              });
+            }
+
+      - name: Upload sync log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repoman-test-sync-log
+          path: repoman_test-sync.log
