@@ -13,6 +13,25 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _expected_repo_url(provider: str, namespace: str, name: str) -> str:
+    """Return the normalized repository URL for a generated project."""
+    host_by_provider = {
+        "github": "github.com",
+        "gitlab": "gitlab.com",
+        "azure": "azure.com",
+    }
+    return f"https://{host_by_provider[provider]}/{namespace}/{name}"
+
+
+def _expected_docs_url(provider: str, namespace: str, name: str) -> str:
+    """Return the normalized docs URL for a generated project."""
+    if provider == "github":
+        return f"https://{namespace}.github.io/{name}"
+    if provider == "gitlab":
+        return f"https://{namespace}.gitlab.io/{name}"
+    return _expected_repo_url(provider, namespace, name)
+
+
 def test_instantiated_template_format_check(setup_template: Any) -> None:
     """Test that make format-check runs successfully in instantiated template."""
     result: CommandResult = run_make_command(setup_template, "format-check")
@@ -179,6 +198,163 @@ def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
     assert "actions/upload-pages-artifact@v3" in docs_workflow
     assert "actions/deploy-pages@v4" in docs_workflow
     assert "python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json" in docs_workflow
+
+
+def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
+    """GitHub projects should render provider-aware badges and normalized URLs."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+    )
+
+    readme = _read_text(project_dir / "README.md")
+    pyproject = _read_text(project_dir / "pyproject.toml")
+    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    docs_url = _expected_docs_url("github", "testuser", "test-project")
+    repo_url = _expected_repo_url("github", "testuser", "test-project")
+
+    assert "[![ci](https://github.com/testuser/test-project/actions/workflows/ci.yml/badge.svg)]" in readme
+    assert f"[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
+    assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
+    assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme
+    assert f"[![coverage](https://img.shields.io/endpoint?url={docs_url}/coverage-badge.json)]({docs_url}/coverage/)" in readme
+
+    assert f'Homepage = "{docs_url}"' in pyproject
+    assert f'Documentation = "{docs_url}"' in pyproject
+    assert f'Changelog = "{docs_url}/changelog"' in pyproject
+    assert f'Repository = "{repo_url}"' in pyproject
+    assert f'Issues = "{repo_url}/issues"' in pyproject
+    assert f'Discussions = "{repo_url}/discussions"' in pyproject
+    assert 'Funding = "https://github.com/sponsors/testuser"' in pyproject
+
+    assert f'site_url: "{docs_url}"' in mkdocs
+    assert f'repo_url: "{repo_url}"' in mkdocs
+    assert 'site_dir: "site"' in mkdocs
+    assert "icon: fontawesome/brands/github" in mkdocs
+    assert "link: https://github.com/testuser" in mkdocs
+
+
+def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
+    """GitLab projects should render docs and metadata without GitHub-only badges."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={"repository_provider": "gitlab", "ci": "gitlab.com"},
+    )
+
+    readme = _read_text(project_dir / "README.md")
+    pyproject = _read_text(project_dir / "pyproject.toml")
+    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    docs_url = _expected_docs_url("gitlab", "testuser", "test-project")
+    repo_url = _expected_repo_url("gitlab", "testuser", "test-project")
+
+    assert "[![ci]" not in readme
+    assert f"[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
+    assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
+    assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme
+    assert "coverage-badge.json" not in readme
+
+    assert f'Homepage = "{docs_url}"' in pyproject
+    assert f'Documentation = "{docs_url}"' in pyproject
+    assert f'Changelog = "{docs_url}/changelog"' in pyproject
+    assert f'Repository = "{repo_url}"' in pyproject
+    assert f'Issues = "{repo_url}/-/issues"' in pyproject
+    assert 'Discussions =' not in pyproject
+    assert 'Funding =' not in pyproject
+
+    assert f'site_url: "{docs_url}"' in mkdocs
+    assert f'repo_url: "{repo_url}"' in mkdocs
+    assert 'site_dir: ""' in mkdocs
+    assert "icon: fontawesome/brands/gitlab" in mkdocs
+    assert "link: https://gitlab.com/testuser" in mkdocs
+
+
+def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
+    """Azure projects should keep provider-agnostic badges and repo-backed docs URLs."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={
+            "repository_provider": "azure",
+            "ci": "azure.com",
+            "deployments": [],
+            "container_registry": "example.azurecr.io",
+        },
+    )
+
+    readme = _read_text(project_dir / "README.md")
+    pyproject = _read_text(project_dir / "pyproject.toml")
+    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    docs_url = _expected_docs_url("azure", "testuser", "test-project")
+    repo_url = _expected_repo_url("azure", "testuser", "test-project")
+
+    assert "[![ci]" not in readme
+    assert f"[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
+    assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
+    assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme
+    assert "coverage-badge.json" not in readme
+
+    assert f'Homepage = "{docs_url}"' in pyproject
+    assert f'Documentation = "{docs_url}"' in pyproject
+    assert f'Changelog = "{repo_url}"' in pyproject
+    assert f'Repository = "{repo_url}"' in pyproject
+    assert f'Issues = "{repo_url}"' in pyproject
+    assert 'Discussions =' not in pyproject
+    assert 'Funding =' not in pyproject
+
+    assert f'site_url: "{docs_url}"' in mkdocs
+    assert f'repo_url: "{repo_url}"' in mkdocs
+    assert 'site_dir: ""' in mkdocs
+    assert "icon: fontawesome/brands/azure" in mkdocs
+    assert "link: https://azure.com/testuser" in mkdocs
+
+
+def test_docs_only_template_omits_python_and_coverage_badges(tmp_path: Path) -> None:
+    """Docs-only projects should not render Python or coverage badges."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={"docs_only": True},
+    )
+
+    readme = _read_text(project_dir / "README.md")
+
+    assert "[![documentation]" in readme
+    assert "[![license]" in readme
+    assert "[![python]" not in readme
+    assert "[![coverage]" not in readme
+
+
+def test_private_template_omits_public_endpoint_badges(tmp_path: Path) -> None:
+    """Private Insiders projects should not render public PyPI or coverage badges."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={"insiders": True, "public_release": False},
+    )
+
+    readme = _read_text(project_dir / "README.md")
+    docs_url = _expected_docs_url("github", "testuser", "test-project")
+
+    assert "[![documentation]" in readme
+    assert "[![license]" in readme
+    assert "[![python]" in readme
+    assert "[![pypi version]" not in readme
+    assert "[![coverage]" not in readme
+    assert f"See Insiders [explanation]({docs_url}/insiders/)" in readme
 
 
 def test_template_drops_python_310_from_ci_and_metadata(tmp_path: Path) -> None:
