@@ -1,3 +1,13 @@
+{% set repo_host_by_provider = {"github": "github.com", "gitlab": "gitlab.com", "azure": "azure.com"} -%}
+{% set repo_host = repo_host_by_provider[repository_provider] -%}
+{% set repo_url = "https://" ~ repo_host ~ "/" ~ repository_namespace ~ "/" ~ repository_name -%}
+{% if repository_provider == "github" -%}
+{% set docs_url = "https://" ~ repository_namespace ~ ".github.io/" ~ repository_name -%}
+{% elif repository_provider == "gitlab" -%}
+{% set docs_url = "https://" ~ repository_namespace ~ ".gitlab.io/" ~ repository_name -%}
+{% else -%}
+{% set docs_url = repo_url -%}
+{% endif -%}
 [build-system]
 requires = ["uv_build>=0.8.13,<0.9.0"]
 build-backend = "uv_build"
@@ -43,14 +53,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
-Documentation = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
-Changelog = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}/changelog"
-Repository = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}"
-Issues = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}/issues"
-Discussions = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}/discussions"
-{%- if repository_provider == "github.com" %}
-Funding = "https://{{ repository_provider }}/sponsors/{{ author_username }}"
+Homepage = "{{ docs_url }}"
+Documentation = "{{ docs_url }}"
+Changelog = "{% if repository_provider in ('github', 'gitlab') %}{{ docs_url }}/changelog{% else %}{{ repo_url }}{% endif %}"
+Repository = "{{ repo_url }}"
+Issues = "{% if repository_provider == 'github' %}{{ repo_url }}/issues{% elif repository_provider == 'gitlab' %}{{ repo_url }}/-/issues{% else %}{{ repo_url }}{% endif %}"
+{%- if repository_provider == "github" %}
+Discussions = "{{ repo_url }}/discussions"
+Funding = "https://{{ repo_host }}/sponsors/{{ author_username }}"
 {%- endif %}
 
 {% if python_package_command_line_name -%}
