@@ -20,7 +20,14 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="Generate a template answers file for non-interactive create",
+    help="""Generate a template answers file for non-interactive create.
+
+Examples:
+
+    repoman config init
+    repoman config init -o ./answers.yml
+    repoman config init --template /path/to/template --force
+""",
 )
 
 

@@ -19,7 +19,14 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="Validate an answers file against the template schema",
+    help="""Validate an answers file against the template schema.
+
+Examples:
+
+    repoman config validate
+    repoman config validate -a ./.copier-answers.yml
+    repoman config validate --strict --quiet
+""",
 )
 
 

@@ -10,7 +10,13 @@ from repoman.copier import build_preset_data
 
 app = Typer(
     add_completion=True,
-    help="Create a FastAPI server project (MVC-style, no RAG or dataset).",
+    help="""Create a FastAPI server project (MVC-style, no RAG or dataset).
+
+Examples:
+
+    repoman create fastapi fastapi my-api
+    repoman create fastapi fastapi my-api -o ./services --dry-run
+""",
 )
 
 
@@ -32,7 +38,12 @@ def fastapi(
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Create a FastAPI server project with no RAG or dataset modules."""
+    """Create a FastAPI server project with no RAG or dataset modules.
+
+    Examples:
+
+        repoman create fastapi fastapi my-api
+    """
     current_file = Path(__file__)
     template_path_obj = current_file.parent.parent.parent.parent if template_path is None else Path(template_path)
     output_dir_base = Path.cwd() if output_dir is None else Path(output_dir)

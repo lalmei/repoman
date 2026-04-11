@@ -30,7 +30,14 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="Add a new CLI command or feature extension to your project",
+    help="""Add a new CLI command or feature extension to your project.
+
+Examples:
+
+    repoman generator add ingest --project-dir ./my-app
+    repoman generator add search --kind graphrag -a ./my-app/.copier-answers.yml
+    repoman generator add my-cmd --dry-run --force
+""",
 )
 
 SUPPORTED_KINDS = {"command", "graphrag"}
@@ -92,7 +99,7 @@ def add(
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Add a new CLI command or feature extension to your repoman-generated project."""
+    """Add a new CLI command or feature extension (see command help for examples)."""
     logger, console = get_logger_console()
 
     normalized_kind = kind.strip().lower()

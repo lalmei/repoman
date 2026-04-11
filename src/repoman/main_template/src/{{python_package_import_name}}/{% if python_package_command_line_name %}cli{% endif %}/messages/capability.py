@@ -21,11 +21,7 @@ def supports_unicode_markdown(console: Console | None) -> bool:
         return False
     try:
         encoding = getattr(console, "encoding", None) or ""
-        name = (
-            encoding
-            if isinstance(encoding, str)
-            else getattr(encoding, "name", "") or ""
-        ).lower()
+        name = (encoding if isinstance(encoding, str) else getattr(encoding, "name", "") or "").lower()
         if not name.startswith("utf"):
             return False
     except (AttributeError, TypeError):

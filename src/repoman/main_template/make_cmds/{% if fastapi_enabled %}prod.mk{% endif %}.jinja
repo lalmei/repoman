@@ -1,0 +1,34 @@
+#######################
+#      Production     #
+#######################
+
+prod.compose.file := compose.yml
+prod.env.file := .env.prod
+prod.env.example := .env.prod.example
+prod.openai.api.key := $(strip $(or $(OPENAI_API_KEY),$(OPENAI_API_TOKEN)))
+
+.PHONY: prod
+prod: ## Run the production-like stack locally with docker compose
+	@if ! command -v docker >/dev/null 2>&1; then \
+		$(call e, Docker is required to run the local production stack); \
+		exit 1; \
+	fi
+	@if [ ! -f "$(prod.env.file)" ]; then \
+		$(call w, Missing $(prod.env.file); creating it from $(prod.env.example)); \
+		cp "$(prod.env.example)" "$(prod.env.file)"; \
+	fi
+	@if ! grep -Eq '^[[:space:]]*OPENAI_API_KEY=' "$(prod.env.file)" && [ -z "$(prod.openai.api.key)" ]; then \
+		$(call e, Set OPENAI_API_KEY in $(prod.env.file) or export OPENAI_API_KEY/OPENAI_API_TOKEN before running make prod); \
+		exit 1; \
+	fi
+	@$(call i, Starting local production stack with docker compose)
+	@if [ -n "$(prod.openai.api.key)" ]; then \
+		OPENAI_API_KEY="$(prod.openai.api.key)" docker compose --env-file "$(prod.env.file)" up --build; \
+	else \
+		docker compose --env-file "$(prod.env.file)" up --build; \
+	fi
+
+.PHONY: prod-down
+prod-down: ## Stop the local production-like stack
+	@$(call i, Stopping local production stack)
+	@docker compose --env-file "$(prod.env.file)" down --remove-orphans

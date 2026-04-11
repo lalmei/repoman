@@ -51,7 +51,17 @@ def update(
     conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
     skip_extensions: bool = Option(False, "--skip-extensions", help="Skip syncing Copier-managed extensions"),
 ) -> None:
-    """Update an existing Python project using the repoman template."""
+    """Update an existing Python project using the repoman template.
+
+    Requires a Copier answers file (default: .copier-answers.yml inside the project).
+
+    Examples:
+
+        repoman update ./my-app
+        repoman update ./my-app --dry-run
+        repoman update ./my-app --vcs-ref v1.2.0 --force
+        repoman update ./my-app --skip-extensions
+    """
     logger, console = get_logger_console()
 
     # Validate conflict mode
@@ -94,10 +104,24 @@ def update(
     else:
         logger.info("Template path will be read from .copier-answers.yml")
 
+    # Copier Worker requires answers_file as a path relative to dst_path when it lives under the project.
+    project_resolved = project_dir_obj.resolve()
+    answers_resolved = answers_file_path.resolve()
+    try:
+        answers_file_for_worker = str(answers_resolved.relative_to(project_resolved))
+    except ValueError:
+        console.print(
+            error_panel(
+                f"Answers file must be inside the project directory for Copier update (got {answers_file_path}).",
+                console=console,
+            )
+        )
+        raise Exit(1) from None
+
     # Prepare copier update options
     copier_options: dict[str, str | bool | None] = {
         "dst_path": str(project_dir_obj),
-        "answers_file": str(answers_file_path),
+        "answers_file": answers_file_for_worker,
         "overwrite": force,
         "quiet": True,  # Suppress interactive output
         "conflict": conflict,

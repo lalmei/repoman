@@ -69,7 +69,18 @@ def create(
         Option("--dry-run", help="Show what would be created without actually creating"),
     ] = False,
 ) -> None:
-    """Create a new Python project using the repoman template."""
+    """Create a new Python project using the repoman template.
+
+    Use a preset, a typed subcommand (cli, docs, library, fastapi, rag), or an answers file.
+
+    Examples:
+
+        repoman create -pn my-app --preset cli
+        repoman create -pn my-app --preset fastapi -o ~/projects
+        repoman create cli cli my-app
+        repoman create fastapi fastapi my-app --force
+        repoman create -pn my-app -a ./my-answers.yml
+    """
     if ctx.invoked_subcommand is not None:
         return
 

@@ -99,9 +99,7 @@ class TestProgressBarUpdate:
 
     def test_update_time_mode(self) -> None:
         """Test update in time mode."""
-        pb = ProgressBar(
-            use_progress_bar=True, update_mode="time", target_update_interval=0.01
-        )
+        pb = ProgressBar(use_progress_bar=True, update_mode="time", target_update_interval=0.01)
         pb.start(total_batches=10, epoch=1)
         try:
             pb.update(
