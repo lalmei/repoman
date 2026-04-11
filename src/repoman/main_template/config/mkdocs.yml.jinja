@@ -1,9 +1,19 @@
+{% set repo_host_by_provider = {"github": "github.com", "gitlab": "gitlab.com", "azure": "azure.com"} -%}
+{% set repo_host = repo_host_by_provider[repository_provider] -%}
+{% set repo_url = "https://" ~ repo_host ~ "/" ~ repository_namespace ~ "/" ~ repository_name -%}
+{% if repository_provider == "github" -%}
+{% set site_url_value = "https://" ~ repository_namespace ~ ".github.io/" ~ repository_name -%}
+{% elif repository_provider == "gitlab" -%}
+{% set site_url_value = "https://" ~ repository_namespace ~ ".gitlab.io/" ~ repository_name -%}
+{% else -%}
+{% set site_url_value = repo_url -%}
+{% endif -%}
 site_name: "{{ project_name }}"
 site_description: "{{ project_description }}"
-site_url: "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
-repo_url: "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}"
+site_url: "{{ site_url_value }}"
+repo_url: "{{ repo_url }}"
 repo_name: "{{ repository_namespace }}/{{ repository_name }}"
-site_dir: "{% if repository_provider == 'github.com' %}site{% endif %}"
+site_dir: "{% if repository_provider == 'github' %}site{% endif %}"
 watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, AI_POLICY.md{% if not docs_only %}, src/{{ python_package_import_name }}{% endif %}]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
 edit_uri: edit/main/docs/
@@ -164,8 +174,8 @@ plugins:
 
 extra:
   social:
-  - icon: fontawesome/brands/{{ repository_provider.rsplit(".", 1)[0] }}
-    link: https://{{ repository_provider }}/{{ author_username }}
+  - icon: fontawesome/brands/{{ repository_provider }}
+    link: https://{{ repo_host }}/{{ author_username }}
   - icon: fontawesome/brands/mastodon
     link: https://fosstodon.org/@{{ author_username }}
   - icon: fontawesome/brands/python

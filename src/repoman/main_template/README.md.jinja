@@ -1,12 +1,30 @@
+{% set repo_host_by_provider = {"github": "github.com", "gitlab": "gitlab.com", "azure": "azure.com"} -%}
+{% set repo_host = repo_host_by_provider[repository_provider] -%}
+{% set repo_url = "https://" ~ repo_host ~ "/" ~ repository_namespace ~ "/" ~ repository_name -%}
+{% if repository_provider == "github" -%}
+{% set docs_url = "https://" ~ repository_namespace ~ ".github.io/" ~ repository_name -%}
+{% elif repository_provider == "gitlab" -%}
+{% set docs_url = "https://" ~ repository_namespace ~ ".gitlab.io/" ~ repository_name -%}
+{% else -%}
+{% set docs_url = repo_url -%}
+{% endif -%}
 # {{ project_name }}
 
-{% if repository_provider == "github.com" and (not insiders or public_release) -%}
-[![ci](https://github.com/{{ repository_namespace }}/{{ repository_name }}/workflows/ci/badge.svg)](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions?query=workflow%3Aci)
+{% if repository_provider == "github" and (not insiders or public_release) -%}
+[![ci](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions/workflows/ci.yml/badge.svg)](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions/workflows/ci.yml)
 {% endif -%}
-[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)](https://{{ repository_namespace }}.{{ repository_provider[:-4] }}.io/{{ repository_name }}/)
+[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({{ docs_url }}/)
 {% if not insiders or public_release -%}
 [![pypi version](https://img.shields.io/pypi/v/{{ python_package_distribution_name }}.svg)](https://pypi.org/project/{{ python_package_distribution_name }}/)
 {% endif -%}
+[![license](https://img.shields.io/badge/license-{{ copyright_license }}-blue.svg?style=flat)](LICENSE)
+{% if not docs_only -%}
+[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)
+{% endif -%}
+{% if repository_provider == "github" and not docs_only and (not insiders or public_release) -%}
+[![coverage](https://img.shields.io/endpoint?url={{ docs_url }}/coverage-badge.json)]({{ docs_url }}/coverage/)
+{% endif -%}
+
 
 {{ project_description }}
 
@@ -25,7 +43,7 @@ uv tool install {{ python_package_distribution_name }}
 ```
 {%- endif -%}
 {%- else -%}
-This project is available to sponsors only, through my Insiders program. See Insiders [explanation](https://{{ repository_namespace }}.github.io/{{ repository_name }}/insiders/) and [installation instructions](https://{{ repository_namespace }}.github.io/{{ repository_name }}/insiders/installation/).
+This project is available to sponsors only, through my Insiders program. See Insiders [explanation]({{ docs_url }}/insiders/) and [installation instructions]({{ docs_url }}/insiders/installation/).
 {%- endif %}
 {% if rag_enabled %}
 
