@@ -1,40 +1,41 @@
 # Answers for generating repoman using its own template
 # This file allows repoman to be self-generating (dogfooding)
 
-# CI/CD Platform
-ci: github
+ci: github.com
 
-# Project Information
 project_name: repoman
 project_description: A Python project template generator using copier and Jinja2 to create standardized, production-ready Python projects with modern development tooling, CI/CD pipelines, and documentation frameworks.
 
-# Author Information
 author_fullname: Leandro G. Almeida
 author_email: leandro.g.almeida@gmail.com
 author_username: lalmei
 
-# Repository Configuration
-repository_provider: github.com
+repository_provider: github
 repository_namespace: lalmei
 repository_name: repoman
 
-# Copyright Information
 copyright_holder: Leandro G. Almeida
 copyright_holder_email: leandro.g.almeida@gmail.com
-copyright_date: "{{ current_year }}"
+copyright_date: '2026'
 copyright_license: MIT
 
-# Python Package Configuration
 python_package_distribution_name: repoman
 python_package_import_name: repoman
 python_package_command_line_name: repoman
 python_distribution_name: repoman
 
-# Container Configuration
-container_registry: ""
+container_registry: ''
 
-# Notebooks
 python_notebooks: true
 
-# Insiders Program (not applicable for repoman)
-insiders: false
+fastapi_enabled: false
+fastapi_docs_url: "/docs"
+fastapi_api_prefix: "/api"
+fastapi_debug: false
+include_health_endpoints: true
+aiohttp_timeout: 2
+aiohttp_pool_size: 100
+
+rag_enabled: false
+dataset_enabled: false
+docs_only: false

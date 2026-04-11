@@ -49,6 +49,7 @@ dependencies = [
     {%- if fastapi_enabled %}
     "aiohttp>=3.13.0",
     "fastapi>=0.128.0",
+    "uvicorn[standard]>=0.38.0",
     {%- endif %}
 ]
 
@@ -58,10 +59,10 @@ Documentation = "{{ docs_url }}"
 Changelog = "{% if repository_provider in ('github', 'gitlab') %}{{ docs_url }}/changelog{% else %}{{ repo_url }}{% endif %}"
 Repository = "{{ repo_url }}"
 Issues = "{% if repository_provider == 'github' %}{{ repo_url }}/issues{% elif repository_provider == 'gitlab' %}{{ repo_url }}/-/issues{% else %}{{ repo_url }}{% endif %}"
-{%- if repository_provider == "github" %}
+{% if repository_provider == "github" %}
 Discussions = "{{ repo_url }}/discussions"
 Funding = "https://{{ repo_host }}/sponsors/{{ author_username }}"
-{%- endif %}
+{% endif %}
 
 {% if python_package_command_line_name -%}
 [project.scripts]
