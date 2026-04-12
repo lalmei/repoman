@@ -15,6 +15,16 @@ Answers are saved in **`.copier-answers.yml`** in the **generated project** dire
 
 Repoman does not store a separate config file for itself; configuration is the template’s answers.
 
+## Internal Copier keys (`_src_path`, `_commit`, `_vcs_ref`)
+
+Besides your prompt answers, `.copier-answers.yml` can contain **metadata** that Copier records:
+
+- **`_src_path`** — Where the template came from (path or URL).
+- **`_commit`** — The Git revision of the template used for the last **copy** or **update**.
+- **`_vcs_ref`** — May appear alongside other Copier bookkeeping.
+
+For **`repoman update`** (and Copier update), **`_commit` must be present** when **`_src_path` is set**, so Copier can load the previous template revision. If `_commit` is missing, updates fail until you repair the file. See [Copier update metadata](../guides/updating-a-project.md#copier-update-metadata) in *Updating a project* for why this happens, CI stripping pitfalls, and how to set `_commit` using `git describe --tags --always`.
+
 ## How repoman update uses answers
 
 When you run `repoman update <project_dir>`:
