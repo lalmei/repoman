@@ -7,13 +7,15 @@ import yaml
 from typer import Exit, Option, Typer
 
 from repoman.cli.messages import (
+    copier_commit_missing_validate_warning,
+    copier_update_missing_commit_remediation,
     error_panel,
     invalid_yaml,
     schema_not_found_skipping_validation,
     warning_panel,
 )
 from repoman.cli.messages.layout import layout_validation_failed, use_layout
-from repoman.config import load_answers
+from repoman.config import load_answers, missing_commit_for_copier_update
 from repoman.copier import ValidationReport, load_prompt_schema, validate_answers
 from repoman.utils.logging import get_logger_console
 
@@ -26,6 +28,7 @@ Examples:
     repoman config validate
     repoman config validate -a ./.copier-answers.yml
     repoman config validate --strict --quiet
+    repoman config validate --fail-missing-copier-commit
 """,
 )
 
@@ -60,6 +63,13 @@ def validate(
         bool,
         Option("--quiet", "-q", help="Only exit with code; no success message"),
     ] = False,
+    fail_missing_copier_commit: Annotated[
+        bool,
+        Option(
+            "--fail-missing-copier-commit",
+            help="Fail if `_src_path` is set but `_commit` is missing (needed for repoman update)",
+        ),
+    ] = False,
 ) -> None:
     """Validate an answers file for repoman create.
 
@@ -86,6 +96,17 @@ def validate(
     report = validate_answers(schema, answers, strict=strict)
 
     if report.valid:
+        if missing_commit_for_copier_update(answers):
+            if fail_missing_copier_commit:
+                console.print(
+                    error_panel(
+                        copier_update_missing_commit_remediation(answers_basename=path.name),
+                        console=console,
+                    )
+                )
+                raise Exit(1)
+            if not quiet:
+                console.print(warning_panel(copier_commit_missing_validate_warning(), console=console))
         if not quiet:
             console.print("[green]Validation passed.[/green]")
         return

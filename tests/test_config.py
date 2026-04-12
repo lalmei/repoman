@@ -15,6 +15,7 @@ from repoman.config import (
     get_project_config_path,
     load_answers,
     load_hierarchical,
+    missing_commit_for_copier_update,
     validate_answers_file,
 )
 
@@ -69,6 +70,33 @@ def test_validate_answers_file_nonexistent() -> None:
     """validate_answers_file raises FileNotFoundError when file does not exist."""
     with pytest.raises(FileNotFoundError, match="Answers file not found"):
         validate_answers_file(Path("/nonexistent/answers.yml"))
+
+
+def test_missing_commit_for_copier_update_true_when_src_no_commit() -> None:
+    """Predicate is True when _src_path is set and _commit is absent."""
+    assert missing_commit_for_copier_update({"_src_path": "/path/to/template"}) is True
+
+
+def test_missing_commit_for_copier_update_false_when_both_set() -> None:
+    """Predicate is False when _commit is present."""
+    assert missing_commit_for_copier_update({"_src_path": "/path/to/template", "_commit": "abc123"}) is False
+
+
+def test_missing_commit_for_copier_update_whitespace_commit() -> None:
+    """Blank or whitespace _commit counts as missing."""
+    assert missing_commit_for_copier_update({"_src_path": "/x", "_commit": ""}) is True
+    assert missing_commit_for_copier_update({"_src_path": "/x", "_commit": "   "}) is True
+
+
+def test_missing_commit_for_copier_update_no_src() -> None:
+    """Without _src_path, predicate is False."""
+    assert missing_commit_for_copier_update({"_commit": "x"}) is False
+    assert missing_commit_for_copier_update({}) is False
+
+
+def test_missing_commit_for_copier_update_non_string_src() -> None:
+    """Non-string _src_path does not trigger missing-commit."""
+    assert missing_commit_for_copier_update({"_src_path": 42}) is False
 
 
 # --- get_os_config_path tests ---

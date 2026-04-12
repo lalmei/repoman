@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import yaml
 from copier import Worker
 from copier.errors import CopierError
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -9,15 +10,19 @@ from typer import Argument, Context, Exit, Option, Typer
 
 from repoman.cli.messages import (
     copier_answers_not_found_for_update,
+    copier_update_missing_commit_remediation,
     dry_run_update,
     error_panel,
     format_next_steps,
     invalid_conflict_mode,
+    invalid_yaml,
+    is_cannot_obtain_old_template_references_message,
     project_dir_not_found,
     project_path_not_directory,
     project_updated,
     template_path_does_not_exist,
 )
+from repoman.config import load_answers, missing_commit_for_copier_update
 from repoman.copier import ExtensionLifecycleError, sync_extensions
 from repoman.utils.logging import get_logger_console
 
@@ -56,7 +61,6 @@ def update(
     Requires a Copier answers file (default: .copier-answers.yml inside the project).
 
     Examples:
-
         repoman update ./my-app
         repoman update ./my-app --dry-run
         repoman update ./my-app --vcs-ref v1.2.0 --force
@@ -113,6 +117,21 @@ def update(
         console.print(
             error_panel(
                 f"Answers file must be inside the project directory for Copier update (got {answers_file_path}).",
+                console=console,
+            )
+        )
+        raise Exit(1) from None
+
+    try:
+        answers = load_answers(answers_file_path)
+    except yaml.YAMLError as e:
+        console.print(error_panel(invalid_yaml(e), console=console))
+        raise Exit(1) from e
+
+    if missing_commit_for_copier_update(answers):
+        console.print(
+            error_panel(
+                copier_update_missing_commit_remediation(answers_basename=answers_file_path.name),
                 console=console,
             )
         )
@@ -220,7 +239,15 @@ def update(
         )
 
     except CopierError as e:
-        console.print(error_panel(str(e), console=console))
+        msg = str(e)
+        if is_cannot_obtain_old_template_references_message(msg):
+            body = copier_update_missing_commit_remediation(
+                answers_basename=answers_file_path.name,
+                preceding_error=msg,
+            )
+        else:
+            body = msg
+        console.print(error_panel(body, console=console))
         raise Exit(1) from e
     except ExtensionLifecycleError as e:
         console.print(error_panel(str(e), console=console))

@@ -13,6 +13,25 @@ from typer.testing import CliRunner
 console = Console()
 
 
+# Copier update requires `_commit` when `_src_path` is set; tests that run update/dry-run use both.
+def _answers_with_copier_metadata(**extra: str) -> dict[str, str]:
+    base = {
+        "_src_path": "https://github.com/copier-org/copier.git",
+        "_commit": "deadbeef",
+        "project_name": "test-project",
+    }
+    base.update(extra)
+    return base
+
+
+def _all_output(result: object) -> str:
+    """Combine stdout and stderr (Rich/Click may use either)."""
+    stdout = getattr(result, "stdout", "") or ""
+    output = getattr(result, "output", "") or ""
+    stderr = getattr(result, "stderr", "") or ""
+    return (stdout or output) + stderr
+
+
 def test_update_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test update command help."""
     result = cli_runner.invoke(cli_app, ["update", "--help"], input="")
@@ -30,14 +49,7 @@ def test_update_command_dry_run(tmp_path: Path, cli_runner: CliRunner, cli_app: 
 
     # Create a mock .copier-answers.yml file
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(cli_app, ["update", "--dry-run", str(project_dir)], input="")
     # Rich console output bypasses CliRunner's capture but is visible in pytest's "Captured stdout call"
@@ -89,16 +101,9 @@ def test_update_command_custom_answers_file(tmp_path: Path, cli_runner: CliRunne
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
-    # Create answers file in a different location
-    custom_answers = tmp_path / "custom-answers.yml"
-    custom_answers.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    # Answers must live under project_dir (Copier Worker requires a path relative to the project).
+    custom_answers = project_dir / "custom-answers.yml"
+    custom_answers.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -117,14 +122,7 @@ def test_update_command_invalid_template_path(tmp_path: Path, cli_runner: CliRun
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     invalid_template = "/non/existent/template/path"
 
@@ -145,14 +143,7 @@ def test_update_command_with_vcs_ref(tmp_path: Path, cli_runner: CliRunner, cli_
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -171,14 +162,7 @@ def test_update_command_invalid_conflict_mode(tmp_path: Path, cli_runner: CliRun
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -197,14 +181,7 @@ def test_update_command_conflict_rej_mode(tmp_path: Path, cli_runner: CliRunner,
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -223,14 +200,7 @@ def test_update_command_force_overwrite(tmp_path: Path, cli_runner: CliRunner, c
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -250,14 +220,7 @@ def test_update_command_verbose_mode(cli_runner: CliRunner, cli_app: Typer, tmp_
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -288,14 +251,7 @@ def test_update_command_custom_template_path(tmp_path: Path, cli_runner: CliRunn
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     # Create a mock template directory
     template_dir = tmp_path / "template"
@@ -325,14 +281,7 @@ def test_update_command_skip_extensions_dry_run(tmp_path: Path, cli_runner: CliR
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     result = cli_runner.invoke(
         cli_app,
@@ -347,14 +296,7 @@ def test_update_command_runs_extension_sync_after_update(tmp_path: Path, cli_run
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     mock_worker = MagicMock()
     mock_worker.__enter__.return_value = mock_worker
@@ -379,14 +321,7 @@ def test_update_command_copier_error(tmp_path: Path, cli_runner: CliRunner, cli_
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     # Mock Worker to raise CopierError
     with patch("repoman.cli.commands.update.Worker") as mock_worker_class:
@@ -413,14 +348,7 @@ def test_update_command_os_error(tmp_path: Path, cli_runner: CliRunner, cli_app:
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     # Mock Worker to raise OSError
     with patch("repoman.cli.commands.update.Worker") as mock_worker_class:
@@ -447,14 +375,7 @@ def test_update_command_value_error(tmp_path: Path, cli_runner: CliRunner, cli_a
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     # Mock Worker to raise ValueError
     with patch("repoman.cli.commands.update.Worker") as mock_worker_class:
@@ -481,14 +402,7 @@ def test_update_command_runtime_error(tmp_path: Path, cli_runner: CliRunner, cli
     project_dir.mkdir()
 
     answers_file = project_dir / ".copier-answers.yml"
-    answers_file.write_text(
-        yaml.dump(
-            {
-                "_src_path": "https://github.com/copier-org/copier.git",
-                "project_name": "test-project",
-            }
-        )
-    )
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
 
     # Mock Worker to raise RuntimeError
     with patch("repoman.cli.commands.update.Worker") as mock_worker_class:
