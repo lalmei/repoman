@@ -29,3 +29,4 @@ __pycache__/
 
 .DS_Store
 coverage.xml
+*/.DS_Store
