@@ -264,6 +264,69 @@ def test_file_exists_use_force(path: Path | str) -> str:
     return f"Test file already exists: {path}\nUse --force to overwrite."
 
 
+# Substring Copier uses when `_src_path` or `_commit` cannot be resolved for update.
+_COPIER_OLD_TEMPLATE_REF_SNIPPET = "cannot obtain old template references"
+
+
+def is_cannot_obtain_old_template_references_message(message: str) -> bool:
+    """Return True if the message is Copier's 'old template references' update error.
+
+    Used to show remediation when Copier fails before our pre-check (e.g. edge cases).
+
+    Args:
+        message: ``str(exception)`` from Copier (e.g. ``UserMessageError``).
+
+    Returns:
+        True if the message matches the known Copier 9 phrasing (case-insensitive).
+    """
+    return _COPIER_OLD_TEMPLATE_REF_SNIPPET in message.lower()
+
+
+def copier_update_missing_commit_remediation(
+    *,
+    answers_basename: str = ".copier-answers.yml",
+    preceding_error: str | None = None,
+) -> str:
+    """Return remediation text for missing ``_commit`` when ``_src_path`` is set.
+
+    For ``error_panel`` when ``repoman update`` cannot run or Copier raised the
+    same class of failure.
+
+    Args:
+        answers_basename: Filename shown in the message (e.g. ``.copier-answers.yml``).
+        preceding_error: Optional Copier or other error line to include first.
+
+    Returns:
+        Plain string body for ``error_panel``.
+    """
+    describe_cmd = "git describe --tags --always"
+    fix = "".join(
+        [
+            "repoman update needs `_commit` in ",
+            f"`{answers_basename}` when `_src_path` is set (Copier must load the previous template revision).\n\n",
+            'See docs/guides/updating-a-project.md (section "Copier update metadata").\n\n',
+            "Repair: from the Git root of your template checkout, run ",
+            describe_cmd,
+            " and add a line such as:\n",
+            "  _commit: v1.2.3-4-gabcdef",
+        ]
+    )
+    if preceding_error:
+        return f"{preceding_error.rstrip()}\n\n{fix}"
+    return fix
+
+
+def copier_commit_missing_validate_warning() -> str:
+    """Return warning text when schema is valid but `_commit` is missing for update.
+
+    For ``warning_panel`` from ``repoman config validate``.
+    """
+    return (
+        "`_src_path` is set but `_commit` is missing. `repoman update` will fail until you add `_commit`. "
+        'See docs/guides/updating-a-project.md (section "Copier update metadata").'
+    )
+
+
 def key_not_in_template(key: str) -> str:
     """Return message when key is not in template. For warning_panel.
 

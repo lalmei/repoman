@@ -15,7 +15,17 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="Find code hotspots that may need refactoring using git history analysis",
+    help="""Find code hotspots that may need refactoring.
+
+Uses git history (commit count, churn, contributors) to highlight busy files that are often good refactoring targets.
+
+Examples:
+
+    repoman hotspots --path .
+    repoman hotspots -p ./src -n 30 --extensions .py,.ts
+    repoman hotspots --format json
+    repoman hotspots --format html -o ./reports
+""",
 )
 
 
@@ -86,12 +96,7 @@ def hotspots(
         ),
     ] = False,
 ) -> None:
-    """Find code hotspots that may need refactoring.
-
-    Analyzes git history using commits count, code churn, and contributor count
-    to identify files with high change activity. These files are often good
-    candidates for refactoring.
-    """
+    """Run hotspot analysis (see command help for details and examples)."""
     logger, console = get_logger_console()
     repo_path = path.resolve()
 

@@ -106,7 +106,18 @@ def main(
         help="Path to repoman config JSON",
     ),
 ) -> None:
-    r"""Welcome to repoman CLI App."""
+    """Scaffold and update Python projects from the repoman Copier template.
+
+    Examples:
+
+        repoman --version
+        repoman create -pn my-app --preset cli
+        repoman update ./my-app --dry-run
+        repoman hotspots --path . --limit 15
+        repoman config show --key project_name
+        repoman extensions sync ./my-app
+        repoman generator add my-command --project-dir ./my-app
+    """
     logger, _console = get_logger_console()
 
     config: Config | None = None

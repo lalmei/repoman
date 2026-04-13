@@ -124,6 +124,9 @@ def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
     )
     src_package = project_dir / "src" / "test_project"
     assert not (src_package / "app").exists(), "app folder must not exist when fastapi_enabled is false"
+    assert not (project_dir / "compose.yml").exists()
+    assert not (project_dir / "Dockerfile.prod").exists()
+    assert not (project_dir / ".env.prod.example").exists()
 
     # Setup and format so generated code passes format-check and lint (no fix)
     for make_target in ("setup", "format"):
@@ -136,6 +139,32 @@ def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
             f"make {make_target} failed with exit code {result.returncode}\n"
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
+
+
+def test_fastapi_template_renders_local_prod_stack_files(tmp_path: Path) -> None:
+    """FastAPI projects should render local production compose assets."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={"fastapi_enabled": True, "rag_enabled": True},
+    )
+
+    makefile = _read_text(project_dir / "Makefile")
+    compose = _read_text(project_dir / "compose.yml")
+    dockerfile = _read_text(project_dir / "Dockerfile.prod")
+    env_example = _read_text(project_dir / ".env.prod.example")
+    readme = _read_text(project_dir / "README.md")
+
+    assert "include make_cmds/prod.mk" in makefile
+    assert "docker compose --env-file" in _read_text(project_dir / "make_cmds" / "prod.mk")
+    assert "OPENAI_API_KEY: ${OPENAI_API_KEY:-}" in compose
+    assert "dockerfile: Dockerfile.prod" in compose
+    assert 'CMD ["uv", "run", "uvicorn"' in dockerfile
+    assert "--group rag" in dockerfile
+    assert "OPENAI_API_KEY=replace-me" in env_example
+    assert "make prod" in readme
 
 
 def test_cli_only_template_omits_optional_feature_references(tmp_path: Path) -> None:
@@ -220,7 +249,10 @@ def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
     assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
     assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
     assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme
-    assert f"[![coverage](https://img.shields.io/endpoint?url={docs_url}/coverage-badge.json)]({docs_url}/coverage/)" in readme
+    assert (
+        f"[![coverage](https://img.shields.io/endpoint?url={docs_url}/coverage-badge.json)]({docs_url}/coverage/)"
+        in readme
+    )
 
     assert f'Homepage = "{docs_url}"' in pyproject
     assert f'Documentation = "{docs_url}"' in pyproject
@@ -265,8 +297,8 @@ def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
     assert f'Changelog = "{docs_url}/changelog"' in pyproject
     assert f'Repository = "{repo_url}"' in pyproject
     assert f'Issues = "{repo_url}/-/issues"' in pyproject
-    assert 'Discussions =' not in pyproject
-    assert 'Funding =' not in pyproject
+    assert "Discussions =" not in pyproject
+    assert "Funding =" not in pyproject
 
     assert f'site_url: "{docs_url}"' in mkdocs
     assert f'repo_url: "{repo_url}"' in mkdocs
@@ -308,8 +340,8 @@ def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
     assert f'Changelog = "{repo_url}"' in pyproject
     assert f'Repository = "{repo_url}"' in pyproject
     assert f'Issues = "{repo_url}"' in pyproject
-    assert 'Discussions =' not in pyproject
-    assert 'Funding =' not in pyproject
+    assert "Discussions =" not in pyproject
+    assert "Funding =" not in pyproject
 
     assert f'site_url: "{docs_url}"' in mkdocs
     assert f'repo_url: "{repo_url}"' in mkdocs

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from repoman.config.copier_update_metadata import missing_commit_for_copier_update
 from repoman.config.loader import load_answers
 from repoman.config.models import (
     Config,
@@ -19,5 +20,6 @@ __all__ = [
     "get_project_config_path",
     "load_answers",
     "load_hierarchical",
+    "missing_commit_for_copier_update",
     "validate_answers_file",
 ]

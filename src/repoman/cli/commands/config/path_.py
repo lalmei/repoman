@@ -9,7 +9,13 @@ from repoman.config import get_config_file_path
 
 app = Typer(
     add_completion=True,
-    help="Show the path where repoman loads/writes config",
+    help="""Show the path where repoman loads/writes config.
+
+Examples:
+
+    repoman config path
+    repoman config path --config ./my-repoman-config.json
+""",
 )
 
 

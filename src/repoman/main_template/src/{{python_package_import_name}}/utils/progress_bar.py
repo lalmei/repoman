@@ -65,14 +65,10 @@ class ProgressBar:
                 TimeRemainingColumn(),
                 transient=True,
             )
-            self.task = self.progress.add_task(
-                "Training", total=total_batches, loss=0.0, acc=0.0, epoch=epoch
-            )
+            self.task = self.progress.add_task("Training", total=total_batches, loss=0.0, acc=0.0, epoch=epoch)
             self.progress.start()
 
-    def update(
-        self, current_batch: int, loss: float, acc: float, epoch: int, batch_time: float
-    ) -> None:
+    def update(self, current_batch: int, loss: float, acc: float, epoch: int, batch_time: float) -> None:
         """Update the progress bar with current metrics.
 
         Dynamically adjusts the update interval based on batch time (for time-based updates).
@@ -93,15 +89,10 @@ class ProgressBar:
         # 🔥 Adaptive Progress Bar Logic
         if self.use_progress_bar and (
             (self.update_mode == "step" and current_batch % self.update_interval == 0)
-            or (
-                self.update_mode == "time"
-                and now - self.last_update_time >= self.target_update_interval
-            )
+            or (self.update_mode == "time" and now - self.last_update_time >= self.target_update_interval)
         ):
             if self.progress is not None and self.task is not None:
-                self.progress.update(
-                    self.task, completed=current_batch, loss=loss, acc=acc, epoch=epoch
-                )
+                self.progress.update(self.task, completed=current_batch, loss=loss, acc=acc, epoch=epoch)
                 self.progress.refresh()
             self.last_update_time = now
 

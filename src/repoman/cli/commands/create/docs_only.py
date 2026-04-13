@@ -10,7 +10,13 @@ from repoman.copier import build_preset_data
 
 app = Typer(
     add_completion=True,
-    help="Create a documentation-only project (no src package, no tests).",
+    help="""Create a documentation-only project (no src package, no tests).
+
+Examples:
+
+    repoman create docs docs-only my-docs-site
+    repoman create docs docs-only my-docs-site --dry-run
+""",
 )
 
 
@@ -32,7 +38,12 @@ def docs_only(
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Create a documentation-only project with no src package or tests."""
+    """Create a documentation-only project with no src package or tests.
+
+    Examples:
+
+        repoman create docs docs-only my-docs-site
+    """
     current_file = Path(__file__)
     template_path_obj = current_file.parent.parent.parent.parent if template_path is None else Path(template_path)
     output_dir_base = Path.cwd() if output_dir is None else Path(output_dir)

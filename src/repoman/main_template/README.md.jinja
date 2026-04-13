@@ -109,6 +109,16 @@ curl -X POST http://localhost:8000{{ fastapi_api_prefix }}/rag/ingest \
   -H "Content-Type: application/json" \
   -d '{"path": "/path/to/file.txt", "corpus_id": "default"}'
 ```
+
+Run the production-like container stack locally:
+
+```bash
+cp .env.prod.example .env.prod
+$EDITOR .env.prod
+make prod
+```
+
+`make prod` uses `docker compose up --build`, exposes the API on `http://localhost:8000`, and passes `OPENAI_API_KEY` into the container. Exporting `OPENAI_API_TOKEN` also works because the Make target normalizes it to `OPENAI_API_KEY` before Compose starts.
 {% endif %}
 
 ### RAG architecture (ASCII)

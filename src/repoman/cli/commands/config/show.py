@@ -17,7 +17,14 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="Print the bundled template answers or a single key",
+    help="""Print the bundled template answers or a single key.
+
+Examples:
+
+    repoman config show
+    repoman config show --key python_package_import_name
+    repoman config show -o ./answers-dump.yml
+""",
 )
 
 

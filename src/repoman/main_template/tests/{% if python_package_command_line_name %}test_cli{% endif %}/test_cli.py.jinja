@@ -54,9 +54,7 @@ def test_main_with_verbose(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
     assert result.exit_code == 0
 
 
-def test_main_with_validation_error(
-    cli_runner: CliRunner, cli_app: typer.Typer
-) -> None:
+def test_main_with_validation_error(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
     """Test that ValidationError on config load sets config=None in ctx."""
 
     class _RequiredModel(BaseModel):

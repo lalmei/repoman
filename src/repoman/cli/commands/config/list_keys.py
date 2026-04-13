@@ -14,7 +14,14 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="List prompt keys expected by the template (from copier.yml)",
+    help="""List prompt keys expected by the template (from copier.yml).
+
+Examples:
+
+    repoman config list-keys
+    repoman config list-keys --format json
+    repoman config list-keys --include-meta
+""",
 )
 
 _MAX_DEFAULT_DISPLAY_LEN = 40

@@ -11,7 +11,16 @@ from repoman.cli.commands.config.validate_ import app as validate_app
 app = Typer(
     add_completion=True,
     no_args_is_help=True,
-    help="Manage repoman and template configuration",
+    help="""Manage repoman and template configuration.
+
+Examples:
+
+    repoman config init -o .copier-answers.yml
+    repoman config show --key python_package_import_name
+    repoman config validate -a .copier-answers.yml
+    repoman config path
+    repoman config list-keys --format json
+""",
 )
 
 app.add_typer(init_app, name="init")

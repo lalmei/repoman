@@ -14,7 +14,17 @@ from repoman.cli.messages import (
 from repoman.copier import ExtensionLifecycleError, sync_extensions
 from repoman.utils.logging import get_logger_console
 
-app = Typer(add_completion=True, help="Sync extension instances to latest bundled templates")
+app = Typer(
+    add_completion=True,
+    help="""Sync extension instances to latest bundled templates.
+
+Examples:
+
+    repoman extensions sync ./my-project
+    repoman extensions sync ./my-project --dry-run
+    repoman extensions sync ./my-project --type command --name my_cmd
+""",
+)
 
 
 @app.callback(invoke_without_command=True)
@@ -26,7 +36,7 @@ def sync(
     dry_run: bool = Option(False, "--dry-run", help="Show what would be synced without making changes"),
     conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
 ) -> None:
-    """Sync extension instances in the given project."""
+    """Sync extensions in the given project (see command help for examples)."""
     _logger, console = get_logger_console()
 
     if conflict not in ["inline", "rej"]:
