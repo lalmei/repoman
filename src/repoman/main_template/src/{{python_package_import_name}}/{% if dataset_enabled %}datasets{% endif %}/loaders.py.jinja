@@ -1,18 +1,30 @@
-{% if dataset_enabled %}"""DataLoader factory using DatasetConfig."""
+{% if dataset_enabled %}# ruff: noqa: I001
+"""DataLoader factory using DatasetConfig."""
 
 import random
 from pathlib import Path
 from typing import Any
 
 from torch.utils.data import DataLoader, Subset
+{% if dataset_modality_image %}
 from torchvision.transforms import Compose
 
+{% endif %}
 from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+{% if dataset_modality_image %}
 from {{python_package_import_name}}.datasets.base import ImageFolderDataset
+{% endif %}
+{% if dataset_modality_mesh %}
+from {{python_package_import_name}}.datasets.mesh import get_mesh_loaders as _get_mesh_loaders
+{% endif %}
+{% if dataset_modality_tabular %}
 from {{python_package_import_name}}.datasets.tabular import get_tabular_loaders as _get_tabular_loaders
+{% endif %}
+{% if dataset_modality_text %}
 from {{python_package_import_name}}.datasets.text import get_text_loaders as _get_text_loaders
+{% endif %}
 
-
+{% if dataset_modality_image %}
 def _get_image_loaders(
     config: DatasetConfig,
     data_root: str | Path | None = None,
