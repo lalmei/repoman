@@ -114,6 +114,7 @@ def main(
         repoman create -pn my-app --preset cli
         repoman update ./my-app --dry-run
         repoman hotspots --path . --limit 15
+        repoman compliance check --path . --profile soc2-software
         repoman config show --key project_name
         repoman extensions sync ./my-app
         repoman generator add my-command --project-dir ./my-app

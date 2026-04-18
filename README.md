@@ -31,6 +31,7 @@ uv run python -m repoman create --project_name my-new-project
 - **Template Management**: Customize and manage project templates
 - **CLI Interface**: Easy-to-use command-line interface
 - **Rich Output**: Beautiful terminal output with themes
+- **Compliance Readiness Checks**: Analyze repositories against built-in software governance profiles and produce badge-style reports
 
 ## CLI
 
@@ -38,6 +39,8 @@ Repoman provides three main commands:
 
 - **`create`** — Create a new project from the template (`uv run repoman create --project_name my-project`)
 - **`update`** — Update an existing project with the latest template
+- **`compliance check`** — Evaluate a repo against built-in `soc2-software` and `oss-best-practices` profiles
+- **`compliance init`** — Generate a starter `compliance.yml` for manual evidence and waivers
 - **`generator add`** — Add a new CLI command to a repoman-generated project
 
 Run `uv run repoman --help` for global options. See [CLI reference](docs/cli.md) for full options and examples.
@@ -48,6 +51,7 @@ Run `make help` for all make targets. Common targets:
 
 - **Testing**: `make test`, `make test-coverage`, `make test-unit`, `make test-cli`, etc.
 - **Code quality**: `make format`, `make lint`, `make fix`, `make check`
+- **Compliance**: `make compliance-check` to run repoman against this repo's own `compliance.yml` baseline
 - **Documentation**: `make docs`, `make docs-serve`
 
 See [Make commands](docs/make-commands.md) for the full list.

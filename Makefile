@@ -98,6 +98,12 @@ type-check: check-types ## Alias for check-types
 check: format-check lint check-types ## Run all quality checks (format-check, lint, check-types)
 
 #######################
+#     Compliance      #
+#######################
+compliance-check: ## Run repoman's own baseline compliance readiness check
+	uv run python -m repoman compliance check --path . --compliance-file compliance.yml
+
+#######################
 #   Documentation     #
 #######################
 docs-trees: ## Regenerate tree blocks in documentation

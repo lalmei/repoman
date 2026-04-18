@@ -34,6 +34,12 @@ The following sections group targets by purpose.
 | `make type-check` | Alias for `check-types` |
 | `make check` | Run all quality checks (format-check, lint, check-types) |
 
+## Compliance
+
+| Target | Description |
+|--------|-------------|
+| `make compliance-check` | Run repoman against this repository's own `compliance.yml` baseline |
+
 ## Documentation
 
 | Target | Description |

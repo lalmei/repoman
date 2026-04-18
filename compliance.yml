@@ -1,0 +1,73 @@
+version: 1
+profiles:
+  soc2-software:
+    enabled: true
+    tier_target: bronze
+    include: []
+    exclude: []
+  oss-best-practices:
+    enabled: true
+    tier_target: bronze
+    include: []
+    exclude: []
+defaults: {}
+controls:
+  soc2.environments.separation:
+    status: waived
+    justification: repoman is maintained as a source repository and local CLI/template generator; it does not operate a staged or production service that needs separate runtime environments.
+    owner: repoman maintainers
+    evidence:
+      - Development happens in local clones of this repository.
+      - CI and release automation run in isolated GitHub Actions workflows under .github/workflows/.
+    last_reviewed: "2026-04-18"
+    notes: Replace this waiver with concrete environment-boundary evidence if repoman grows a hosted service surface.
+  soc2.cicd.secrets-manager:
+    status: unknown
+    justification: null
+    owner: repoman maintainers
+    evidence: []
+    last_reviewed: "2026-04-18"
+    notes: Document the approved secret storage location for release automation if publishing moves beyond the default GitHub token flow.
+  soc2.app.rate-limiting:
+    status: waived
+    justification: repoman does not expose long-lived network endpoints from this repository; abuse protections apply to downstream generated services instead.
+    owner: repoman maintainers
+    evidence:
+      - The repository ships a CLI and Copier template, not a hosted API or web service.
+    last_reviewed: "2026-04-18"
+    notes: Revisit if repoman begins operating a maintained public endpoint.
+  soc2.logging.security-events:
+    status: unknown
+    justification: null
+    owner: repoman maintainers
+    evidence: []
+    last_reviewed: "2026-04-18"
+    notes: Document which repository administration and release events are retained and where they are reviewed.
+  soc2.vuln.remediation-slas:
+    status: unknown
+    justification: null
+    owner: repoman maintainers
+    evidence: []
+    last_reviewed: "2026-04-18"
+    notes: Add severity-based remediation targets when the project is ready to publish them.
+  oss.security.scanning-declared:
+    status: unknown
+    justification: null
+    owner: repoman maintainers
+    evidence: []
+    last_reviewed: "2026-04-18"
+    notes: Record the repository's automated security scanning workflow once it is in place.
+  oss.release.provenance:
+    status: unknown
+    justification: null
+    owner: repoman maintainers
+    evidence: []
+    last_reviewed: "2026-04-18"
+    notes: Document artifact provenance and signing expectations if repoman starts publishing verifiable release artifacts.
+  oss.release.verification-docs:
+    status: unknown
+    justification: null
+    owner: repoman maintainers
+    evidence: []
+    last_reviewed: "2026-04-18"
+    notes: Publish consumer-facing verification instructions when provenance guidance exists.

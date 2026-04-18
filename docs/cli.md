@@ -285,6 +285,87 @@ repoman hotspots --since 2024-01-01 --extensions .py,.ts --format json
 repoman hotspots -n 5 -f json
 ```
 
+### compliance
+
+Analyze a git repository against built-in readiness profiles. v0 supports:
+
+- `soc2-software` — software-only SOC 2 style engineering controls
+- `oss-best-practices` — OSS badge-style repo best practices inspired by OpenSSF criteria
+
+This feature is a readiness/alignment check, not a certification claim.
+
+```bash
+repoman compliance [COMMAND] [OPTIONS]
+```
+
+**Subcommands**
+
+| Subcommand | Description |
+| ---------- | ----------- |
+| `check`    | Evaluate a repository and emit terminal or report output |
+| `init`     | Generate a starter `compliance.yml` for manual evidence |
+
+#### compliance check
+
+```bash
+repoman compliance check [OPTIONS]
+```
+
+**Options**
+
+| Option              | Short | Description |
+| ------------------- | ----- | ----------- |
+| `--path`            | `-p`  | Path to the git repository (default: current directory) |
+| `--profile`         |       | Profile id to run; repeat for multiple profiles |
+| `--format`          | `-f`  | Output format: `table` (default), `json`, `markdown`, or `html` |
+| `--output`          | `-o`  | Output file or directory for non-table formats |
+| `--compliance-file` |       | Override path to `compliance.yml` |
+| `--tier-target`     |       | Optional target tier: `bronze`, `silver`, or `gold` |
+| `--fail-on`         |       | Gate mode: `unmet`, `unknown`, or `tier` (default: `tier`) |
+| `--strict`          |       | Treat `unknown` controls as failures even without a requested tier |
+| `--no-header`       |       | Hide terminal table headers |
+
+**Examples**
+
+```bash
+repoman compliance check
+repoman compliance check --profile soc2-software --tier-target bronze
+repoman compliance check --profile oss-best-practices --format json
+repoman compliance check --format markdown --output compliance.md
+repoman compliance check --format html --output compliance_report
+```
+
+**Exit codes**
+
+| Code | Meaning |
+| ---- | ------- |
+| `0`  | Requested gate passed |
+| `1`  | Requested gate or tier target failed |
+| `2`  | Invalid config, unsupported repo state, or analysis error |
+
+#### compliance init
+
+```bash
+repoman compliance init [OPTIONS]
+```
+
+**Options**
+
+| Option     | Short | Description |
+| ---------- | ----- | ----------- |
+| `--path`   | `-p`  | Repository path where the starter file should be written |
+| `--profile`|       | Profile id to include; repeat for multiple profiles |
+| `--output` | `-o`  | Destination path (default: `compliance.yml`) |
+| `--force`  | `-f`  | Overwrite an existing file |
+
+**Examples**
+
+```bash
+repoman compliance init
+repoman compliance init --profile soc2-software
+repoman compliance init --path /path/to/repo --output compliance.yml --force
+```
+
 ### generator add
 
 Add a new CLI command to a repoman-generated project. Generates a command module and a test file, and stores extension instance metadata for future sync/update.
@@ -356,6 +437,9 @@ repoman config validate --help
 repoman config show --help
 repoman config list-keys --help
 repoman hotspots --help
+repoman compliance --help
+repoman compliance check --help
+repoman compliance init --help
 repoman generator add --help
 repoman extensions sync --help
 ```
