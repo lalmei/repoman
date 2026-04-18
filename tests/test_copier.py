@@ -65,11 +65,13 @@ def test_build_preset_data_includes_base_and_overrides() -> None:
 
 
 def test_build_preset_data_rag_preset() -> None:
-    """RAG preset enables fastapi, rag, dataset."""
+    """RAG preset enables fastapi, rag, dataset, and all dataset modalities."""
     data = build_preset_data("rag", "my-rag")
     assert data.get("fastapi_enabled") is True
     assert data.get("rag_enabled") is True
     assert data.get("dataset_enabled") is True
+    assert data.get("dataset_modality_image") is True
+    assert data.get("dataset_modality_rag_eval") is True
 
 
 def test_build_copier_options_without_data() -> None:

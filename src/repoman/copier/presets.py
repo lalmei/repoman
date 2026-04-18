@@ -40,6 +40,11 @@ PRESETS: dict[str, dict] = {
         "fastapi_enabled": True,
         "rag_enabled": True,
         "dataset_enabled": True,
+        "dataset_modality_image": True,
+        "dataset_modality_text": True,
+        "dataset_modality_tabular": True,
+        "dataset_modality_mesh": True,
+        "dataset_modality_rag_eval": True,
     },
 }
 

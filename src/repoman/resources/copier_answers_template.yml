@@ -51,6 +51,12 @@ rag_enabled: false
 
 # Dataset module (PyTorch-oriented)
 dataset_enabled: false
+# When dataset_enabled is true, enable at least one:
+dataset_modality_image: true
+dataset_modality_text: true
+dataset_modality_tabular: true
+dataset_modality_mesh: true
+dataset_modality_rag_eval: true
 
 # Documentation-only project (no src package, no tests)
 docs_only: false

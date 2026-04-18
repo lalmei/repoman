@@ -194,6 +194,8 @@ def get_mesh_loaders(
     )
 
     return train_loader, val_loader
+{% elif dataset_enabled %}
+"""Mesh datasets not included. Enable dataset_modality_mesh in copier answers."""
 {% else %}
 """Mesh dataset (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

@@ -82,3 +82,13 @@ def test_mesh_dataset_empty_root_raises(tmp_path: Path) -> None:
     config = DatasetConfig(modality="mesh")
     with pytest.raises(ValueError, match=r"No class subdirectories"):
         MeshDataset(root=tmp_path, config=config)
+
+{% else %}
+"""Mesh dataset tests not included (enable dataset_modality_mesh)."""
+
+
+def test_mesh_modality_disabled_placeholder() -> None:
+    import pytest
+
+    pytest.skip("dataset_modality_mesh disabled for this project")
+{% endif %}

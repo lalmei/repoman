@@ -145,6 +145,8 @@ def get_text_loaders(
     )
 
     return train_loader, val_loader
+{% elif dataset_enabled %}
+"""Text datasets not included. Enable dataset_modality_text in copier answers."""
 {% else %}
 """Text dataset (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

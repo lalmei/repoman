@@ -142,3 +142,13 @@ def test_rag_eval_cli_empty_dataset(cli_runner: CliRunner, tmp_path: Path) -> No
 def cli_runner() -> CliRunner:
     """CLI runner for eval command tests."""
     return CliRunner()
+
+{% else %}
+"""RAG evaluation tests not included (enable dataset_modality_rag_eval)."""
+
+
+def test_rag_eval_modality_disabled_placeholder() -> None:
+    import pytest
+
+    pytest.skip("dataset_modality_rag_eval disabled for this project")
+{% endif %}

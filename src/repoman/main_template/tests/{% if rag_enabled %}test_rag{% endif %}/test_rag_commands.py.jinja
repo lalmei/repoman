@@ -167,4 +167,11 @@ def test_eval_cmd_raises_when_dataset_disabled() -> None:
 
     with pytest.raises(RuntimeError, match=r"rag_enabled and dataset_enabled"):
         eval_cmd()
+{% elif dataset_enabled and not dataset_modality_rag_eval %}
+def test_eval_cmd_raises_when_rag_eval_modality_disabled() -> None:
+    """Eval subcommand raises RuntimeError when dataset_modality_rag_eval is False."""
+    from {{ python_package_import_name }}.cli.commands.rag.eval import eval_cmd
+
+    with pytest.raises(RuntimeError, match=r"dataset_modality_rag_eval"):
+        eval_cmd()
 {% endif %}

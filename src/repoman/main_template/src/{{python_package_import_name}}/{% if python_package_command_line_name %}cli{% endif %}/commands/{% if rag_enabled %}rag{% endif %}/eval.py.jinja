@@ -65,6 +65,21 @@ def eval_cmd(
             Panel(Text(str(e), style="red"), title="Error", border_style="red"),
         )
         raise SystemExit(1) from e
+{% elif rag_enabled and dataset_enabled %}
+"""Eval subcommand (disabled). Enable dataset_modality_rag_eval to use."""
+
+from typer import Typer
+
+app = Typer(add_completion=True, no_args_is_help=True)
+
+
+@app.callback(invoke_without_command=True)
+def eval_cmd() -> None:
+    """RAG eval requires dataset_modality_rag_eval."""
+    raise RuntimeError(
+        "RAG eval requires dataset_modality_rag_eval. "
+        "Re-instantiate the template with that dataset modality enabled."
+    )
 {% else %}
 """Eval subcommand (disabled). Enable rag_enabled and dataset_enabled to use."""
 

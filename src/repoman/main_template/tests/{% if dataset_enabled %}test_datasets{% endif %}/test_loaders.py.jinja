@@ -10,6 +10,7 @@ from {{ python_package_import_name }}.config.dataset_config import DatasetConfig
 from {{ python_package_import_name }}.datasets.loaders import get_train_val_loaders
 
 
+{% if dataset_modality_tabular %}
 def test_get_train_val_loaders_tabular(tmp_path: Path) -> None:
     """get_train_val_loaders with modality=tabular returns tabular loaders."""
     import pandas as pd
@@ -32,7 +33,8 @@ def test_get_train_val_loaders_tabular(tmp_path: Path) -> None:
     list(train_loader)
     list(val_loader)
 
-
+{% endif %}
+{% if dataset_modality_text %}
 def test_get_train_val_loaders_text(tmp_path: Path) -> None:
     """get_train_val_loaders with modality=text returns text loaders."""
     jsonl_path = tmp_path / "text.jsonl"
@@ -51,7 +53,36 @@ def test_get_train_val_loaders_text(tmp_path: Path) -> None:
     list(train_loader)
     list(val_loader)
 
+{% endif %}
+{% if dataset_modality_mesh %}
+def test_get_train_val_loaders_mesh(tmp_path: Path) -> None:
+    """get_train_val_loaders with modality=mesh returns mesh loaders."""
+    obj = """v 0 0 0
+v 1 0 0
+v 0 1 0
+f 1 2 3
+"""
+    for name in ("c0", "c1"):
+        d = tmp_path / name
+        d.mkdir()
+        (d / f"{name}.obj").write_text(obj, encoding="utf-8")
 
+    config = DatasetConfig(
+        modality="mesh",
+        data_root=str(tmp_path),
+        mesh_extensions=[".obj"],
+        train_split=0.5,
+        seed=42,
+        batch_size=1,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_train_val_loaders(config, data_root=tmp_path)
+    list(train_loader)
+    list(val_loader)
+
+{% endif %}
+{% if dataset_modality_image %}
 def test_get_train_val_loaders_image(tmp_path: Path) -> None:
     """get_train_val_loaders with modality=image returns image loaders."""
     pytest.importorskip("PIL")
@@ -77,9 +108,12 @@ def test_get_train_val_loaders_image(tmp_path: Path) -> None:
     list(train_loader)
     list(val_loader)
 
-
+{% endif %}
+{% if dataset_modality_rag_eval %}
 def test_get_train_val_loaders_rag_eval_raises() -> None:
     """get_train_val_loaders with modality=rag_eval raises ValueError."""
     config = DatasetConfig(modality="rag_eval")
     with pytest.raises(ValueError, match=r"rag_eval.*no train/val loaders"):
         get_train_val_loaders(config)
+
+{% endif %}

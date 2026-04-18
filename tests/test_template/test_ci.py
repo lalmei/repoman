@@ -430,6 +430,11 @@ def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path
             "fastapi_enabled": False,
             "rag_enabled": False,
             "dataset_enabled": True,
+            "dataset_modality_image": True,
+            "dataset_modality_text": True,
+            "dataset_modality_tabular": True,
+            "dataset_modality_mesh": True,
+            "dataset_modality_rag_eval": True,
         },
     )
     dataset_config = enabled_dir / "config" / "dataset_config.json"
@@ -451,6 +456,11 @@ def test_feature_enabled_template_keeps_optional_architecture_sections(tmp_path:
             "fastapi_enabled": True,
             "rag_enabled": True,
             "dataset_enabled": True,
+            "dataset_modality_image": True,
+            "dataset_modality_text": True,
+            "dataset_modality_tabular": True,
+            "dataset_modality_mesh": True,
+            "dataset_modality_rag_eval": True,
         },
     )
 
@@ -463,6 +473,30 @@ def test_feature_enabled_template_keeps_optional_architecture_sections(tmp_path:
     assert "`app`" in layering
     assert "`rag`" in layering
     assert "`datasets`" in layering
+
+
+def test_dataset_mesh_only_omits_optional_dl_dependencies(tmp_path: Path) -> None:
+    """Mesh-only dataset selection should not add torchvision or pandas to the dl group."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+    project_dir = instantiate_template(
+        output_dir=tmp_path / "mesh-only",
+        project_name="mesh-only",
+        answers_file=answers_file,
+        copier_data={
+            "fastapi_enabled": False,
+            "rag_enabled": False,
+            "dataset_enabled": True,
+            "dataset_modality_image": False,
+            "dataset_modality_text": False,
+            "dataset_modality_tabular": False,
+            "dataset_modality_mesh": True,
+            "dataset_modality_rag_eval": False,
+        },
+    )
+    pyproject = _read_text(project_dir / "pyproject.toml")
+    assert "torchvision" not in pyproject
+    assert "pandas" not in pyproject
+    assert "torch>=" in pyproject
 
 
 def test_cleanup_removes_artifacts(instantiated_template: Any) -> None:

@@ -224,6 +224,37 @@ dataset_enabled:
   help: Include dataset module for PyTorch data loading and config
   default: false
 
+dataset_modality_image:
+  type: bool
+  help: Include image classification datasets (ImageFolder, torchvision)
+  default: true
+  when: "{{ dataset_enabled }}"
+
+dataset_modality_text:
+  type: bool
+  help: Include text datasets (JSONL/CSV)
+  default: true
+  when: "{{ dataset_enabled }}"
+
+dataset_modality_tabular:
+  type: bool
+  help: Include tabular datasets (CSV/Parquet)
+  default: true
+  when: "{{ dataset_enabled }}"
+
+dataset_modality_mesh:
+  type: bool
+  help: Include 3D mesh datasets (Wavefront OBJ)
+  default: true
+  when: "{{ dataset_enabled }}"
+
+dataset_modality_rag_eval:
+  type: bool
+  help: Include RAG evaluation dataset loader (JSONL/JSON)
+  default: true
+  when: "{{ dataset_enabled }}"
+  validator: "{% if dataset_enabled and not (dataset_modality_image or dataset_modality_text or dataset_modality_tabular or dataset_modality_mesh or dataset_modality_rag_eval) %}Select at least one dataset modality.{% endif %}"
+
 # Documentation-only project (no src package, no tests)
 docs_only:
   type: bool

@@ -98,11 +98,16 @@ GraphRAG extension overlay (installed with `repoman generator add graphrag --kin
 
 ## Dataset (optional)
 
-| Prompt            | Description                                                | Default |
-| ----------------- | ---------------------------------------------------------- | ------- |
-| `dataset_enabled` | Include dataset module for PyTorch data loading and config | `false` |
+| Prompt                     | Description                                                                 | Default |
+| -------------------------- | --------------------------------------------------------------------------- | ------- |
+| `dataset_enabled`          | Include dataset module for PyTorch data loading and config                  | `false` |
+| `dataset_modality_image`   | Image classification (`ImageFolder`, torchvision)                           | `true` (when dataset enabled) |
+| `dataset_modality_text`    | Text datasets (JSONL/CSV)                                                   | `true` (when dataset enabled) |
+| `dataset_modality_tabular` | Tabular datasets (CSV/Parquet)                                              | `true` (when dataset enabled) |
+| `dataset_modality_mesh`    | 3D mesh datasets (Wavefront OBJ, class folders)                             | `true` (when dataset enabled) |
+| `dataset_modality_rag_eval`| RAG evaluation loader (JSONL/JSON); required for `rag eval` CLI integration | `true` (when dataset enabled) |
 
-When true, the template generates a dataset module for PyTorch-oriented projects.
+When `dataset_enabled` is true, pick at least one modality (the template validates this). The optional **`dl`** dependency group in the generated `pyproject.toml` includes **`torch`** for every dataset-enabled project, then adds **`torchvision`** only if the image modality is selected, **`pandas`** if text or tabular is selected, and **`pyarrow`** if tabular is selected. Mesh and RAG-eval paths use the standard library or existing deps only.
 
 ---
 

@@ -94,10 +94,16 @@ ml = [
 ]
 {% if dataset_enabled %}
 dl = [
-    "pandas>=2.0.0",
-    "pyarrow>=14.0.0",
     "torch>=2.0.0",
+{%- if dataset_modality_image %}
     "torchvision>=0.15.0",
+{%- endif %}
+{%- if dataset_modality_text or dataset_modality_tabular %}
+    "pandas>=2.0.0",
+{%- endif %}
+{%- if dataset_modality_tabular %}
+    "pyarrow>=14.0.0",
+{%- endif %}
 ]
 {% endif %}
 {% if rag_enabled %}
