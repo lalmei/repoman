@@ -1,4 +1,4 @@
-"""Tests for get_train_val_loaders dispatch and rag_eval modality error."""
+"""Tests for get_train_val_loaders dispatch."""
 
 from pathlib import Path
 
@@ -107,13 +107,5 @@ def test_get_train_val_loaders_image(tmp_path: Path) -> None:
     train_loader, val_loader = get_train_val_loaders(config, data_root=tmp_path)
     list(train_loader)
     list(val_loader)
-
-{% endif %}
-{% if dataset_modality_rag_eval %}
-def test_get_train_val_loaders_rag_eval_raises() -> None:
-    """get_train_val_loaders with modality=rag_eval raises ValueError."""
-    config = DatasetConfig(modality="rag_eval")
-    with pytest.raises(ValueError, match=r"rag_eval.*no train/val loaders"):
-        get_train_val_loaders(config)
 
 {% endif %}

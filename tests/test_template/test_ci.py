@@ -148,7 +148,7 @@ def test_fastapi_template_renders_local_prod_stack_files(tmp_path: Path) -> None
         output_dir=tmp_path,
         project_name="test-project",
         answers_file=answers_file,
-        copier_data={"fastapi_enabled": True, "rag_enabled": True},
+        copier_data={"fastapi_enabled": True, "dataset_enabled": False},
     )
 
     makefile = _read_text(project_dir / "Makefile")
@@ -162,7 +162,7 @@ def test_fastapi_template_renders_local_prod_stack_files(tmp_path: Path) -> None
     assert "OPENAI_API_KEY: ${OPENAI_API_KEY:-}" in compose
     assert "dockerfile: Dockerfile.prod" in compose
     assert 'CMD ["uv", "run", "uvicorn"' in dockerfile
-    assert "--group rag" in dockerfile
+    assert "RUN uv sync --no-dev --no-editable --no-default-groups" in dockerfile
     assert "OPENAI_API_KEY=replace-me" in env_example
     assert "make prod" in readme
 
@@ -176,14 +176,12 @@ def test_cli_only_template_omits_optional_feature_references(tmp_path: Path) -> 
         answers_file=answers_file,
         copier_data={
             "fastapi_enabled": False,
-            "rag_enabled": False,
             "dataset_enabled": False,
         },
     )
 
     package_dir = project_dir / "src" / "test_project"
     assert not (package_dir / "app").exists()
-    assert not (package_dir / "rag").exists()
     assert not (package_dir / "datasets").exists()
     assert not (project_dir / "config" / "dataset_config.json").exists()
 
@@ -200,17 +198,13 @@ def test_cli_only_template_omits_optional_feature_references(tmp_path: Path) -> 
     assert "## CLI" in architecture
     assert "## Configuration" in architecture
     assert "## FastAPI app" not in architecture
-    assert "## RAG pipeline" not in architecture
     assert "## Datasets" not in architecture
-    assert "Enable FastAPI or RAG when generating the project" not in architecture
 
     layering = _read_text(project_dir / "config" / "cursor" / "rules" / "layering.mdc")
-    assert "app, rag, datasets" not in layering
     assert "`config` and domain modules" in layering
 
     coverage = _read_text(project_dir / "config" / "coverage.ini")
     assert "main_template" not in coverage
-    assert "RAG + datasets" not in coverage
 
 
 def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
@@ -416,7 +410,6 @@ def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path
         answers_file=answers_file,
         copier_data={
             "fastapi_enabled": False,
-            "rag_enabled": False,
             "dataset_enabled": False,
         },
     )
@@ -428,13 +421,11 @@ def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path
         answers_file=answers_file,
         copier_data={
             "fastapi_enabled": False,
-            "rag_enabled": False,
             "dataset_enabled": True,
             "dataset_modality_image": True,
             "dataset_modality_text": True,
             "dataset_modality_tabular": True,
             "dataset_modality_mesh": True,
-            "dataset_modality_rag_eval": True,
         },
     )
     dataset_config = enabled_dir / "config" / "dataset_config.json"
@@ -446,7 +437,7 @@ def test_dataset_template_renders_dataset_files_only_when_enabled(tmp_path: Path
 
 
 def test_feature_enabled_template_keeps_optional_architecture_sections(tmp_path: Path) -> None:
-    """FastAPI and RAG-enabled projects should still render their architecture docs."""
+    """FastAPI and dataset-enabled projects should still render their architecture docs."""
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
     project_dir = instantiate_template(
         output_dir=tmp_path,
@@ -454,24 +445,20 @@ def test_feature_enabled_template_keeps_optional_architecture_sections(tmp_path:
         answers_file=answers_file,
         copier_data={
             "fastapi_enabled": True,
-            "rag_enabled": True,
             "dataset_enabled": True,
             "dataset_modality_image": True,
             "dataset_modality_text": True,
             "dataset_modality_tabular": True,
             "dataset_modality_mesh": True,
-            "dataset_modality_rag_eval": True,
         },
     )
 
     architecture = _read_text(project_dir / "docs" / "reference" / "architecture.md")
     assert "## FastAPI app" in architecture
-    assert "## RAG pipeline" in architecture
     assert "## Datasets" in architecture
 
     layering = _read_text(project_dir / "config" / "cursor" / "rules" / "layering.mdc")
     assert "`app`" in layering
-    assert "`rag`" in layering
     assert "`datasets`" in layering
 
 
@@ -484,13 +471,11 @@ def test_dataset_mesh_only_omits_optional_dl_dependencies(tmp_path: Path) -> Non
         answers_file=answers_file,
         copier_data={
             "fastapi_enabled": False,
-            "rag_enabled": False,
             "dataset_enabled": True,
             "dataset_modality_image": False,
             "dataset_modality_text": False,
             "dataset_modality_tabular": False,
             "dataset_modality_mesh": True,
-            "dataset_modality_rag_eval": False,
         },
     )
     pyproject = _read_text(project_dir / "pyproject.toml")

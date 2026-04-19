@@ -212,12 +212,6 @@ aiohttp_pool_size:
   default: 100
   when: "{{ fastapi_enabled }}"
 
-# RAG (retrieval-augmented generation)
-rag_enabled:
-  type: bool
-  help: Include RAG (retrieval-augmented generation) modules and CLI/API
-  default: false
-
 # Dataset module (PyTorch-oriented)
 dataset_enabled:
   type: bool
@@ -247,17 +241,10 @@ dataset_modality_mesh:
   help: Include 3D mesh datasets (Wavefront OBJ)
   default: true
   when: "{{ dataset_enabled }}"
-
-dataset_modality_rag_eval:
-  type: bool
-  help: Include RAG evaluation dataset loader (JSONL/JSON)
-  default: true
-  when: "{{ dataset_enabled }}"
-  validator: "{% if dataset_enabled and not (dataset_modality_image or dataset_modality_text or dataset_modality_tabular or dataset_modality_mesh or dataset_modality_rag_eval) %}Select at least one dataset modality.{% endif %}"
+  validator: "{% if dataset_enabled and not (dataset_modality_image or dataset_modality_text or dataset_modality_tabular or dataset_modality_mesh) %}Select at least one dataset modality.{% endif %}"
 
 # Documentation-only project (no src package, no tests)
 docs_only:
   type: bool
   help: Documentation-only project (no src package, no tests)
   default: false
-

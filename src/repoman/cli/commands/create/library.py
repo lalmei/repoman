@@ -10,7 +10,7 @@ from repoman.copier import build_preset_data
 
 app = Typer(
     add_completion=True,
-    help="""Create a minimal Python library (backbone only, no CLI/FastAPI/RAG/dataset).
+    help="""Create a minimal Python library (backbone only, no CLI/FastAPI/dataset).
 
 Examples:
 
@@ -38,7 +38,7 @@ def library(
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Create a minimal Python library with no CLI, FastAPI, RAG, or dataset.
+    """Create a minimal Python library with no CLI, FastAPI, or dataset.
 
     Examples:
 

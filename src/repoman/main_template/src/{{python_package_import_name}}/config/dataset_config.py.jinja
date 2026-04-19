@@ -34,22 +34,19 @@ class DatasetConfig(BaseSettings):
 
     modality: Literal[
 {%- if dataset_modality_image -%}
-        "image"{%- if dataset_modality_text or dataset_modality_tabular or dataset_modality_mesh or dataset_modality_rag_eval -%},{%- endif -%}
+        "image"{%- if dataset_modality_text or dataset_modality_tabular or dataset_modality_mesh -%},{%- endif -%}
 {%- endif -%}
 {%- if dataset_modality_text -%}
-        "text"{%- if dataset_modality_tabular or dataset_modality_mesh or dataset_modality_rag_eval -%},{%- endif -%}
+        "text"{%- if dataset_modality_tabular or dataset_modality_mesh -%},{%- endif -%}
 {%- endif -%}
 {%- if dataset_modality_tabular -%}
-        "tabular"{%- if dataset_modality_mesh or dataset_modality_rag_eval -%},{%- endif -%}
+        "tabular"{%- if dataset_modality_mesh -%},{%- endif -%}
 {%- endif -%}
 {%- if dataset_modality_mesh -%}
-        "mesh"{%- if dataset_modality_rag_eval -%},{%- endif -%}
-{%- endif -%}
-{%- if dataset_modality_rag_eval -%}
-        "rag_eval"
+        "mesh"
 {%- endif -%}
     ] = Field(
-        default={% if dataset_modality_image %}"image"{% elif dataset_modality_text %}"text"{% elif dataset_modality_tabular %}"tabular"{% elif dataset_modality_mesh %}"mesh"{% else %}"rag_eval"{% endif %},
+        default={% if dataset_modality_image %}"image"{% elif dataset_modality_text %}"text"{% elif dataset_modality_tabular %}"tabular"{% else %}"mesh"{% endif %},
         description="Dataset modality for this project.",
     )
     data_root: Path = Field(default=Path("."), description="Root directory for datasets.")
@@ -79,15 +76,6 @@ class DatasetConfig(BaseSettings):
         description="Format for tabular data.",
     )
     delimiter: str = Field(default=",", description="CSV delimiter.")
-{% endif %}
-{% if dataset_modality_rag_eval %}
-    # RAG eval modality
-    query_column: str = Field(default="query", description="Column name for queries.")
-    reference_column: str = Field(default="reference", description="Column name for ground-truth answers.")
-    contexts_column: str | None = Field(
-        default="contexts",
-        description="Column name for ground-truth contexts (optional).",
-    )
 {% endif %}
 {% if dataset_modality_mesh %}
     # Mesh modality (class folders of OBJ files; template ships OBJ loader)

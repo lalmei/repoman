@@ -10,7 +10,7 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 COPY config ./config
 
-RUN uv sync --no-dev --no-editable --no-default-groups{% if rag_enabled %} --group rag{% endif %}
+RUN uv sync --no-dev --no-editable --no-default-groups
 
 EXPOSE 8000
 

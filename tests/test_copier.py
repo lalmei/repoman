@@ -59,19 +59,16 @@ def test_build_preset_data_includes_base_and_overrides() -> None:
     data = build_preset_data("cli", "my-cli")
     assert "project_name" in data
     assert data.get("fastapi_enabled") is False
-    assert data.get("rag_enabled") is False
+    assert data.get("dataset_enabled") is False
     assert "python_package_command_line_name" in data
     assert data["python_package_command_line_name"] == "my-cli"
 
 
-def test_build_preset_data_rag_preset() -> None:
-    """RAG preset enables fastapi, rag, dataset, and all dataset modalities."""
-    data = build_preset_data("rag", "my-rag")
+def test_build_preset_data_fastapi_preset() -> None:
+    """FastAPI preset enables FastAPI without dataset extras."""
+    data = build_preset_data("fastapi", "my-api")
     assert data.get("fastapi_enabled") is True
-    assert data.get("rag_enabled") is True
-    assert data.get("dataset_enabled") is True
-    assert data.get("dataset_modality_image") is True
-    assert data.get("dataset_modality_rag_eval") is True
+    assert data.get("dataset_enabled") is False
 
 
 def test_build_copier_options_without_data() -> None:
@@ -114,4 +111,4 @@ def test_load_prompt_schema_default_returns_dict() -> None:
 
 def test_presets_keys() -> None:
     """PRESETS contains expected preset names."""
-    assert set(PRESETS.keys()) == {"cli", "docs_only", "library", "fastapi", "rag"}
+    assert set(PRESETS.keys()) == {"cli", "docs_only", "library", "fastapi"}

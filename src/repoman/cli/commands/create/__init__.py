@@ -11,7 +11,6 @@ from repoman.cli.commands.create.cli_only import app as cli_only_app
 from repoman.cli.commands.create.docs_only import app as docs_only_app
 from repoman.cli.commands.create.fastapi_mvc import app as fastapi_mvc_app
 from repoman.cli.commands.create.library import app as library_app
-from repoman.cli.commands.create.rag_service import app as rag_service_app
 from repoman.cli.messages import answers_file_not_found, error_panel
 from repoman.copier import build_preset_data
 from repoman.utils.logging import get_logger_console
@@ -22,7 +21,6 @@ app.add_typer(cli_only_app, name="cli")
 app.add_typer(docs_only_app, name="docs")
 app.add_typer(library_app, name="library")
 app.add_typer(fastapi_mvc_app, name="fastapi")
-app.add_typer(rag_service_app, name="rag")
 
 
 @app.callback(invoke_without_command=True, no_args_is_help=True)
@@ -61,7 +59,7 @@ def create(
         Option(
             "--preset",
             "-p",
-            help="Use a preset: cli, docs-only, library, fastapi, rag",
+            help="Use a preset: cli, docs-only, library, fastapi",
         ),
     ] = None,
     dry_run: Annotated[
@@ -71,7 +69,7 @@ def create(
 ) -> None:
     """Create a new Python project using the repoman template.
 
-    Use a preset, a typed subcommand (cli, docs, library, fastapi, rag), or an answers file.
+    Use a preset, a typed subcommand (cli, docs, library, fastapi), or an answers file.
 
     Examples:
 
@@ -115,11 +113,11 @@ def create(
             data = yaml.safe_load(f) or {}
     elif preset is not None:
         preset_key = preset.replace("-", "_")  # docs-only -> docs_only
-        valid = ("cli", "docs_only", "library", "fastapi", "rag")
+        valid = ("cli", "docs_only", "library", "fastapi")
         if preset_key not in valid:
             console.print(
                 error_panel(
-                    f"Invalid preset '{preset}'. Choose from: cli, docs-only, library, fastapi, rag",
+                    f"Invalid preset '{preset}'. Choose from: cli, docs-only, library, fastapi",
                     console=console,
                 )
             )

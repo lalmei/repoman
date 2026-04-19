@@ -1,4 +1,4 @@
-"""CLI-only create subcommand: plain CLI project (no FastAPI, RAG, dataset)."""
+"""CLI-only create subcommand: plain CLI project (no FastAPI or dataset)."""
 
 from pathlib import Path
 from typing import Annotated
@@ -10,7 +10,7 @@ from repoman.copier import build_preset_data
 
 app = Typer(
     add_completion=True,
-    help="""Create a plain CLI project (no FastAPI, RAG, or dataset).
+    help="""Create a plain CLI project (no FastAPI or dataset).
 
 Examples:
 
@@ -38,7 +38,7 @@ def cli(
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Create a plain CLI project with no FastAPI, RAG, or dataset modules.
+    """Create a plain CLI project with no FastAPI or dataset modules.
 
     Examples:
 

@@ -18,7 +18,6 @@ EXTENSION_ANSWERS_ROOT = Path(".repoman/extensions")
 MIRROR_KEY = "_repoman_extensions"
 
 EXTENSION_TYPE_COMMAND = "command"
-EXTENSION_TYPE_GRAPHRAG = "graphrag"
 
 
 @dataclass
@@ -60,10 +59,6 @@ def _repoman_root() -> Path:
 
 def _command_template_dir() -> Path:
     return _repoman_root() / "extentions" / "command_template" / "{{command_name}}"
-
-
-def _graphrag_template_dir() -> Path:
-    return _repoman_root() / "extentions" / "graphrag_template" / "{{instance_name}}"
 
 
 def _manifest_path(project_dir: Path) -> Path:
@@ -314,60 +309,9 @@ def create_command_extension(
     )
 
 
-def create_graphrag_extension(
-    *,
-    project_dir: Path,
-    base_answers_file: Path,
-    answers: dict[str, Any],
-    instance_name: str,
-    force: bool,
-    dry_run: bool,
-) -> tuple[ExtensionInstance, dict[str, Any], Path, Path]:
-    """Create a GraphRAG extension instance and persist lifecycle metadata."""
-    python_package_import_name = str(answers.get("python_package_import_name", "")).strip()
-    if not python_package_import_name:
-        raise ExtensionLifecycleError("Missing required answer: python_package_import_name")
-
-    rag_enabled = bool(answers.get("rag_enabled", False))
-    if not rag_enabled:
-        raise ExtensionLifecycleError("GraphRAG extension requires rag_enabled=true in .copier-answers.yml")
-
-    fastapi_enabled = bool(answers.get("fastapi_enabled", False))
-    python_package_command_line_name = str(answers.get("python_package_command_line_name", python_package_import_name))
-
-    command_output_file = (
-        project_dir / "src" / python_package_import_name / "cli" / "commands" / "graphrag" / "__init__.py"
-    )
-    test_output_file = project_dir / "tests" / "test_cli" / "test_graphrag.py"
-
-    extension_data = {
-        "instance_name": instance_name,
-        "python_package_import_name": python_package_import_name,
-        "python_package_command_line_name": python_package_command_line_name,
-        "fastapi_enabled": fastapi_enabled,
-        "rag_enabled": rag_enabled,
-        "include_health_endpoints": bool(answers.get("include_health_endpoints", True)),
-    }
-
-    return _create_extension_instance(
-        project_dir=project_dir,
-        base_answers_file=base_answers_file,
-        template_dir=_graphrag_template_dir(),
-        extension_type=EXTENSION_TYPE_GRAPHRAG,
-        name=instance_name,
-        extension_data=extension_data,
-        singleton=True,
-        force=force,
-        dry_run=dry_run,
-        expected_files=(command_output_file, test_output_file),
-    )
-
-
 def _template_dir_for_type(extension_type: str) -> Path:
     if extension_type == EXTENSION_TYPE_COMMAND:
         return _command_template_dir()
-    if extension_type == EXTENSION_TYPE_GRAPHRAG:
-        return _graphrag_template_dir()
     raise ExtensionLifecycleError(f"Unsupported extension type: {extension_type}")
 
 

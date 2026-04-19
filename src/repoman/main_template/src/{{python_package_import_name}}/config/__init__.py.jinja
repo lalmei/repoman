@@ -5,13 +5,10 @@
 {% if fastapi_enabled %}from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
 {% endif -%}
 from {{python_package_import_name}}.config.main_config import Config
-{% if rag_enabled %}from {{python_package_import_name}}.config.rag_config import RAGConfig
-{% endif -%}
 
 __all__: list[str] = [
     "Config",
 {% if dataset_enabled %}    "DatasetConfig",
 {% endif %}{% if fastapi_enabled %}    "FastAPIConfig",
-{% endif %}{% if rag_enabled %}    "RAGConfig",
 {% endif -%}
 ]

@@ -35,7 +35,7 @@ python_distribution_name: test-project
 container_registry: ""
 
 # Notebooks
-python_notebooks: true 
+python_notebooks: true
 
 # FastAPI application
 fastapi_enabled: true
@@ -46,16 +46,12 @@ include_health_endpoints: true
 aiohttp_timeout: 2
 aiohttp_pool_size: 100
 
-# RAG (retrieval-augmented generation) – enable so templated RAG code is format/lint checked
-rag_enabled: true
-
 # Dataset module – enable so templated dataset code is format/lint checked
 dataset_enabled: true
 dataset_modality_image: true
 dataset_modality_text: true
 dataset_modality_tabular: true
 dataset_modality_mesh: true
-dataset_modality_rag_eval: true
 
 # Documentation-only (tests use full template)
 docs_only: false

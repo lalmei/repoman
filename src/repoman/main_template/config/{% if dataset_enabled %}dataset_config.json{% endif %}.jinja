@@ -1,5 +1,5 @@
 {
-  "modality": "{% if dataset_modality_image %}image{% elif dataset_modality_text %}text{% elif dataset_modality_tabular %}tabular{% elif dataset_modality_mesh %}mesh{% else %}rag_eval{% endif %}",
+  "modality": "{% if dataset_modality_image %}image{% elif dataset_modality_text %}text{% elif dataset_modality_tabular %}tabular{% else %}mesh{% endif %}",
   "data_root": "data",
   "train_split": 0.8,
   "val_split": 0.2,
@@ -13,9 +13,6 @@
   "text_format": "jsonl"{% endif %}{% if dataset_modality_tabular %},
   "target_column": "target",
   "tabular_format": "csv",
-  "delimiter": ","{% endif %}{% if dataset_modality_rag_eval %},
-  "query_column": "query",
-  "reference_column": "reference",
-  "contexts_column": "contexts"{% endif %}{% if dataset_modality_mesh %},
+  "delimiter": ","{% endif %}{% if dataset_modality_mesh %},
   "mesh_extensions": [".obj"]{% endif %}
 }

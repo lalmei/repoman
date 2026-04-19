@@ -6,7 +6,6 @@ from repoman.copier.extension_lifecycle import (
     ExtensionLifecycleError,
     ExtensionSyncResult,
     create_command_extension,
-    create_graphrag_extension,
     load_manifest,
     sync_extensions,
 )
@@ -26,7 +25,6 @@ __all__ = [
     "build_copier_options",
     "build_preset_data",
     "create_command_extension",
-    "create_graphrag_extension",
     "load_manifest",
     "load_prompt_schema",
     "sync_extensions",
