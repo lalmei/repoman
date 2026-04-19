@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from repoman.compliance.config import load_compliance_config
 from repoman.compliance.detectors import detector_applies, enrich_result_with_override, evaluate_detector
 from repoman.compliance.models import (
+    TIER_ORDER,
     ComplianceConfigError,
     ComplianceReport,
     ControlProfile,
@@ -15,11 +16,15 @@ from repoman.compliance.models import (
     FailOn,
     GateResult,
     SectionSummary,
-    TIER_ORDER,
     Tier,
     utc_now_iso,
 )
 from repoman.compliance.profiles import BUILTIN_PROFILES
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from repoman.compliance.models import ComplianceConfig, ControlDefinition, ControlOverride
 
 
 def analyze_compliance(
@@ -69,7 +74,7 @@ def _analyze_profile(
     *,
     repo_path: Path,
     profile: ControlProfile,
-    config,
+    config: ComplianceConfig,
     requested_tier: Tier | None,
     fail_on: FailOn,
     strict: bool,
@@ -136,7 +141,7 @@ def _analyze_profile(
     )
 
 
-def _validate_config_ids(config, selected_ids: list[str]) -> None:
+def _validate_config_ids(config: ComplianceConfig, selected_ids: list[str]) -> None:
     """Fail fast on unknown profile ids or control ids declared in compliance.yml."""
     known_profile_ids = set(BUILTIN_PROFILES)
     for profile_id in config.profiles:
@@ -160,7 +165,7 @@ def _validate_config_ids(config, selected_ids: list[str]) -> None:
             raise ComplianceConfigError(f"Unknown control ids for profile '{profile_id}': {invalid}")
 
 
-def _evaluate_control(repo_path: Path, control, override) -> ControlResult:
+def _evaluate_control(repo_path: Path, control: ControlDefinition, override: ControlOverride | None) -> ControlResult:
     if control.applies_when and not detector_applies(repo_path, control.applies_when):
         result = ControlResult(
             control_id=control.control_id,
@@ -295,10 +300,14 @@ def _build_gate_result(
         passed = False
         reasons.append(f"Strict mode failed due to unknown controls: {', '.join(unknown_controls)}")
 
-    if passed and requested_tier is not None and achieved_tier is not None:
-        if TIER_ORDER.index(achieved_tier) < TIER_ORDER.index(requested_tier):
-            passed = False
-            reasons.append(f"Achieved tier {achieved_tier} is below requested tier {requested_tier}")
+    if (
+        passed
+        and requested_tier is not None
+        and achieved_tier is not None
+        and TIER_ORDER.index(achieved_tier) < TIER_ORDER.index(requested_tier)
+    ):
+        passed = False
+        reasons.append(f"Achieved tier {achieved_tier} is below requested tier {requested_tier}")
 
     if passed and not reasons:
         reasons.append("Requested gate passed.")
@@ -312,10 +321,10 @@ def _build_gate_result(
     )
 
 
-def manual_controls_for_profiles(profile_ids: list[str] | None = None) -> dict[str, list]:
+def manual_controls_for_profiles(profile_ids: list[str] | None = None) -> dict[str, list[ControlDefinition]]:
     """Return manual-only controls grouped by profile."""
     selected = profile_ids or list(BUILTIN_PROFILES)
-    grouped: dict[str, list] = defaultdict(list)
+    grouped: dict[str, list[ControlDefinition]] = defaultdict(list)
     for profile_id in selected:
         profile = BUILTIN_PROFILES[profile_id]
         grouped[profile_id] = [control for control in profile.controls if control.detection.kind == "manual_only"]

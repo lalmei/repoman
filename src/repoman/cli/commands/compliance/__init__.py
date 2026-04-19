@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
-from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typer import Exit, Option, Typer
+from typer import Exit, Option, Typer, echo
 
 from repoman.cli.messages import error_panel
 from repoman.compliance import (
     BUILTIN_PROFILES,
     ComplianceConfigError,
+    ComplianceReport,
     analyze_compliance,
     build_starter_config,
     manual_controls_for_profiles,
@@ -25,6 +25,9 @@ from repoman.compliance import (
 )
 from repoman.utils.logging import get_logger_console
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 app = Typer(
     add_completion=True,
     help="""Analyze a git repository against built-in compliance profiles.
@@ -32,7 +35,6 @@ app = Typer(
 The v0 feature is a readiness check, not a certification claim.
 
 Examples:
-
     repoman compliance check --path .
     repoman compliance check --profile soc2-software --tier-target bronze
     repoman compliance check --format markdown --output compliance.md
@@ -106,13 +108,13 @@ def check(
         _print_table(console, reports, show_header=not no_header)
     elif output_format == "json":
         if output is None:
-            print(reports_to_json(reports))
+            echo(reports_to_json(reports))
         else:
             target = write_reports(reports, "json", output)
             console.print(f"Report written to {target}")
     elif output_format == "markdown":
         if output is None:
-            print(reports_to_markdown(reports))
+            echo(reports_to_markdown(reports))
         else:
             target = write_reports(reports, "markdown", output)
             console.print(f"Report written to {target}")
@@ -177,7 +179,7 @@ def init_(
     )
 
 
-def _print_table(console: Console, reports, *, show_header: bool) -> None:
+def _print_table(console: Console, reports: list[ComplianceReport], *, show_header: bool) -> None:
     for report in reports:
         summary = Table(show_header=show_header, header_style="bold")
         summary.add_column("Profile")

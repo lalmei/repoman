@@ -24,6 +24,7 @@ def _make_repo(tmp_path: Path) -> Path:
 
 
 def test_compliance_command_help(cli_runner: CliRunner) -> None:
+    """Show compliance subcommands in the CLI help output."""
     result = cli_runner.invoke(cli, ["compliance", "--help"], input="")
     assert result.exit_code == 0
     assert "compliance" in result.output.lower()
@@ -32,11 +33,13 @@ def test_compliance_command_help(cli_runner: CliRunner) -> None:
 
 
 def test_compliance_not_a_git_repo(tmp_path: Path, cli_runner: CliRunner) -> None:
+    """Reject compliance checks outside a git repository."""
     result = cli_runner.invoke(cli, ["compliance", "check", "--path", str(tmp_path)], input="")
     assert result.exit_code == 2
 
 
 def test_compliance_init_writes_starter_file(tmp_path: Path, cli_runner: CliRunner) -> None:
+    """Write a starter compliance file in the target repository."""
     repo = _make_repo(tmp_path)
     target = repo / "compliance.yml"
 
@@ -48,6 +51,7 @@ def test_compliance_init_writes_starter_file(tmp_path: Path, cli_runner: CliRunn
 
 
 def test_compliance_check_json_output(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Emit JSON output for a compliance report."""
     repo = _make_repo(tmp_path)
     result = cli_runner.invoke(
         cli,
@@ -62,6 +66,7 @@ def test_compliance_check_json_output(cli_runner: CliRunner, tmp_path: Path) -> 
 
 
 def test_compliance_check_markdown_output_file(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Write markdown output to the requested file."""
     repo = _make_repo(tmp_path)
     output = tmp_path / "compliance.md"
 
@@ -88,6 +93,7 @@ def test_compliance_check_markdown_output_file(cli_runner: CliRunner, tmp_path: 
 
 
 def test_compliance_check_html_output_file(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Write HTML output to an index file in the target directory."""
     repo = _make_repo(tmp_path)
     output_dir = tmp_path / "html-report"
 
@@ -113,6 +119,7 @@ def test_compliance_check_html_output_file(cli_runner: CliRunner, tmp_path: Path
 
 
 def test_compliance_check_tier_target_exit_code(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Return a failing exit code when the requested tier is not achieved."""
     repo = _make_repo(tmp_path)
 
     result = cli_runner.invoke(
@@ -134,6 +141,7 @@ def test_compliance_check_tier_target_exit_code(cli_runner: CliRunner, tmp_path:
 
 
 def test_compliance_check_profile_filter(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Restrict output to the selected compliance profile."""
     repo = _make_repo(tmp_path)
     output = tmp_path / "profile.json"
 

@@ -18,6 +18,7 @@ def _make_repo(tmp_path: Path) -> Path:
 
 
 def test_detector_file_exists(tmp_path: Path) -> None:
+    """Mark the file detector as met when the file exists."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Test\n", encoding="utf-8")
 
@@ -28,6 +29,7 @@ def test_detector_file_exists(tmp_path: Path) -> None:
 
 
 def test_detector_yaml_path_exists(tmp_path: Path) -> None:
+    """Mark the YAML-path detector as met when the path exists."""
     repo = _make_repo(tmp_path)
     workflows = repo / ".github" / "workflows"
     workflows.mkdir(parents=True)
@@ -42,6 +44,7 @@ def test_detector_yaml_path_exists(tmp_path: Path) -> None:
 
 
 def test_detector_github_actions_rule(tmp_path: Path) -> None:
+    """Match GitHub Actions rules when the configured YAML path exists."""
     repo = _make_repo(tmp_path)
     workflows = repo / ".github" / "workflows"
     workflows.mkdir(parents=True)
@@ -57,6 +60,7 @@ def test_detector_github_actions_rule(tmp_path: Path) -> None:
 
 
 def test_detector_pyproject_field_exists(tmp_path: Path) -> None:
+    """Mark the pyproject detector as met when the field path exists."""
     repo = _make_repo(tmp_path)
     (repo / "pyproject.toml").write_text("[project]\nname='demo'\ndependencies=['typer']\n", encoding="utf-8")
 
@@ -69,6 +73,7 @@ def test_detector_pyproject_field_exists(tmp_path: Path) -> None:
 
 
 def test_load_compliance_config_requires_waiver_justification(tmp_path: Path) -> None:
+    """Reject waived controls that do not include a justification."""
     config = tmp_path / "compliance.yml"
     config.write_text("controls:\n  test.control:\n    status: waived\n", encoding="utf-8")
 
@@ -77,6 +82,7 @@ def test_load_compliance_config_requires_waiver_justification(tmp_path: Path) ->
 
 
 def test_analyze_compliance_computes_bronze_and_manual_unknowns(tmp_path: Path) -> None:
+    """Compute bronze tier and retain unknown manual controls."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
     (repo / "CONTRIBUTING.md").write_text("Use a pull request.\n", encoding="utf-8")
@@ -97,6 +103,7 @@ def test_analyze_compliance_computes_bronze_and_manual_unknowns(tmp_path: Path) 
 
 
 def test_unknown_blocks_requested_tier(tmp_path: Path) -> None:
+    """Block the requested tier when strict tier evaluation sees unknown controls."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
     (repo / "CONTRIBUTING.md").write_text("pull request\n", encoding="utf-8")
@@ -138,6 +145,7 @@ def test_unknown_blocks_requested_tier(tmp_path: Path) -> None:
 
 
 def test_invalid_override_cannot_force_unmet_to_met(tmp_path: Path) -> None:
+    """Reject overrides that force an unmet detected control to met."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
     (repo / "compliance.yml").write_text(
@@ -160,6 +168,7 @@ def test_invalid_override_cannot_force_unmet_to_met(tmp_path: Path) -> None:
 
 
 def test_manual_control_can_be_met_via_compliance_file(tmp_path: Path) -> None:
+    """Allow manual-only controls to be satisfied from compliance.yml evidence."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
     (repo / "CONTRIBUTING.md").write_text("pull request\n", encoding="utf-8")
@@ -189,11 +198,13 @@ def test_manual_control_can_be_met_via_compliance_file(tmp_path: Path) -> None:
 
 
 def test_builtin_profiles_exposed() -> None:
+    """Expose the built-in profile registry."""
     assert "soc2-software" in BUILTIN_PROFILES
     assert "oss-best-practices" in BUILTIN_PROFILES
 
 
 def test_unknown_control_id_in_compliance_file_fails_clearly(tmp_path: Path) -> None:
+    """Fail fast when compliance.yml references an unknown control id."""
     repo = _make_repo(tmp_path)
     (repo / "compliance.yml").write_text(
         "\n".join(
@@ -215,6 +226,7 @@ def test_unknown_control_id_in_compliance_file_fails_clearly(tmp_path: Path) -> 
 
 
 def test_requested_tier_uses_strict_rules_for_achieved_tier(tmp_path: Path) -> None:
+    """Treat unknown controls as blockers when a tier target is requested."""
     repo = _make_repo(tmp_path)
     (repo / "CONTRIBUTING.md").write_text("pull request\n", encoding="utf-8")
     (repo / "docs").mkdir()
@@ -250,6 +262,7 @@ def test_requested_tier_uses_strict_rules_for_achieved_tier(tmp_path: Path) -> N
 
 
 def test_readme_does_not_satisfy_architecture_or_rollback_controls(tmp_path: Path) -> None:
+    """Keep README-only repositories from satisfying architecture or rollback controls."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
 
@@ -261,6 +274,7 @@ def test_readme_does_not_satisfy_architecture_or_rollback_controls(tmp_path: Pat
 
 
 def test_repo_self_compliance_baseline_passes() -> None:
+    """Verify the repository's own compliance baseline passes."""
     repo = Path(__file__).resolve().parents[1]
 
     reports = analyze_compliance(

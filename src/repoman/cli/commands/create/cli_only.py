@@ -41,7 +41,6 @@ def cli(
     """Create a plain CLI project with no FastAPI or dataset modules.
 
     Examples:
-
         repoman create cli cli my-app
         repoman create cli cli my-app --force
     """

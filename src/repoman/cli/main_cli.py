@@ -109,7 +109,6 @@ def main(
     """Scaffold and update Python projects from the repoman Copier template.
 
     Examples:
-
         repoman --version
         repoman create -pn my-app --preset cli
         repoman update ./my-app --dry-run

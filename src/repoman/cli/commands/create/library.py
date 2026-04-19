@@ -41,7 +41,6 @@ def library(
     """Create a minimal Python library with no CLI, FastAPI, or dataset.
 
     Examples:
-
         repoman create library library my-lib
     """
     current_file = Path(__file__)

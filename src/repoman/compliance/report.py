@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 from html import escape
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from repoman.compliance.models import ComplianceReport
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from repoman.compliance.models import ComplianceReport, ControlDefinition
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -146,7 +149,7 @@ def write_reports(reports: list[ComplianceReport], output_format: str, output_pa
     return output_path
 
 
-def build_starter_config(profile_ids: list[str], manual_controls: dict[str, list]) -> str:
+def build_starter_config(profile_ids: list[str], manual_controls: dict[str, list[ControlDefinition]]) -> str:
     """Build a starter compliance.yml focused on manual controls."""
     lines = [
         "version: 1",

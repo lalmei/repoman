@@ -41,7 +41,6 @@ def docs_only(
     """Create a documentation-only project with no src package or tests.
 
     Examples:
-
         repoman create docs docs-only my-docs-site
     """
     current_file = Path(__file__)
