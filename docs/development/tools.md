@@ -67,6 +67,9 @@ make check-types             # Type check (mypy)
 make type-check              # Alias for check-types
 make check                   # Run all quality checks (format-check, lint, check-types)
 
+# Compliance
+make compliance-check        # Run repoman against this repository's own compliance baseline
+
 # Documentation
 make docs                    # Build documentation
 make docs-serve              # Serve documentation locally (e.g. http://localhost:8000)
