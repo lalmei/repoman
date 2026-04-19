@@ -37,5 +37,10 @@ aiohttp_pool_size: 100
 
 rag_enabled: true
 dataset_enabled: true
+dataset_modality_image: true
+dataset_modality_text: true
+dataset_modality_tabular: true
+dataset_modality_mesh: true
+dataset_modality_rag_eval: true
 
 docs_only: false

@@ -1,4 +1,4 @@
-{% if dataset_enabled %}"""RAG evaluation dataset loader."""
+{% if dataset_enabled and dataset_modality_rag_eval %}"""RAG evaluation dataset loader."""
 
 import json
 from pathlib import Path
@@ -73,6 +73,8 @@ def load_rag_eval_dataset(
         items.append(RAGEvalItem(query=query, reference=reference, contexts=contexts))
 
     return items
+{% elif dataset_enabled %}
+"""RAG evaluation dataset not included. Enable dataset_modality_rag_eval in copier answers."""
 {% else %}
 """RAG evaluation dataset (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

@@ -1,4 +1,4 @@
-"""Tests for tabular dataset and get_tabular_loaders."""
+{% if dataset_modality_tabular %}"""Tests for tabular dataset and get_tabular_loaders."""
 
 from pathlib import Path
 
@@ -124,3 +124,13 @@ def test_get_tabular_loaders_no_file_in_dir(tmp_path: Path) -> None:
     )
     with pytest.raises(FileNotFoundError, match=r"No .* file found"):
         get_tabular_loaders(config, data_root=tmp_path)
+
+{% else %}
+"""Tabular dataset tests not included (enable dataset_modality_tabular)."""
+
+
+def test_tabular_modality_disabled_placeholder() -> None:
+    import pytest
+
+    pytest.skip("dataset_modality_tabular disabled for this project")
+{% endif %}

@@ -1,4 +1,4 @@
-{% if dataset_enabled %}"""Text dataset for JSONL/CSV with configurable columns."""
+{% if dataset_enabled and dataset_modality_text %}"""Text dataset for JSONL/CSV with configurable columns."""
 
 import json
 import random
@@ -145,6 +145,8 @@ def get_text_loaders(
     )
 
     return train_loader, val_loader
+{% elif dataset_enabled %}
+"""Text datasets not included. Enable dataset_modality_text in copier answers."""
 {% else %}
 """Text dataset (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

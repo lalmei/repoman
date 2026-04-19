@@ -1,4 +1,4 @@
-{% if dataset_enabled %}"""Shared types for dataset module."""
+{% if dataset_enabled and dataset_modality_rag_eval %}"""Shared types for dataset module."""
 
 from dataclasses import dataclass
 
@@ -10,6 +10,8 @@ class RAGEvalItem:
     query: str
     reference: str
     contexts: list[str] | None = None
+{% elif dataset_enabled %}
+"""RAG eval types not included. Enable dataset_modality_rag_eval in copier answers."""
 {% else %}
 """Shared dataset types (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

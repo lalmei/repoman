@@ -2,7 +2,7 @@
 
 from typer import Typer
 
-{% if dataset_enabled %}from {{python_package_import_name}}.cli.commands.rag.eval import app as eval_app
+{% if dataset_enabled and dataset_modality_rag_eval %}from {{python_package_import_name}}.cli.commands.rag.eval import app as eval_app
 {% endif %}from {{python_package_import_name}}.cli.commands.rag.ingest import app as ingest_app
 from {{python_package_import_name}}.cli.commands.rag.query import app as query_app
 from {{python_package_import_name}}.config import Config
@@ -22,7 +22,7 @@ def _get_rag_service() -> RAGService:
 
 app.add_typer(ingest_app, name="ingest")
 app.add_typer(query_app, name="query")
-{% if dataset_enabled %}
+{% if dataset_enabled and dataset_modality_rag_eval %}
 app.add_typer(eval_app, name="eval")
 {% endif %}
 

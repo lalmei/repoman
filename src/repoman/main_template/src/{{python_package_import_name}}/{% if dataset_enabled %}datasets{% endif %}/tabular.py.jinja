@@ -1,4 +1,4 @@
-{% if dataset_enabled %}"""Tabular dataset for CSV/Parquet."""
+{% if dataset_enabled and dataset_modality_tabular %}"""Tabular dataset for CSV/Parquet."""
 
 import random
 from pathlib import Path
@@ -114,6 +114,8 @@ def get_tabular_loaders(
     )
 
     return train_loader, val_loader
+{% elif dataset_enabled %}
+"""Tabular datasets not included. Enable dataset_modality_tabular in copier answers."""
 {% else %}
 """Tabular dataset (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

@@ -1,4 +1,4 @@
-{% if dataset_enabled %}"""Base PyTorch Dataset utilities for the dataset module."""
+{% if dataset_enabled and dataset_modality_image %}"""Base PyTorch Dataset utilities for the dataset module."""
 
 from pathlib import Path
 
@@ -34,6 +34,8 @@ class ImageFolderDataset(ImageFolder):
         if transform is None:
             transform = default_image_transform(image_size)
         super().__init__(root=str(root), transform=transform, **kwargs)
+{% elif dataset_enabled %}
+"""Image datasets not included. Enable dataset_modality_image in copier answers."""
 {% else %}
 """Base PyTorch Dataset utilities (disabled). Enable dataset in copier answers to use this module."""
 {% endif %}

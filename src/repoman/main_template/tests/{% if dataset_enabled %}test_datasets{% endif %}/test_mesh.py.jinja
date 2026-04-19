@@ -1,0 +1,94 @@
+{% if dataset_modality_mesh %}"""Tests for mesh dataset and OBJ loading."""
+
+from pathlib import Path
+
+import pytest
+
+pytest.importorskip("torch")
+import torch
+
+from {{ python_package_import_name }}.config.dataset_config import DatasetConfig
+from {{ python_package_import_name }}.datasets.mesh import (
+    MeshDataset,
+    get_mesh_loaders,
+    load_obj_mesh,
+)
+
+_MIN_OBJ = """# minimal triangle
+v 0 0 0
+v 1 0 0
+v 0 1 0
+f 1 2 3
+"""
+
+
+def test_load_obj_mesh(tmp_path: Path) -> None:
+    """load_obj_mesh returns vertex and face tensors."""
+    p = tmp_path / "t.obj"
+    p.write_text(_MIN_OBJ, encoding="utf-8")
+    v, f = load_obj_mesh(p)
+    assert v.shape == (3, 3)
+    assert f.shape == (1, 3)
+    assert f.dtype == torch.long
+
+
+def test_mesh_dataset_class_folders(tmp_path: Path) -> None:
+    """MeshDataset indexes OBJ files under class directories."""
+    for name in ("cat", "dog"):
+        d = tmp_path / name
+        d.mkdir()
+        (d / f"{name}.obj").write_text(_MIN_OBJ, encoding="utf-8")
+
+    config = DatasetConfig(modality="mesh", mesh_extensions=[".obj"])
+    ds = MeshDataset(root=tmp_path, config=config)
+    assert len(ds) == 2
+    assert set(ds.classes) == {"cat", "dog"}
+    verts, faces, label = ds[0]
+    assert verts.ndim == 2
+    assert faces.ndim == 2
+    assert 0 <= label < 2
+
+
+def test_get_mesh_loaders(tmp_path: Path) -> None:
+    """get_mesh_loaders returns loaders that yield batched meshes."""
+    for name in ("a", "b"):
+        d = tmp_path / name
+        d.mkdir()
+        (d / f"{name}.obj").write_text(_MIN_OBJ, encoding="utf-8")
+
+    config = DatasetConfig(
+        modality="mesh",
+        data_root=str(tmp_path),
+        mesh_extensions=[".obj"],
+        train_split=0.5,
+        seed=42,
+        batch_size=1,
+        num_workers=0,
+        pin_memory=False,
+    )
+    train_loader, val_loader = get_mesh_loaders(config, data_root=tmp_path)
+    train_batches = list(train_loader)
+    val_batches = list(val_loader)
+    assert len(train_batches) >= 1
+    assert len(val_batches) >= 1
+    verts, faces, labels = train_batches[0]
+    assert isinstance(verts, list)
+    assert isinstance(faces, list)
+    assert labels.shape[0] == 1
+
+
+def test_mesh_dataset_empty_root_raises(tmp_path: Path) -> None:
+    """MeshDataset raises when no class subdirectories exist."""
+    config = DatasetConfig(modality="mesh")
+    with pytest.raises(ValueError, match=r"No class subdirectories"):
+        MeshDataset(root=tmp_path, config=config)
+
+{% else %}
+"""Mesh dataset tests not included (enable dataset_modality_mesh)."""
+
+
+def test_mesh_modality_disabled_placeholder() -> None:
+    import pytest
+
+    pytest.skip("dataset_modality_mesh disabled for this project")
+{% endif %}

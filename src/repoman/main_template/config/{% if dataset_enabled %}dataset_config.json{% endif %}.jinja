@@ -1,20 +1,21 @@
 {
-  "modality": "image",
+  "modality": "{% if dataset_modality_image %}image{% elif dataset_modality_text %}text{% elif dataset_modality_tabular %}tabular{% elif dataset_modality_mesh %}mesh{% else %}rag_eval{% endif %}",
   "data_root": "data",
   "train_split": 0.8,
   "val_split": 0.2,
   "seed": 42,
   "batch_size": 32,
   "num_workers": 0,
-  "pin_memory": true,
-  "image_size": [224, 224],
+  "pin_memory": true{% if dataset_modality_image %},
+  "image_size": [224, 224]{% endif %}{% if dataset_modality_text %},
   "text_column": "text",
   "label_column": "label",
-  "text_format": "jsonl",
+  "text_format": "jsonl"{% endif %}{% if dataset_modality_tabular %},
   "target_column": "target",
   "tabular_format": "csv",
-  "delimiter": ",",
+  "delimiter": ","{% endif %}{% if dataset_modality_rag_eval %},
   "query_column": "query",
   "reference_column": "reference",
-  "contexts_column": "contexts"
+  "contexts_column": "contexts"{% endif %}{% if dataset_modality_mesh %},
+  "mesh_extensions": [".obj"]{% endif %}
 }

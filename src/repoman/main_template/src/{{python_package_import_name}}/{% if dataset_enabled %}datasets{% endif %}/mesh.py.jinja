@@ -1,0 +1,201 @@
+{% if dataset_enabled and dataset_modality_mesh %}"""Mesh dataset: 3D triangle meshes from class folders (Wavefront OBJ)."""
+
+import random
+from pathlib import Path
+
+import torch
+from torch import Tensor
+from torch.utils.data import DataLoader, Dataset, Subset
+
+from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+
+# OBJ line parsing: vertex needs label + x,y,z; face needs label + ≥3 vertex refs
+_OBJ_VERTEX_MIN_PARTS = 4
+_OBJ_FACE_MIN_PARTS = 4
+
+
+def load_obj_mesh(path: Path) -> tuple[Tensor, Tensor]:
+    """Load a triangle mesh from a Wavefront OBJ file.
+
+    Parses vertex positions and triangular faces. Face entries may use ``v``, ``v/vt``,
+    or ``v/vt/vn`` forms; only the vertex index is used. Polygon faces are triangulated
+    with a fan.
+
+    Args:
+        path: Path to the ``.obj`` file.
+
+    Returns:
+        vertices: Float tensor of shape ``(V, 3)``.
+        faces: Long tensor of shape ``(F, 3)`` with 0-based vertex indices.
+
+    Raises:
+        ValueError: If the file has no vertices or no faces.
+    """
+    verts: list[list[float]] = []
+    faces_idx: list[list[int]] = []
+
+    with path.open(encoding="utf-8", errors="replace") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split()
+            if not parts:
+                continue
+            kind = parts[0]
+            if kind == "v" and len(parts) >= _OBJ_VERTEX_MIN_PARTS:
+                verts.append([float(parts[1]), float(parts[2]), float(parts[3])])
+            elif kind == "f" and len(parts) >= _OBJ_FACE_MIN_PARTS:
+                n_v = len(verts)
+                idxs: list[int] = []
+                for p in parts[1:]:
+                    token = p.split("/")[0]
+                    if not token:
+                        msg = f"Invalid face token in {path}: {line!r}"
+                        raise ValueError(msg)
+                    vi = int(token)
+                    if vi < 0:
+                        vi = n_v + vi + 1
+                    idxs.append(vi - 1)
+                for i in range(1, len(idxs) - 1):
+                    faces_idx.append([idxs[0], idxs[i], idxs[i + 1]])
+
+    if not verts:
+        msg = f"No vertices in OBJ file: {path}"
+        raise ValueError(msg)
+    if not faces_idx:
+        msg = f"No faces in OBJ file: {path}"
+        raise ValueError(msg)
+
+    v_tensor = torch.tensor(verts, dtype=torch.float32)
+    f_tensor = torch.tensor(faces_idx, dtype=torch.long)
+    return v_tensor, f_tensor
+
+
+def _collate_mesh_batch(
+    batch: list[tuple[Tensor, Tensor, int]],
+) -> tuple[list[Tensor], list[Tensor], Tensor]:
+    """Collate meshes of different sizes: lists of tensors + stacked labels."""
+    verts = [item[0] for item in batch]
+    faces = [item[1] for item in batch]
+    labels = torch.tensor([item[2] for item in batch], dtype=torch.long)
+    return verts, faces, labels
+
+
+class MeshDataset(Dataset):
+    """PyTorch Dataset for meshes under class-named subdirectories (like ImageFolder).
+
+    Expected layout::
+
+        data_root/
+            class_a/
+                mesh1.obj
+            class_b/
+                mesh2.obj
+
+    Each sample is ``(vertices, faces, label)`` with label as class index.
+    """
+
+    def __init__(
+        self,
+        root: str | Path,
+        config: DatasetConfig,
+    ) -> None:
+        """Index meshes under ``root`` using ``config.mesh_extensions`` for suffixes."""
+        self.config = config
+        root = Path(root)
+        if not root.is_dir():
+            msg = f"Mesh data root is not a directory: {root}"
+            raise NotADirectoryError(msg)
+
+        exts = tuple(e if e.startswith(".") else f".{e}" for e in config.mesh_extensions)
+        class_dirs = sorted(p for p in root.iterdir() if p.is_dir())
+        if not class_dirs:
+            msg = f"No class subdirectories under mesh root: {root}"
+            raise ValueError(msg)
+
+        self._classes = [p.name for p in class_dirs]
+        self._class_to_idx = {name: i for i, name in enumerate(self._classes)}
+
+        self._samples: list[tuple[Path, int]] = []
+        for class_dir in class_dirs:
+            label = self._class_to_idx[class_dir.name]
+            for ext in exts:
+                for path in sorted(class_dir.glob(f"*{ext}")):
+                    self._samples.append((path, label))
+
+        if not self._samples:
+            msg = f"No mesh files matching {exts} under class folders in {root}"
+            raise FileNotFoundError(msg)
+
+    @property
+    def classes(self) -> list[str]:
+        """Class names (directory names) in sorted order."""
+        return list(self._classes)
+
+    def __len__(self) -> int:
+        """Return number of mesh files."""
+        return len(self._samples)
+
+    def __getitem__(self, idx: int) -> tuple[Tensor, Tensor, int]:
+        """Return ``(vertices, faces, label)``."""
+        path, label = self._samples[idx]
+        verts, faces = load_obj_mesh(path)
+        return verts, faces, label
+
+
+def get_mesh_loaders(
+    config: DatasetConfig,
+    data_root: str | Path | None = None,
+    batch_size: int | None = None,
+) -> tuple[DataLoader, DataLoader]:
+    """Create train and validation DataLoaders for mesh classification.
+
+    Uses :class:`MeshDataset` and a collate function that keeps per-mesh tensors in lists
+    (variable vertex/face counts per sample).
+
+    Args:
+        config: DatasetConfig with ``modality="mesh"``, splits, and loader options.
+        data_root: Override ``config.data_root`` (directory with class folders).
+        batch_size: Override ``config.batch_size``.
+
+    Returns:
+        ``(train_loader, val_loader)`` tuple.
+    """
+    root = Path(data_root) if data_root is not None else config.data_root
+    bs = batch_size if batch_size is not None else config.batch_size
+
+    dataset = MeshDataset(root=root, config=config)
+
+    n = len(dataset)
+    indices = list(range(n))
+    rng = random.Random(config.seed)  # noqa: S311 - deterministic shuffle for splits
+    rng.shuffle(indices)
+
+    split_idx = int(n * config.train_split)
+    train_indices = indices[:split_idx]
+    val_indices = indices[split_idx:]
+
+    train_loader = DataLoader(
+        Subset(dataset, train_indices),
+        batch_size=bs,
+        shuffle=True,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+        collate_fn=_collate_mesh_batch,
+    )
+    val_loader = DataLoader(
+        Subset(dataset, val_indices),
+        batch_size=bs,
+        shuffle=False,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+        collate_fn=_collate_mesh_batch,
+    )
+
+    return train_loader, val_loader
+{% elif dataset_enabled %}
+"""Mesh datasets not included. Enable dataset_modality_mesh in copier answers."""
+{% else %}
+"""Mesh dataset (disabled). Enable dataset in copier answers to use this module."""
+{% endif %}

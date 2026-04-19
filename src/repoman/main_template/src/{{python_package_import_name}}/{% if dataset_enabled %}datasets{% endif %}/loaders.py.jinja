@@ -1,18 +1,30 @@
-{% if dataset_enabled %}"""DataLoader factory using DatasetConfig."""
+{% if dataset_enabled %}# ruff: noqa: I001
+"""DataLoader factory using DatasetConfig."""
 
 import random
 from pathlib import Path
 from typing import Any
 
 from torch.utils.data import DataLoader, Subset
+{% if dataset_modality_image %}
 from torchvision.transforms import Compose
 
+{% endif %}
 from {{python_package_import_name}}.config.dataset_config import DatasetConfig
+{% if dataset_modality_image %}
 from {{python_package_import_name}}.datasets.base import ImageFolderDataset
+{% endif %}
+{% if dataset_modality_mesh %}
+from {{python_package_import_name}}.datasets.mesh import get_mesh_loaders as _get_mesh_loaders
+{% endif %}
+{% if dataset_modality_tabular %}
 from {{python_package_import_name}}.datasets.tabular import get_tabular_loaders as _get_tabular_loaders
+{% endif %}
+{% if dataset_modality_text %}
 from {{python_package_import_name}}.datasets.text import get_text_loaders as _get_text_loaders
+{% endif %}
 
-
+{% if dataset_modality_image %}
 def _get_image_loaders(
     config: DatasetConfig,
     data_root: str | Path | None = None,
@@ -60,36 +72,38 @@ def _get_image_loaders(
     return train_loader, val_loader
 
 
+{% endif %}
 def get_train_val_loaders(
     config: DatasetConfig,
     data_root: str | Path | None = None,
     batch_size: int | None = None,
+{% if dataset_modality_image %}
     transform: Compose | None = None,
+{% endif %}
 ) -> tuple[DataLoader, DataLoader]:
-    """Create train and validation DataLoaders from config.
-
-    Dispatches by config.modality: image, text, or tabular.
-    rag_eval does not use this; use load_rag_eval_dataset instead.
-
-    Args:
-        config: DatasetConfig with paths, splits, and DataLoader params.
-        data_root: Override config.data_root if provided.
-        batch_size: Override config.batch_size if provided.
-        transform: Override default transform (image modality only).
-
-    Returns:
-        (train_loader, val_loader) tuple.
-
-    Raises:
-        ValueError: If modality is rag_eval or unknown.
-    """
+    """Create train and validation DataLoaders; dispatches by ``config.modality`` (not ``rag_eval``)."""
+{%- if dataset_modality_image %}
     if config.modality == "image":
         return _get_image_loaders(config, data_root, batch_size, transform)
+{%- endif %}
+{%- if dataset_modality_text %}
     if config.modality == "text":
         return _get_text_loaders(config, data_root, batch_size)
+{%- endif %}
+{%- if dataset_modality_tabular %}
     if config.modality == "tabular":
         return _get_tabular_loaders(config, data_root, batch_size)
-    msg = f"modality '{config.modality}' has no train/val loaders (use load_rag_eval_dataset for rag_eval)"
+{%- endif %}
+{%- if dataset_modality_mesh %}
+    if config.modality == "mesh":
+        return _get_mesh_loaders(config, data_root, batch_size)
+{%- endif %}
+{%- if dataset_modality_rag_eval %}
+    if config.modality == "rag_eval":
+        msg = "modality 'rag_eval' has no train/val loaders (use load_rag_eval_dataset)"
+        raise ValueError(msg)
+{%- endif %}
+    msg = f"modality '{config.modality}' has no train/val loaders in this project"
     raise ValueError(msg)
 {% else %}
 """DataLoader factory (disabled). Enable dataset in copier answers to use this module."""
