@@ -1,5 +1,6 @@
 """Tests for the create command."""
 
+import importlib
 import re
 import shutil
 from pathlib import Path
@@ -13,6 +14,9 @@ from typer import Typer
 from typer.testing import CliRunner
 
 console = Console()
+docs_only_module = importlib.import_module("repoman.cli.commands.create.docs_only")
+fastapi_module = importlib.import_module("repoman.cli.commands.create.fastapi_mvc")
+library_module = importlib.import_module("repoman.cli.commands.create.library")
 
 
 def test_create_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
@@ -67,6 +71,72 @@ def test_create_command_with_preset(cli_runner: CliRunner, cli_app: Typer) -> No
         input="",
     )
     assert result.exit_code == 0
+
+
+def test_docs_only_subcommand_uses_docs_preset() -> None:
+    """Build docs-only projects with the docs preset and default paths."""
+    template_root = Path(docs_only_module.__file__).parent.parent.parent.parent
+    preset = {"docs_only": True}
+
+    with (
+        patch("repoman.cli.commands.create.docs_only.build_preset_data", return_value=preset) as mock_build,
+        patch("repoman.cli.commands.create.docs_only.run_create") as mock_run,
+    ):
+        docs_only_module.docs_only("docs-site", force=False, dry_run=False)
+
+    mock_build.assert_called_once_with("docs_only", "docs-site")
+    mock_run.assert_called_once_with(
+        project_name="docs-site",
+        output_dir=Path.cwd(),
+        template_path=template_root,
+        data=preset,
+        force=False,
+        dry_run=False,
+    )
+
+
+def test_fastapi_subcommand_uses_fastapi_preset() -> None:
+    """Build FastAPI projects with the fastapi preset and default paths."""
+    template_root = Path(fastapi_module.__file__).parent.parent.parent.parent
+    preset = {"fastapi_enabled": True}
+
+    with (
+        patch("repoman.cli.commands.create.fastapi_mvc.build_preset_data", return_value=preset) as mock_build,
+        patch("repoman.cli.commands.create.fastapi_mvc.run_create") as mock_run,
+    ):
+        fastapi_module.fastapi("api-service", force=False, dry_run=False)
+
+    mock_build.assert_called_once_with("fastapi", "api-service")
+    mock_run.assert_called_once_with(
+        project_name="api-service",
+        output_dir=Path.cwd(),
+        template_path=template_root,
+        data=preset,
+        force=False,
+        dry_run=False,
+    )
+
+
+def test_library_subcommand_uses_library_preset() -> None:
+    """Build library projects with the library preset and default paths."""
+    template_root = Path(library_module.__file__).parent.parent.parent.parent
+    preset = {"cli_enabled": False}
+
+    with (
+        patch("repoman.cli.commands.create.library.build_preset_data", return_value=preset) as mock_build,
+        patch("repoman.cli.commands.create.library.run_create") as mock_run,
+    ):
+        library_module.library("shared-lib", force=False, dry_run=False)
+
+    mock_build.assert_called_once_with("library", "shared-lib")
+    mock_run.assert_called_once_with(
+        project_name="shared-lib",
+        output_dir=Path.cwd(),
+        template_path=template_root,
+        data=preset,
+        force=False,
+        dry_run=False,
+    )
 
 
 def test_create_command_answers_file_not_found(cli_runner: CliRunner, cli_app: Typer) -> None:

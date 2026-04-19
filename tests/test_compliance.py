@@ -7,7 +7,8 @@ import pytest
 from repoman.compliance import BUILTIN_PROFILES, ComplianceConfigError, analyze_compliance
 from repoman.compliance.config import load_compliance_config
 from repoman.compliance.detectors import evaluate_detector
-from repoman.compliance.models import DetectorSpec
+from repoman.compliance.models import ComplianceReport, ControlResult, DetectorSpec, GateResult, SectionSummary
+from repoman.compliance.report import build_starter_config, reports_to_markdown, write_reports
 
 
 def _make_repo(tmp_path: Path) -> Path:
@@ -59,6 +60,65 @@ def test_detector_github_actions_rule(tmp_path: Path) -> None:
     assert "ci.yml" in evidence[0]
 
 
+def test_detector_text_match_regex_and_manual_only(tmp_path: Path) -> None:
+    """Support regex text matching and manual-only detector prompts."""
+    repo = _make_repo(tmp_path)
+    (repo / "README.md").write_text("Contact security@example.com for disclosure.\n", encoding="utf-8")
+
+    regex_status, regex_evidence = evaluate_detector(
+        repo,
+        DetectorSpec("text_match", {"path": "README.md", "pattern": r"security@\w+\.com", "regex": True}),
+    )
+    manual_status, manual_evidence = evaluate_detector(
+        repo,
+        DetectorSpec("manual_only", {"prompt": "Manual evidence required"}),
+    )
+
+    assert regex_status == "met"
+    assert "Matched regex" in regex_evidence[0]
+    assert manual_status == "unknown"
+    assert manual_evidence == ["Manual evidence required"]
+
+
+def test_detector_yaml_invalid_and_missing_workflow_rule(tmp_path: Path) -> None:
+    """Treat invalid YAML and missing workflow rules as unmet."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "ci.yml").write_text("jobs: [", encoding="utf-8")
+    (workflows / "build.yml").write_text("jobs:\n  build:\n    runs-on: ubuntu-latest\n", encoding="utf-8")
+
+    yaml_status, yaml_evidence = evaluate_detector(
+        repo,
+        DetectorSpec("yaml_path_exists", {"path": ".github/workflows/ci.yml", "yaml_path": ["jobs"]}),
+    )
+    rule_status, rule_evidence = evaluate_detector(
+        repo,
+        DetectorSpec("github_actions_rule", {"workflow_glob": ".github/workflows/*.yml", "yaml_path": ["jobs", "test"]}),
+    )
+
+    assert yaml_status == "unmet"
+    assert "Invalid YAML" in yaml_evidence[0]
+    assert rule_status == "unmet"
+    assert "Did not find workflow rule" in rule_evidence[0]
+
+
+def test_detector_missing_make_target_and_pyproject_path(tmp_path: Path) -> None:
+    """Report missing Makefiles and pyproject files as unmet."""
+    repo = _make_repo(tmp_path)
+
+    make_status, make_evidence = evaluate_detector(repo, DetectorSpec("make_target_exists", {"target": "test"}))
+    pyproject_status, pyproject_evidence = evaluate_detector(
+        repo,
+        DetectorSpec("pyproject_field_exists", {"field_path": ["project", "dependencies"]}),
+    )
+
+    assert make_status == "unmet"
+    assert "Missing Makefile" in make_evidence[0]
+    assert pyproject_status == "unmet"
+    assert "Missing pyproject.toml" in pyproject_evidence[0]
+
+
 def test_detector_pyproject_field_exists(tmp_path: Path) -> None:
     """Mark the pyproject detector as met when the field path exists."""
     repo = _make_repo(tmp_path)
@@ -78,6 +138,24 @@ def test_load_compliance_config_requires_waiver_justification(tmp_path: Path) ->
     config.write_text("controls:\n  test.control:\n    status: waived\n", encoding="utf-8")
 
     with pytest.raises(ComplianceConfigError):
+        load_compliance_config(config)
+
+
+def test_load_compliance_config_rejects_invalid_defaults_mapping(tmp_path: Path) -> None:
+    """Reject defaults blocks that are not mappings."""
+    config = tmp_path / "compliance.yml"
+    config.write_text("defaults: []\n", encoding="utf-8")
+
+    with pytest.raises(ComplianceConfigError, match="defaults"):
+        load_compliance_config(config)
+
+
+def test_load_compliance_config_rejects_invalid_profile_shape(tmp_path: Path) -> None:
+    """Reject profile entries that are not mappings."""
+    config = tmp_path / "compliance.yml"
+    config.write_text("profiles:\n  bad: []\n", encoding="utf-8")
+
+    with pytest.raises(ComplianceConfigError, match="profile 'bad' must be a mapping"):
         load_compliance_config(config)
 
 
@@ -259,6 +337,55 @@ def test_requested_tier_uses_strict_rules_for_achieved_tier(tmp_path: Path) -> N
 
     assert report.achieved_tier is None
     assert "soc2.environments.separation" in report.blocking_controls
+
+
+def test_report_rendering_handles_optional_sections_and_invalid_output(tmp_path: Path) -> None:
+    """Render optional report sections and reject unsupported output formats."""
+    report = ComplianceReport(
+        repo_path="/example/repo",
+        profile_id="oss-best-practices",
+        profile_title="OSS Best Practices",
+        description="Repository hygiene checks",
+        disclaimer="Best-practices guidance only.",
+        generated_at="2026-04-19T00:00:00+00:00",
+        achieved_tier="bronze",
+        next_tier="silver",
+        requested_tier=None,
+        blocking_controls=[],
+        advisory_controls=[],
+        summary_counts={"met": 1, "waived": 0, "unknown": 0, "unmet": 0},
+        sections=[SectionSummary(name="basics", met=1)],
+        controls=[
+            ControlResult(
+                control_id="oss.docs.readme",
+                section="basics",
+                title="README exists",
+                description="Repository has a README.",
+                tier="bronze",
+                status="met",
+                detection_kind="file_exists",
+                evidence=["Found README.md"],
+                justification="Manually reviewed",
+            )
+        ],
+        gate=GateResult(
+            passed=True,
+            fail_on="tier",
+            strict=False,
+            requested_tier=None,
+            reasons=["Requested gate passed."],
+        ),
+    )
+
+    markdown = reports_to_markdown([report])
+    starter = build_starter_config(["oss-best-practices"], {})
+
+    assert "- None" in markdown
+    assert "Justification: Manually reviewed" in markdown
+    assert "controls:\n  {}\n" in starter
+
+    with pytest.raises(ValueError, match="Unsupported output format"):
+        write_reports([report], "text", tmp_path / "report.txt")
 
 
 def test_readme_does_not_satisfy_architecture_or_rollback_controls(tmp_path: Path) -> None:
