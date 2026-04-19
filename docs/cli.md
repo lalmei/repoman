@@ -53,7 +53,7 @@ repoman create cli PROJECT_NAME [OPTIONS]
 | `--template`    | `-t`  | Path to custom template (defaults to bundled main template)                 |
 | `--output`      | `-o`  | Output directory (defaults to current directory)                             |
 | `--answers`     | `-a`  | Path to answers file for non-interactive use                                |
-| `--preset`      | `-p`  | Use a preset: `cli`, `docs-only`, `library`, `fastapi`, `rag` (non-interactive) |
+| `--preset`      | `-p`  | Use a preset: `cli`, `docs-only`, `library`, `fastapi` (non-interactive) |
 | `--force`       | `-f`  | Force overwrite of existing files                                          |
 | `--dry-run`     |       | Show what would be created without creating                                 |
 
@@ -72,11 +72,10 @@ Each subcommand creates a project using a preset and takes the project name as a
 
 | Subcommand | Preset   | Description                                              |
 | ---------- | -------- | -------------------------------------------------------- |
-| `create cli`     | cli      | Plain CLI project (no FastAPI, RAG, dataset)             |
+| `create cli`     | cli      | Plain CLI project (no FastAPI or dataset)                |
 | `create docs`    | docs_only| Documentation-only project                                |
 | `create library` | library  | Library-style project (no CLI entry point)               |
 | `create fastapi` | fastapi  | Project with FastAPI enabled                             |
-| `create rag`     | rag      | Project with FastAPI + RAG + dataset                     |
 
 **Examples (subcommands)**
 
@@ -85,7 +84,6 @@ repoman create cli my-cli-app
 repoman create library my-lib --dry-run
 repoman create docs docs-project --output /path/to/parent
 repoman create fastapi my-api
-repoman create rag my-rag-service --force
 ```
 
 ### update
@@ -386,7 +384,6 @@ repoman generator add COMMAND_NAME [OPTIONS]
 | --------------- | ----- | ------------------------------------------------- |
 | `--project-dir` | `-d`  | Project directory (defaults to current directory) |
 | `--answers`     | `-a`  | Path to `.copier-answers.yml` file                |
-| `--kind`        |       | Extension kind: `command` (default) or `graphrag` |
 | `--force`       | `-f`  | Overwrite existing files                          |
 | `--dry-run`     |       | Show what would be created without creating       |
 
@@ -396,7 +393,6 @@ repoman generator add COMMAND_NAME [OPTIONS]
 cd my-repoman-project
 repoman generator add mycommand
 repoman generator add mycommand --project-dir /path/to/project --dry-run
-repoman generator add graphrag --kind graphrag
 ```
 
 ### extensions sync

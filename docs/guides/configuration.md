@@ -90,7 +90,7 @@ flowchart TB
 
 ## Configuration = answers
 
-For generated projects, **configuration** is the set of **answers** to the template prompts (project name, author, CI, optional FastAPI/RAG, etc.). Those answers drive what gets generated.
+For generated projects, **configuration** is the set of **answers** to the template prompts (project name, author, CI, optional FastAPI or dataset support, etc.). Those answers drive what gets generated.
 
 ## Where configuration is stored
 

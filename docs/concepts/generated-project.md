@@ -1,27 +1,20 @@
 # Generated project
 
-This page summarizes what a repoman-generated project contains. For conditional structure and file layout, see [Template structure](../template-structure.md). For FastAPI and RAG internals, see [Template architecture](template-architecture.md).
+This page summarizes what a repoman-generated project contains. For conditional structure and file layout, see [Template structure](../template-structure.md). For generated behavior, see [Template architecture](template-architecture.md).
 
-## Layout (high-level)
+## Layout
 
-After you run `repoman create --project_name my-project` with typical options, the generated project includes:
+Generated projects typically include:
 
-- **`src/<package>/`** — Main Python package (config, utils, optional CLI, optional `app/` for FastAPI, optional `rag/` for RAG).
-- **`tests/`** — Test package and test modules (pytest).
-- **`config/`** — Config files for Ruff, MyPy, pytest, MkDocs, coverage, etc.
-- **`docs/`** — Documentation source (MkDocs).
-- **`make_cmds/`** — Makefile fragments (tests, quality, docs, build, uv) included by the top-level `Makefile`.
-- **`Makefile`** — Composes the make_cmds and defines versioning and project-specific targets.
-- **`pyproject.toml`** — Project metadata, dependencies, optional `[project.scripts]` for the CLI.
-
-## CI
-
-Exactly **one** CI system is included, depending on your answer: **GitHub Actions** (`.github/`), **GitLab CI** (`.gitlab/`), or **Azure DevOps** (`.azuredevops/`). Each includes workflows (e.g. ci, release) and issue templates.
+- `src/<package>/` for the main Python package
+- `tests/` for pytest-based tests
+- `config/` for Ruff, MyPy, pytest, MkDocs, and related config
+- `docs/` for project documentation
+- `make_cmds/` for Makefile fragments
+- `pyproject.toml` for package metadata and dependencies
 
 ## Optional features
 
-- **CLI** — If you set a CLI name (e.g. `my-app`), the template generates a Typer-based CLI under `src/<package>/cli/` and a `[project.scripts]` entry. You can add subcommands later with `repoman generator add <command_name>` (see [Adding a CLI command](../guides/adding-a-cli-command.md)).
-- **FastAPI** — If FastAPI is enabled, the template generates `src/<package>/app/` with an ASGI app, router, config, controllers, views, and optional health/ready endpoints.
-- **RAG** — If RAG is enabled, the template generates the RAG package, CLI subcommands (`rag ingest`, `rag query`), and when FastAPI is enabled, API routes under `/rag`. See [Template architecture](template-architecture.md) for the architecture.
-
-For the exact file tree and conditional logic, see [Template structure](../template-structure.md).
+- **CLI:** If a CLI name is provided, the template generates a Typer-based CLI.
+- **FastAPI:** If FastAPI is enabled, the template generates `src/<package>/app/`.
+- **Datasets:** If dataset support is enabled, the template generates dataset config and the selected loaders under `src/<package>/datasets/`.

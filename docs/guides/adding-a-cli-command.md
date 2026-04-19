@@ -28,7 +28,6 @@ The new subcommand is discovered by your project’s CLI (Typer) so it appears w
 | --------------------- | --------------------------------------------------------------------------------------------------------- |
 | `--project-dir`, `-d` | Project directory (default: current directory). Use this if you are not already in the generated project. |
 | `--answers`, `-a`     | Path to the project’s `.copier-answers.yml` (so repoman can resolve the package name and paths).          |
-| `--kind`              | Extension kind: `command` (default) or `graphrag` (feature overlay).                                       |
 | `--force`, `-f`       | Overwrite existing files if the command or test file already exists.                                      |
 | `--dry-run`           | Show what would be created without writing files.                                                         |
 
@@ -38,7 +37,6 @@ The new subcommand is discovered by your project’s CLI (Typer) so it appears w
 cd my-repoman-generated-project
 repoman generator add report --dry-run   # preview
 repoman generator add report             # create
-repoman generator add graphrag --kind graphrag
 ```
 
 For more on the template and the command template location, see [The template — Adding new CLI commands](../template.md). For all repoman CLI options, see the [CLI reference](../cli.md).
