@@ -11,7 +11,8 @@ The project uses GitHub Actions for continuous integration. The CI pipeline:
 
 ```bash
 # Run the equivalent of CI locally
+make setup
+make check-docs
 make check
 make test-coverage
-make build
 ```

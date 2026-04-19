@@ -32,6 +32,7 @@ The following sections group targets by purpose.
 | `make fix` | Auto-fix linting issues |
 | `make check-types` | Type check code using mypy |
 | `make type-check` | Alias for `check-types` |
+| `make check-quality` | Run formatting and linting checks |
 | `make check` | Run all quality checks (format-check, lint, check-types) |
 
 ## Compliance
@@ -48,11 +49,15 @@ The following sections group targets by purpose.
 | `make docs-serve` | Serve documentation locally (e.g. http://localhost:8000) |
 | `make docs-serve-open` | Serve documentation and open in the default browser |
 | `make docs-check` | Check documentation for issues (strict build) |
+| `make check-docs` | Alias for `make docs-check` |
 
 ## Other
 
 | Target | Description |
 |--------|-------------|
+| `make setup` | Install dependencies using uv |
+| `make install` | Alias for `make setup` |
+| `make sync` | Sync dependencies using uv |
 | `make help` | Print the help screen (all targets) |
 | `make clean` | Clean up cache and build files |
 | `make update-instantiated-template-coverage` | Update instantiated template coverage % in docs/development/testing.md |

@@ -143,11 +143,7 @@ def _validate_config_ids(config, selected_ids: list[str]) -> None:
         if profile_id not in known_profile_ids:
             raise ComplianceConfigError(f"Unknown profile id '{profile_id}'")
 
-    known_control_ids = {
-        control.control_id
-        for profile in BUILTIN_PROFILES.values()
-        for control in profile.controls
-    }
+    known_control_ids = {control.control_id for profile in BUILTIN_PROFILES.values() for control in profile.controls}
     for control_id in config.controls:
         if control_id not in known_control_ids:
             raise ComplianceConfigError(f"Unknown control id '{control_id}'")

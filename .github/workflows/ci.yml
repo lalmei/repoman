@@ -43,14 +43,11 @@ jobs:
     - name: Install dependencies
       run: make setup
 
-    - name: Check the code quality
-      run: make check-quality
+    - name: Check if the documentation builds correctly
+      run: make check-docs
 
-    - name: Check if the code is correctly typed
-      run: make check-types
-
-    - name: Check for breaking changes in the API
-      run: make check-api
+    - name: Check the project quality
+      run: make check
 
     - name: Store objects inventory for tests
       uses: actions/upload-artifact@v4

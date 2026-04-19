@@ -177,7 +177,7 @@ def build_starter_config(profile_ids: list[str], manual_controls: dict[str, list
                     "    owner: null",
                     "    evidence: []",
                     "    last_reviewed: null",
-                    f"    notes: \"{control.title}: {control.description}\"",
+                    f'    notes: "{control.title}: {control.description}"',
                 ]
             )
     if not any_controls:

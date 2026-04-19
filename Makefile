@@ -95,6 +95,8 @@ check-types: ## Type check code using mypy
 
 type-check: check-types ## Alias for check-types
 
+check-quality: format-check lint ## Run formatting and linting checks
+
 check: format-check lint check-types ## Run all quality checks (format-check, lint, check-types)
 
 #######################
@@ -122,12 +124,22 @@ docs-serve-open: ## Serve documentation and open in default browser
 docs-check: ## Check documentation for issues
 	uv run mkdocs build --config-file=config/mkdocs.yml --strict
 
+check-docs: docs-check ## Alias for docs-check
+
 update-instantiated-template-coverage: ## Update instantiated template coverage %% in docs/development/testing.md
 	uv run python scripts/update_instantiated_template_coverage.py
 
 #######################
 #      Setup          #
 #######################
+setup: ## Install dependencies using uv
+	uv sync
+
+install: setup ## Alias for setup
+
+sync: ## Sync dependencies
+	uv sync
+
 setup-cursor: ## Copy cursor configuration from config/cursor to .cursor
 	@mkdir -p .cursor
 	@cp -r config/cursor/* .cursor/
