@@ -94,7 +94,9 @@ def test_detector_yaml_invalid_and_missing_workflow_rule(tmp_path: Path) -> None
     )
     rule_status, rule_evidence = evaluate_detector(
         repo,
-        DetectorSpec("github_actions_rule", {"workflow_glob": ".github/workflows/*.yml", "yaml_path": ["jobs", "test"]}),
+        DetectorSpec(
+            "github_actions_rule", {"workflow_glob": ".github/workflows/*.yml", "yaml_path": ["jobs", "test"]}
+        ),
     )
 
     assert yaml_status == "unmet"
