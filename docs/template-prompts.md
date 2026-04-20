@@ -1,70 +1,21 @@
 # Copier prompts
 
-The following prompts are defined in `src/repoman/copier.yml` (in the repoman repo). They are grouped by purpose.
+The following prompts are defined in `src/repoman/copier.yml`.
 
-## CI
+## Core project prompts
 
-| Prompt  | Description            | Default                                 |
-| ------- | ---------------------- | --------------------------------------- |
-| `ci`    | Which CI system to use | `github.com`                            |
-| Choices | Provider URL           | `github.com`, `gitlab.com`, `azure.com` |
+Repoman prompts for:
 
-Only the chosen CI directory (`.github/`, `.gitlab/`, or `.azuredevops/`) is included in the generated project (workflows, issue templates).
+- CI host (`ci`)
+- project metadata (`project_name`, `project_description`)
+- author and repository metadata
+- license and copyright data
+- Python package and CLI names
+- container registry
 
-## Project
+## Optional features
 
-| Prompt                | Description              |
-| --------------------- | ------------------------ |
-| `project_name`        | Your project name        |
-| `project_description` | Your project description |
-
-## Author
-
-| Prompt            | Description                    | Default                              |
-| ----------------- | ------------------------------ | ------------------------------------ |
-| `author_fullname` | Your full name                 | From Git `user.name` when available  |
-| `author_email`    | Your email                     | From Git `user.email` when available |
-| `author_username` | Your username (e.g. on GitHub) | Set in template                      |
-
-## Repository
-
-| Prompt                 | Description                      | Default                                    |
-| ---------------------- | -------------------------------- | ------------------------------------------ |
-| `repository_provider`  | Repository host                  | `github.com`, `gitlab.com`, or `azure.com` |
-| `repository_namespace` | Namespace (e.g. GitHub user/org) | `author_username`                          |
-| `repository_name`      | Repository name                  | Slugified `project_name`                   |
-
-## Copyright
-
-| Prompt                   | Description            | Default                       |
-| ------------------------ | ---------------------- | ----------------------------- |
-| `copyright_holder`       | Copyright holder name  | `author_fullname`             |
-| `copyright_holder_email` | Copyright holder email | `author_email`                |
-| `copyright_date`         | Copyright date         | Current year (from extension) |
-| `copyright_license`      | Project license (SPDX) | `ISC`                         |
-
-`copyright_license` offers a long list of choices (e.g. MIT, Apache-2.0, GPL-3.0, BSD-3-Clause). These are used in `pyproject.toml`, LICENSE, and docs.
-
-## Python package
-
-| Prompt                             | Description                                   | Default                    |
-| ---------------------------------- | --------------------------------------------- | -------------------------- |
-| `python_package_distribution_name` | Name for `pip install NAME`                   | Slugified `project_name`   |
-| `python_package_import_name`       | Name for `import NAME` in Python              | Slugified with underscores |
-| `python_package_command_line_name` | CLI entry point name (e.g. `my-app`)          | Slugified `project_name`   |
-| `python_distribution_name`         | Used for container images (e.g. Azure DevOps) | Same as distribution name  |
-
-If `python_package_command_line_name` is set, the template generates a Typer-based CLI and a `[project.scripts]` entry; otherwise no CLI is generated.
-
-## Container
-
-| Prompt               | Description                          | Default     |
-| -------------------- | ------------------------------------ | ----------- |
-| `container_registry` | Container registry for Docker images | `docker.io` |
-
-Used in the Makefile for image tagging (e.g. for deployment).
-
-## FastAPI (optional)
+### FastAPI
 
 | Prompt                     | Description                          | Default |
 | -------------------------- | ------------------------------------ | ------- |
@@ -76,39 +27,24 @@ Used in the Makefile for image tagging (e.g. for deployment).
 | `aiohttp_timeout`          | HTTP client timeout (seconds)        | `2`     |
 | `aiohttp_pool_size`        | HTTP client pool size                | `100`   |
 
-When `fastapi_enabled` is true, the template generates `src/{{ package }}/app/` with a FastAPI app, ASGI entry, router, config, controllers, views, state, and utils (e.g. aiohttp client). Health/ready endpoints are optional via `include_health_endpoints`.
-
-## Notebooks (optional)
+### Notebooks
 
 | Prompt             | Description                       | Default |
 | ------------------ | --------------------------------- | ------- |
 | `python_notebooks` | Include Jupyter notebooks support | `false` |
 
-When true, the template includes a `notebooks/` folder and ipykernel support.
+### Datasets
 
-## RAG (optional)
+| Prompt                     | Description                                                | Default |
+| -------------------------- | ---------------------------------------------------------- | ------- |
+| `dataset_enabled`          | Include dataset module for PyTorch data loading and config | `false` |
+| `dataset_modality_image`   | Image classification datasets                              | `true`  |
+| `dataset_modality_text`    | Text datasets                                              | `true`  |
+| `dataset_modality_tabular` | Tabular datasets                                           | `true`  |
+| `dataset_modality_mesh`    | 3D mesh datasets                                           | `true`  |
 
-| Prompt        | Description                                                      | Default |
-| ------------- | ---------------------------------------------------------------- | ------- |
-| `rag_enabled` | Include RAG (retrieval-augmented generation) modules and CLI/API | `false` |
+When `dataset_enabled` is true, at least one dataset modality must be selected.
 
-When true, the template generates the RAG package, CLI subcommands (`rag ingest`, `rag query`), and when FastAPI is enabled, API routes under `/rag`. See [Template architecture](concepts/template-architecture.md) for structure.
+## Where answers are stored
 
-GraphRAG extension overlay (installed with `repoman generator add graphrag --kind graphrag`) requires `rag_enabled: true` in the project answers.
-
-## Dataset (optional)
-
-| Prompt                     | Description                                                                 | Default |
-| -------------------------- | --------------------------------------------------------------------------- | ------- |
-| `dataset_enabled`          | Include dataset module for PyTorch data loading and config                  | `false` |
-| `dataset_modality_image`   | Image classification (`ImageFolder`, torchvision)                           | `true` (when dataset enabled) |
-| `dataset_modality_text`    | Text datasets (JSONL/CSV)                                                   | `true` (when dataset enabled) |
-| `dataset_modality_tabular` | Tabular datasets (CSV/Parquet)                                              | `true` (when dataset enabled) |
-| `dataset_modality_mesh`    | 3D mesh datasets (Wavefront OBJ, class folders)                             | `true` (when dataset enabled) |
-| `dataset_modality_rag_eval`| RAG evaluation loader (JSONL/JSON); required for `rag eval` CLI integration | `true` (when dataset enabled) |
-
-When `dataset_enabled` is true, pick at least one modality (the template validates this). The optional **`dl`** dependency group in the generated `pyproject.toml` includes **`torch`** for every dataset-enabled project, then adds **`torchvision`** only if the image modality is selected, **`pandas`** if text or tabular is selected, and **`pyarrow`** if tabular is selected. Mesh and RAG-eval paths use the standard library or existing deps only.
-
----
-
-Answers are stored in `.copier-answers.yml` in the generated project. That file is used by `repoman update` to re-apply the template (e.g. after pulling template changes).
+Generated projects store answers in `.copier-answers.yml`. Repoman uses that file for `repoman update` and for non-interactive workflows.

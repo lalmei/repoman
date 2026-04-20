@@ -15,36 +15,22 @@ from repoman.resources import get_copier_answers_template
 PRESETS: dict[str, dict] = {
     "cli": {
         "fastapi_enabled": False,
-        "rag_enabled": False,
         "dataset_enabled": False,
     },
     "docs_only": {
         "docs_only": True,
         "fastapi_enabled": False,
-        "rag_enabled": False,
         "dataset_enabled": False,
         "python_package_command_line_name": "",
     },
     "library": {
         "fastapi_enabled": False,
-        "rag_enabled": False,
         "dataset_enabled": False,
         "python_package_command_line_name": "",
     },
     "fastapi": {
         "fastapi_enabled": True,
-        "rag_enabled": False,
         "dataset_enabled": False,
-    },
-    "rag": {
-        "fastapi_enabled": True,
-        "rag_enabled": True,
-        "dataset_enabled": True,
-        "dataset_modality_image": True,
-        "dataset_modality_text": True,
-        "dataset_modality_tabular": True,
-        "dataset_modality_mesh": True,
-        "dataset_modality_rag_eval": True,
     },
 }
 

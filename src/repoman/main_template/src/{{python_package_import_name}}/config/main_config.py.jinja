@@ -6,8 +6,6 @@ from {{python_package_import_name}}._version import get_version
 {% if dataset_enabled %}from {{python_package_import_name}}.config.dataset_config import DatasetConfig
 {% endif -%}
 {% if fastapi_enabled %}from {{python_package_import_name}}.config.fastapi_config import FastAPIConfig
-{% endif -%}
-{% if rag_enabled %}from {{python_package_import_name}}.config.rag_config import RAGConfig
 {% endif %}
 
 
@@ -32,9 +30,6 @@ class Config(BaseSettings):
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 {% if fastapi_enabled %}
     fastapi_config: FastAPIConfig = FastAPIConfig()
-{% endif %}
-{% if rag_enabled %}
-    rag_config: "RAGConfig" = RAGConfig()
 {% endif %}
 {% if dataset_enabled %}
     dataset_config: "DatasetConfig" = DatasetConfig()

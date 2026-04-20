@@ -29,9 +29,6 @@ Shared configuration is loaded through `Config()` in
 {% if fastapi_enabled %}
 - `fastapi_config.py` adds FastAPI-specific settings.
 {% endif %}
-{% if rag_enabled %}
-- `rag_config.py` adds retrieval pipeline settings.
-{% endif %}
 {% if dataset_enabled %}
 - `dataset_config.py` adds dataset-specific settings.
 {% endif %}
@@ -41,84 +38,14 @@ Shared configuration is loaded through `Config()` in
 
 When FastAPI is enabled, the app is created by `get_application()` in `app/asgi.py`. A lifespan context manager runs on startup and shutdown.
 
-- **Startup:** The app loads `Config()` and stores it on `app.state.config`, initializes the shared AiohttpClient from FastAPI config, and when RAG is enabled builds `RAGContainer` and `RAGService` and stores the service on `app.state.rag_service`.
+- **Startup:** The app loads `Config()` and stores it on `app.state.config`, then initializes the shared `AiohttpClient` from FastAPI config.
 - **Shutdown:** The AiohttpClient is closed.
 
 The root API router applies the configured API prefix and mounts:
 
 - **Health and ready:** When `include_health_endpoints` is true, ready and health_check controllers are mounted (tags: ready, health check).
-- **RAG routes:** When RAG is enabled, the RAG controller is mounted under `/rag` (tags: rag), exposing `GET /rag/health`, `POST /rag/query`, and `POST /rag/ingest`.
 
-Controllers and route handlers use `app.state.config` and, when RAG is on, `app.state.rag_service` via dependencies. Custom HTTP exceptions and error views are registered at the app level.
-{% endif %}
-{% if rag_enabled %}
-## RAG pipeline
-
-When RAG is enabled, this project includes a retrieval-augmented generation (RAG) flow: ingest documents into a vector index and docstore, then answer queries by retrieving context and generating an answer with citations.
-
-### RAGService and container
-
-- **RAGService** is the facade used by both CLI and API. It exposes:
-  - **query(text, filters, top_k, rerank_top_k):** Retrieve relevant chunks (with optional reranking), then generate an answer with citations. Returns a `RAGAnswer`.
-  - **ingest(path, corpus_id):** Load a document from path, chunk it, embed chunks, and write to the vector index and docstore. Returns an `IngestResult`.
-  - **health():** Returns which RAG components are configured (for `/rag/health` when FastAPI is on).
-
-- **RAGContainer** builds concrete implementations from `RAGConfig`: embedder (`sentence_transformers` or `modernbert`), vector index (FAISS), docstore (SQLite), reranker (sentence-transformers), stub LLM, and prompt builder. These are used by the pipelines.
-
-  - Set `RAG_EMBEDDER_PROVIDER=sentence_transformers` with a sentence-transformers model id (default: `all-MiniLM-L6-v2`).
-  - Set `RAG_EMBEDDER_PROVIDER=modernbert` with a ModernBERT model id (for example `answerdotai/ModernBERT-base`).
-  - ModernBERT requires additional dependencies (`uv sync --group rag --group rag-modernbert`).
-
-### Pipelines
-
-- **Ingest pipeline:** Load document → chunk → embed → add to vector index and docstore.
-- **Retrieve pipeline:** Embed query → search vector index → optionally rerank → fetch full chunks from docstore.
-- **Generate pipeline:** Build prompt from query + context → call LLM → parse answer and citations.
-
-The full RAG flow composes retrieve then generate to produce a `RAGAnswer` with text and citations.
-
-### CLI and API
-
-{% if python_package_command_line_name %}
-- **CLI:** Use `{{ python_package_command_line_name }} rag ingest` and `{{ python_package_command_line_name }} rag query` to ingest documents and run queries.
-{% endif %}
-{% if fastapi_enabled %}
-- **API:** When FastAPI is enabled, use `GET {{ fastapi_api_prefix }}/rag/health`, `POST {{ fastapi_api_prefix }}/rag/query`, and `POST {{ fastapi_api_prefix }}/rag/ingest` to interact with RAG via HTTP.
-{% endif %}
-
-### RAG architecture (ASCII)
-
-```
-                    +------------------+
-                    |  FastAPI / Typer |
-                    +--------+---------+
-                             |
-                             v
-                    +------------------+
-                    |   RAGService     |
-                    +--------+---------+
-                             |
-         +-------------------+-------------------+
-         v                   v                   v
-  +-------------+   +---------------+   +----------------+
-  |  Ingest     |   |  Retrieve     |   |  Generate      |
-  |  Pipeline   |   |  Pipeline     |   |  Pipeline      |
-  +------+------+   +-------+-------+   +--------+-------+
-         |                  |                    |
-         v                  v                    v
-  +-------------+   +---------------+   +----------------+
-  | Chunker     |   | Embedder      |   | LLM (stub)     |
-  | Embedder    |   | VectorIndex   |   | PromptBuilder  |
-  | VectorIndex |   | Reranker     |   +----------------+
-  | Docstore    |   | Docstore      |
-  +-------------+   +---------------+
-         |                  |
-         v                  v
-  +-------------+   +---------------+   +----------------+
-  | FAISS       |   | SQLite        |   | sentence-      |
-  | (adapter)   |   | (adapter)     |   | transformers   |
-  +-------------+   +---------------+   +----------------+
-```
+Controllers and route handlers use `app.state.config`. Custom HTTP exceptions and error views are registered at the app level.
 {% endif %}
 {% if dataset_enabled %}
 ## Datasets

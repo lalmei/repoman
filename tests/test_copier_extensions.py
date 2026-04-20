@@ -5,15 +5,12 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 import yaml
 
 from repoman.copier.extension_lifecycle import (
     MIRROR_KEY,
-    ExtensionLifecycleError,
     ExtensionManifest,
     create_command_extension,
-    create_graphrag_extension,
     load_manifest,
     save_manifest,
     sync_extensions,
@@ -27,7 +24,6 @@ def _write_base_answers(project_dir: Path) -> Path:
             {
                 "python_package_import_name": "pkg",
                 "python_package_command_line_name": "pkg",
-                "rag_enabled": True,
                 "fastapi_enabled": True,
                 "include_health_endpoints": True,
             },
@@ -174,130 +170,6 @@ def test_sync_extensions_runs_worker_update(tmp_path: Path) -> None:
             dry_run=False,
             extension_type="command",
             extension_name="foo",
-        )
-
-    assert len(result.synced) == 1
-    update_ctx.run_update.assert_called_once()
-
-
-def test_create_graphrag_extension_persists_manifest(tmp_path: Path) -> None:
-    answers_file = _write_base_answers(tmp_path)
-    worker_ctx = MagicMock()
-    worker_ctx.__enter__.return_value = worker_ctx
-    worker_ctx.__exit__.return_value = None
-
-    with patch("repoman.copier.extension_lifecycle.Worker", return_value=worker_ctx):
-        create_graphrag_extension(
-            project_dir=tmp_path,
-            base_answers_file=answers_file,
-            answers={
-                "python_package_import_name": "pkg",
-                "python_package_command_line_name": "pkg",
-                "rag_enabled": True,
-                "fastapi_enabled": True,
-                "include_health_endpoints": True,
-            },
-            instance_name="graphrag",
-            force=False,
-            dry_run=False,
-        )
-
-    manifest = load_manifest(tmp_path)
-    assert any(ext.type == "graphrag" and ext.name == "graphrag" for ext in manifest.extensions)
-
-
-def test_create_graphrag_extension_requires_rag_enabled(tmp_path: Path) -> None:
-    answers_file = _write_base_answers(tmp_path)
-    with (
-        patch("repoman.copier.extension_lifecycle.Worker"),
-        pytest.raises(ExtensionLifecycleError, match="rag_enabled=true"),
-    ):
-        create_graphrag_extension(
-            project_dir=tmp_path,
-            base_answers_file=answers_file,
-            answers={
-                "python_package_import_name": "pkg",
-                "python_package_command_line_name": "pkg",
-                "rag_enabled": False,
-                "fastapi_enabled": True,
-            },
-            instance_name="graphrag",
-            force=False,
-            dry_run=False,
-        )
-
-
-def test_create_graphrag_extension_singleton_guard(tmp_path: Path) -> None:
-    answers_file = _write_base_answers(tmp_path)
-    worker_ctx = MagicMock()
-    worker_ctx.__enter__.return_value = worker_ctx
-    worker_ctx.__exit__.return_value = None
-
-    with patch("repoman.copier.extension_lifecycle.Worker", return_value=worker_ctx):
-        create_graphrag_extension(
-            project_dir=tmp_path,
-            base_answers_file=answers_file,
-            answers={
-                "python_package_import_name": "pkg",
-                "python_package_command_line_name": "pkg",
-                "rag_enabled": True,
-                "fastapi_enabled": False,
-            },
-            instance_name="graphrag",
-            force=False,
-            dry_run=False,
-        )
-
-        with pytest.raises(ExtensionLifecycleError, match="Only one graphrag extension"):
-            create_graphrag_extension(
-                project_dir=tmp_path,
-                base_answers_file=answers_file,
-                answers={
-                    "python_package_import_name": "pkg",
-                    "python_package_command_line_name": "pkg",
-                    "rag_enabled": True,
-                    "fastapi_enabled": False,
-                },
-                instance_name="other",
-                force=False,
-                dry_run=False,
-            )
-
-
-def test_sync_extensions_filters_graphrag_type(tmp_path: Path) -> None:
-    answers_file = _write_base_answers(tmp_path)
-    create_ctx = MagicMock()
-    create_ctx.__enter__.return_value = create_ctx
-    create_ctx.__exit__.return_value = None
-    update_ctx = MagicMock()
-    update_ctx.__enter__.return_value = update_ctx
-    update_ctx.__exit__.return_value = None
-
-    with patch(
-        "repoman.copier.extension_lifecycle.Worker",
-        side_effect=[create_ctx, update_ctx],
-    ):
-        create_graphrag_extension(
-            project_dir=tmp_path,
-            base_answers_file=answers_file,
-            answers={
-                "python_package_import_name": "pkg",
-                "python_package_command_line_name": "pkg",
-                "rag_enabled": True,
-                "fastapi_enabled": False,
-            },
-            instance_name="graphrag",
-            force=False,
-            dry_run=False,
-        )
-
-        result = sync_extensions(
-            project_dir=tmp_path,
-            force=False,
-            conflict="inline",
-            dry_run=False,
-            extension_type="graphrag",
-            extension_name="graphrag",
         )
 
     assert len(result.synced) == 1

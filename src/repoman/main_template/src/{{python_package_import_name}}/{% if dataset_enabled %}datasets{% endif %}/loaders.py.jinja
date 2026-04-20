@@ -81,7 +81,7 @@ def get_train_val_loaders(
     transform: Compose | None = None,
 {% endif %}
 ) -> tuple[DataLoader, DataLoader]:
-    """Create train and validation DataLoaders; dispatches by ``config.modality`` (not ``rag_eval``)."""
+    """Create train and validation DataLoaders for the configured modality."""
 {%- if dataset_modality_image %}
     if config.modality == "image":
         return _get_image_loaders(config, data_root, batch_size, transform)
@@ -97,11 +97,6 @@ def get_train_val_loaders(
 {%- if dataset_modality_mesh %}
     if config.modality == "mesh":
         return _get_mesh_loaders(config, data_root, batch_size)
-{%- endif %}
-{%- if dataset_modality_rag_eval %}
-    if config.modality == "rag_eval":
-        msg = "modality 'rag_eval' has no train/val loaders (use load_rag_eval_dataset)"
-        raise ValueError(msg)
 {%- endif %}
     msg = f"modality '{config.modality}' has no train/val loaders in this project"
     raise ValueError(msg)

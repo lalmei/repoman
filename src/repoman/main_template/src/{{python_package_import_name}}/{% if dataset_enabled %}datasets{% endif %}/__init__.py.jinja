@@ -1,24 +1,19 @@
-{% if dataset_enabled %}# ruff: noqa: I001
-"""Dataset module for PyTorch data loading and RAG evaluation."""
+{% if dataset_enabled %}"""Dataset module for PyTorch data loading."""
 
 {% if dataset_modality_image %}from {{python_package_import_name}}.datasets.base import ImageFolderDataset
 {% endif %}from {{python_package_import_name}}.datasets.loaders import get_train_val_loaders
 {% if dataset_modality_mesh %}from {{python_package_import_name}}.datasets.mesh import MeshDataset, get_mesh_loaders, load_obj_mesh
-{% endif %}{% if dataset_modality_rag_eval %}from {{python_package_import_name}}.datasets.rag_eval import load_rag_eval_dataset
-from {{python_package_import_name}}.datasets.types import RAGEvalItem
 {% endif %}{% if dataset_modality_tabular %}from {{python_package_import_name}}.datasets.tabular import get_tabular_loaders
 {% endif %}{% if dataset_modality_text %}from {{python_package_import_name}}.datasets.text import get_text_loaders
 {% endif %}
 __all__: list[str] = [
 {% if dataset_modality_image %}    "ImageFolderDataset",
 {% endif %}{% if dataset_modality_mesh %}    "MeshDataset",
-{% endif %}{% if dataset_modality_rag_eval %}    "RAGEvalItem",
-{% endif %}{% if dataset_modality_mesh %}    "get_mesh_loaders",
+    "get_mesh_loaders",
 {% endif %}{% if dataset_modality_tabular %}    "get_tabular_loaders",
 {% endif %}{% if dataset_modality_text %}    "get_text_loaders",
 {% endif %}    "get_train_val_loaders",
 {% if dataset_modality_mesh %}    "load_obj_mesh",
-{% endif %}{% if dataset_modality_rag_eval %}    "load_rag_eval_dataset",
 {% endif %}]
 {% else %}
 """Dataset module (disabled). Enable dataset in copier answers to use this module."""

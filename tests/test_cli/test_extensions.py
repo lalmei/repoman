@@ -67,7 +67,7 @@ def test_extensions_sync_error(cli_runner: CliRunner, cli_app: Typer, tmp_path: 
     assert result.exit_code == 1
 
 
-def test_extensions_sync_with_graphrag_type_filter(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+def test_extensions_sync_with_command_type_filter(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_dir.mkdir()
     with patch("repoman.cli.commands.extensions.sync.sync_extensions") as mock_sync:
@@ -75,9 +75,9 @@ def test_extensions_sync_with_graphrag_type_filter(cli_runner: CliRunner, cli_ap
         mock_sync.return_value.dry_run_options = []
         result = cli_runner.invoke(
             cli_app,
-            ["extensions", "sync", "--type", "graphrag", str(project_dir)],
+            ["extensions", "sync", "--type", "command", str(project_dir)],
             input="",
         )
 
     assert result.exit_code == 0
-    assert mock_sync.call_args.kwargs["extension_type"] == "graphrag"
+    assert mock_sync.call_args.kwargs["extension_type"] == "command"

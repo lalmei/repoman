@@ -1,4 +1,4 @@
-"""FastAPI create subcommand: FastAPI server (MVC-style, no RAG/dataset)."""
+"""FastAPI create subcommand: FastAPI server (MVC-style, no dataset)."""
 
 from pathlib import Path
 from typing import Annotated
@@ -10,7 +10,7 @@ from repoman.copier import build_preset_data
 
 app = Typer(
     add_completion=True,
-    help="""Create a FastAPI server project (MVC-style, no RAG or dataset).
+    help="""Create a FastAPI server project (MVC-style, no dataset).
 
 Examples:
 
@@ -38,7 +38,7 @@ def fastapi(
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Create a FastAPI server project with no RAG or dataset modules.
+    """Create a FastAPI server project with no dataset modules.
 
     Examples:
 

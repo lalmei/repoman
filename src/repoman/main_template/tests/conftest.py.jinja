@@ -1,5 +1,7 @@
 """Configuration for the pytest test suite."""
 
+import os
+
 import pytest
 from typer import Typer
 from typer.testing import CliRunner
@@ -16,6 +18,17 @@ def _noop_callback() -> None:
 
 
 cli.add_typer(_noop_app, name="noop")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_config_environment() -> None:
+    """Keep ambient shell config from changing generated test defaults."""
+    original_log_format = os.environ.pop("LOG_FORMAT", None)
+    try:
+        yield
+    finally:
+        if original_log_format is not None:
+            os.environ["LOG_FORMAT"] = original_log_format
 
 
 @pytest.fixture(scope="session")

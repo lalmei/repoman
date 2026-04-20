@@ -16,7 +16,7 @@ uv run repoman create --project_name my-project
 
 (Or run `repoman create --project_name my-project` if repoman is installed globally.)
 
-Repoman will prompt you for project name, description, author, CI system, Python package name, and optional features (FastAPI, RAG, etc.). You can accept the defaults by pressing Enter, or change them. See [Template prompts](../template-prompts.md) for the full list of prompts.
+Repoman will prompt you for project name, description, author, CI system, Python package name, and optional features such as FastAPI or dataset support. You can accept the defaults by pressing Enter, or change them. See [Template prompts](../template-prompts.md) for the full list of prompts.
 
 ## 3. Enter the project and install dependencies
 

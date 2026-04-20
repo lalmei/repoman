@@ -8,9 +8,9 @@ This guide walks you through running `repoman create`, answering prompts, and wh
 repoman create --project_name <project_name>
 ```
 
-Or with uv from the repoman repo: `uv run repoman create --project_name <project_name>`. For preset-based creation without prompts, you can use a subcommand with a positional project name: `repoman create cli my-app`, `repoman create library my-lib`, `repoman create docs my-docs`, `repoman create fastapi my-api`, or `repoman create rag my-rag`.
+Or with uv from the repoman repo: `uv run repoman create --project_name <project_name>`. For preset-based creation without prompts, you can use a subcommand with a positional project name: `repoman create cli my-app`, `repoman create library my-lib`, `repoman create docs my-docs`, or `repoman create fastapi my-api`.
 
-You will be prompted for project name, description, author, repository and copyright details, Python package and CLI names, CI system, and optional features (FastAPI, RAG, notebooks, dataset). See [Template prompts](../template-prompts.md) for the full list. You can press Enter to accept defaults.
+You will be prompted for project name, description, author, repository and copyright details, Python package and CLI names, CI system, and optional features such as FastAPI, notebooks, and datasets. See [Template prompts](../template-prompts.md) for the full list. You can press Enter to accept defaults.
 
 ## Options
 

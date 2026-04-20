@@ -1,4 +1,4 @@
-"""Add subcommand for generator - creates new CLI commands/features from templates."""
+"""Add subcommand for generator - creates new CLI commands from templates."""
 
 import re
 from pathlib import Path
@@ -24,23 +24,19 @@ from repoman.config.loader import load_answers
 from repoman.copier import (
     ExtensionLifecycleError,
     create_command_extension,
-    create_graphrag_extension,
 )
 from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="""Add a new CLI command or feature extension to your project.
+    help="""Add a new CLI command to your project.
 
 Examples:
 
     repoman generator add ingest --project-dir ./my-app
-    repoman generator add search --kind graphrag -a ./my-app/.copier-answers.yml
     repoman generator add my-cmd --dry-run --force
 """,
 )
-
-SUPPORTED_KINDS = {"command", "graphrag"}
 
 
 def validate_command_name(command_name: str) -> bool:
@@ -87,7 +83,7 @@ def detect_project_structure(project_dir: Path, python_package_import_name: str)
 
 @app.command()
 def add(
-    command_name: str = Argument(..., help="Name of the command/feature instance to create"),
+    command_name: str = Argument(..., help="Name of the command instance to create"),
     project_dir: str | None = Option(
         None,
         "--project-dir",
@@ -95,36 +91,16 @@ def add(
         help="Project directory (defaults to current directory)",
     ),
     answers_file: str | None = Option(None, "--answers", "-a", help="Path to .copier-answers.yml file"),
-    kind: str = Option("command", "--kind", help="Extension kind: command or graphrag"),
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
-    """Add a new CLI command or feature extension (see command help for examples)."""
+    """Add a new CLI command (see command help for examples)."""
     logger, console = get_logger_console()
-
-    normalized_kind = kind.strip().lower()
-    if normalized_kind not in SUPPORTED_KINDS:
-        console.print(
-            error_panel(
-                f"Unsupported --kind '{kind}'. Use one of: {', '.join(sorted(SUPPORTED_KINDS))}",
-                console=console,
-            )
-        )
-        raise Exit(1) from None
 
     try:
         validate_command_name(command_name)
     except ValueError as e:
         console.print(error_panel(str(e), console=console))
-        raise Exit(1) from None
-
-    if normalized_kind == "graphrag" and command_name != "graphrag":
-        console.print(
-            error_panel(
-                "GraphRAG v1 uses a singleton instance name. Use command_name='graphrag'.",
-                console=console,
-            )
-        )
         raise Exit(1) from None
 
     project_dir_path: Path = Path.cwd() if project_dir is None else Path(project_dir).resolve()
@@ -162,7 +138,7 @@ def add(
     )
     test_output_file = project_dir_path / "tests" / "test_cli" / f"test_{command_name}.py"
 
-    if normalized_kind == "command" and not force:
+    if not force:
         if command_output_file.exists():
             console.print(warning_panel(command_file_exists_use_force(command_output_file), console=console))
             raise Exit(1) from None
@@ -171,24 +147,14 @@ def add(
             raise Exit(1) from None
 
     try:
-        if normalized_kind == "command":
-            _instance, copier_options, expected_command_file, expected_test_file = create_command_extension(
-                project_dir=project_dir_path,
-                base_answers_file=answers_file_path,
-                answers=answers,
-                command_name=command_name,
-                force=force,
-                dry_run=dry_run,
-            )
-        else:
-            _instance, copier_options, expected_command_file, expected_test_file = create_graphrag_extension(
-                project_dir=project_dir_path,
-                base_answers_file=answers_file_path,
-                answers=answers,
-                instance_name=command_name,
-                force=force,
-                dry_run=dry_run,
-            )
+        _instance, copier_options, expected_command_file, expected_test_file = create_command_extension(
+            project_dir=project_dir_path,
+            base_answers_file=answers_file_path,
+            answers=answers,
+            command_name=command_name,
+            force=force,
+            dry_run=dry_run,
+        )
     except ExtensionLifecycleError as e:
         console.print(error_panel(str(e), console=console))
         logger.exception("Extension generation failed")
@@ -197,10 +163,10 @@ def add(
     if dry_run:
         context_lines = (
             "Template context:\n"
-            f"  - kind: {normalized_kind}\n"
+            "  - kind: command\n"
             f"  - command_name: {command_name}\n"
             f"  - python_package_import_name: {python_package_import_name}\n"
-            f"  - copier_template: {normalized_kind}\n"
+            "  - copier_template: command\n"
             f"  - extension_answers_file: {copier_options['answers_file']}"
         )
         console.print(
@@ -214,25 +180,17 @@ def add(
         )
         return
 
-    if normalized_kind == "command":
-        next_steps = [
-            "Review and customize the generated command",
-            "Implement the command functionality",
-            "Write tests for your command",
-            "The command will be automatically registered by the CLI",
-        ]
-    else:
-        next_steps = [
-            "Review the generated GraphRAG scaffold",
-            "Implement GraphRAG service logic in src/<package>/graphrag/service.py",
-            "Run repoman extensions sync during updates to keep extension files current",
-            "Validate CLI and FastAPI integrations in your project tests",
-        ]
+    next_steps = [
+        "Review and customize the generated command",
+        "Implement the command functionality",
+        "Write tests for your command",
+        "The command will be automatically registered by the CLI",
+    ]
 
     steps_text = format_next_steps(next_steps, console=console)
 
     summary_section = (
-        f"{normalized_kind.title()} '{command_name}' created successfully!\n\n"
+        f"Command '{command_name}' created successfully!\n\n"
         f"Created files:\n"
         f"  - {expected_command_file.relative_to(project_dir_path)}\n"
         f"  - {expected_test_file.relative_to(project_dir_path)}"

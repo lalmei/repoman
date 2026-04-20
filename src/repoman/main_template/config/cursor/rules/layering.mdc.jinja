@@ -7,7 +7,7 @@ alwaysApply: true
 # Layering
 
 {% if python_package_command_line_name %}
-- **Core logic** (`config`{% if fastapi_enabled %}, `app`{% endif %}{% if rag_enabled %}, `rag`{% endif %}{% if dataset_enabled %}, `datasets`{% endif %} and domain modules): Pure logic with no Typer, Rich, or `cli` imports. Inputs and outputs stay data-oriented.
+- **Core logic** (`config`{% if fastapi_enabled %}, `app`{% endif %}{% if dataset_enabled %}, `datasets`{% endif %} and domain modules): Pure logic with no Typer, Rich, or `cli` imports. Inputs and outputs stay data-oriented.
 - **cli/**: Commands call into core modules; all Typer/Rich/UX live here.
 - **Direction**: `cli` → core. Never the reverse.
 {% else %}

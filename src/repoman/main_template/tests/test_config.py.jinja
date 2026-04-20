@@ -28,49 +28,13 @@ def test_root_config_module() -> None:
     root_config = mod.Config()
     assert hasattr(root_config, "log_format")
     assert root_config.log_format == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-{% if rag_enabled %}
-
-
-def test_rag_config_defaults() -> None:
-    """RAGConfig defaults to sentence_transformers provider."""
-    from {{ python_package_import_name }}.config.rag_config import RAGConfig
-
-    cfg = RAGConfig()
-    assert cfg.embedder_provider == "sentence_transformers"
-    assert cfg.embedder_model == "all-MiniLM-L6-v2"
-
-
-def test_rag_config_accepts_modernbert_provider_and_model() -> None:
-    """RAGConfig accepts modernbert provider with ModernBERT model id."""
-    from {{ python_package_import_name }}.config.rag_config import RAGConfig
-
-    cfg = RAGConfig(
-        embedder_provider="modernbert",
-        embedder_model="answerdotai/ModernBERT-base",
-    )
-    assert cfg.embedder_provider == "modernbert"
-
-
-def test_rag_config_rejects_provider_model_mismatch() -> None:
-    """RAGConfig rejects mismatched provider/model combinations."""
-    import pytest
-    from pydantic import ValidationError
-
-    from {{ python_package_import_name }}.config.rag_config import RAGConfig
-
-    with pytest.raises(ValidationError):
-        RAGConfig(
-            embedder_provider="modernbert",
-            embedder_model="all-MiniLM-L6-v2",
-        )
-{% endif %}
 {% if dataset_enabled %}
 
 
 def test_dataset_config_loads_from_json() -> None:
     """Test DatasetConfig loads from config/dataset_config.json with expected defaults."""
     cfg = DatasetConfig()
-    assert cfg.modality == "{% if dataset_modality_image %}image{% elif dataset_modality_text %}text{% elif dataset_modality_tabular %}tabular{% elif dataset_modality_mesh %}mesh{% else %}rag_eval{% endif %}"
+    assert cfg.modality == "{% if dataset_modality_image %}image{% elif dataset_modality_text %}text{% elif dataset_modality_tabular %}tabular{% else %}mesh{% endif %}"
     assert hasattr(cfg.data_root, "name")  # Path-like
     assert cfg.train_split == 0.8
     assert cfg.val_split == 0.2
@@ -82,36 +46,8 @@ def test_dataset_config_loads_from_json() -> None:
 {% if dataset_modality_text %}
     assert cfg.text_column == "text"
 {% endif %}
-{% if dataset_modality_rag_eval %}
-    assert cfg.query_column == "query"
-{% endif %}
 {% if dataset_modality_mesh %}
     assert cfg.mesh_extensions == [".obj"]
-{% endif %}
-
-
-{% if dataset_modality_rag_eval %}
-def test_load_rag_eval_dataset() -> None:
-    """Load eval_sample.jsonl and check structure."""
-    from pathlib import Path
-
-    import pytest
-
-    from {{ python_package_import_name }}.datasets import RAGEvalItem, load_rag_eval_dataset
-
-    fixtures = Path(__file__).parent / "fixtures"
-    path = fixtures / "eval_sample.jsonl"
-    if not path.exists():
-        pytest.skip("eval_sample.jsonl fixture not found")
-
-    items = load_rag_eval_dataset(path)
-    assert len(items) == 2
-    assert isinstance(items[0], RAGEvalItem)
-    assert items[0].query == "Who introduced relativity?"
-    assert items[0].reference == "Albert Einstein."
-    assert items[1].query == "First computer programmer?"
-    assert items[1].reference == "Ada Lovelace."
-
 {% endif %}
 {% if dataset_modality_text %}
 def test_get_text_loaders() -> None:

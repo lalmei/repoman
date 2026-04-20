@@ -45,70 +45,17 @@ uv tool install {{ python_package_distribution_name }}
 {%- else -%}
 This project is available to sponsors only, through my Insiders program. See Insiders [explanation]({{ docs_url }}/insiders/) and [installation instructions]({{ docs_url }}/insiders/installation/).
 {%- endif %}
-{% if rag_enabled %}
-
-## RAG quickstart
-
-This project includes optional RAG (retrieval-augmented generation) modules. Install RAG dependencies and use the CLI or API.
-
-### Install RAG dependencies
-
-```bash
-uv sync --group rag
-```
-
-Use ModernBERT embeddings (optional):
-
-```bash
-uv sync --group rag --group rag-modernbert
-```
-
-### Choose embedding provider
-
-By default, embeddings use sentence-transformers:
-
-```bash
-export RAG_EMBEDDER_PROVIDER=sentence_transformers
-export RAG_EMBEDDER_MODEL=all-MiniLM-L6-v2
-```
-
-To use ModernBERT embeddings:
-
-```bash
-export RAG_EMBEDDER_PROVIDER=modernbert
-export RAG_EMBEDDER_MODEL=answerdotai/ModernBERT-base
-```
-
-Reranking remains sentence-transformers based in this template.
-
-### CLI
-
-Ingest a document, then run a query:
-
-```bash
-{{ python_package_command_line_name }} rag ingest path/to/document.txt --corpus-id my_corpus
-{{ python_package_command_line_name }} rag query "Your question here" --top-k 5
-```
-
-### API
-
 {% if fastapi_enabled %}
-Start the app and call the RAG endpoints:
+
+## FastAPI quickstart
+
+Start the application locally:
 
 ```bash
-# Health: which providers are configured
-curl http://localhost:8000{{ fastapi_api_prefix }}/rag/health
-
-# Query
-curl -X POST http://localhost:8000{{ fastapi_api_prefix }}/rag/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "Your question?", "top_k": 5}'
-
-# Ingest (optional; can be disabled via config)
-curl -X POST http://localhost:8000{{ fastapi_api_prefix }}/rag/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"path": "/path/to/file.txt", "corpus_id": "default"}'
+uv run uvicorn {{ python_package_import_name }}.app.asgi:get_application --factory --reload
 ```
+
+Health and ready endpoints are mounted under `{{ fastapi_api_prefix }}` when enabled in the template configuration.
 
 Run the production-like container stack locally:
 
@@ -119,39 +66,4 @@ make prod
 ```
 
 `make prod` uses `docker compose up --build`, exposes the API on `http://localhost:8000`, and passes `OPENAI_API_KEY` into the container. Exporting `OPENAI_API_TOKEN` also works because the Make target normalizes it to `OPENAI_API_KEY` before Compose starts.
-{% endif %}
-
-### RAG architecture (ASCII)
-
-```
-                    +------------------+
-                    |  FastAPI / Typer |
-                    +--------+---------+
-                             |
-                             v
-                    +------------------+
-                    |   RAGService     |
-                    +--------+---------+
-                             |
-         +-------------------+-------------------+
-         v                   v                   v
-  +-------------+   +---------------+   +----------------+
-  |  Ingest     |   |  Retrieve     |   |  Generate      |
-  |  Pipeline   |   |  Pipeline     |   |  Pipeline      |
-  +------+------+   +-------+-------+   +--------+-------+
-         |                  |                    |
-         v                  v                    v
-  +-------------+   +---------------+   +----------------+
-  | Chunker     |   | Embedder      |   | LLM (stub)     |
-  | Embedder    |   | VectorIndex   |   | PromptBuilder  |
-  | VectorIndex |   | Reranker     |   +----------------+
-  | Docstore    |   | Docstore      |
-  +-------------+   +---------------+
-         |                  |
-         v                  v
-  +-------------+   +---------------+   +----------------+
-  | FAISS       |   | SQLite        |   | sentence-      |
-  | (adapter)   |   | (adapter)     |   | transformers   |
-  +-------------+   +---------------+   +----------------+
-```
 {% endif %}
