@@ -51,7 +51,7 @@ ci = [
     "pytest-cov>=7.0.0",
     "pytest-randomly>=4.0.0",
     "pytest-xdist>=3.8.0",
-    "ruff>=0.14.0",
+    "ruff>=0.15.11",
     "types-markdown>=3.6",
     "types-pyyaml>=6.0",
 ]
@@ -62,7 +62,6 @@ docs = [
     "mkdocs-gen-files>=0.6.0",
     "mkdocs-git-revision-date-localized-plugin>=1.5.0",
     "mkdocs-literate-nav>=0.6.1",
-    "mkdocs-material>=9.7.0",
     "mkdocs-minify-plugin>=0.8.0",
     "mkdocs-jupyter>=0.24.8",
     "mkdocs>=1.6.1",
@@ -70,6 +69,7 @@ docs = [
     "mkdocs-table-reader-plugin>=3.1.0",
     "mkdocs-charts-plugin>=0.0.13",
     "pymdown-extensions>=10.12",
+    "mkdocs-material>=9.7.6",
 ]
 
 

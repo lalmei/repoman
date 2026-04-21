@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 from copier import Worker
 from copier.errors import CopierError
-from rich.console import Group
+from rich.console import Group, RenderableType
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
@@ -326,7 +326,7 @@ def _print_update_plan(
         "Use --dry-run for Copier options preview",
         "Review and test the project after the update",
     ]
-    body = [Text("Plan for repoman update", style="blue"), summary]
+    body: list[RenderableType] = [Text("Plan for repoman update", style="blue"), summary]
     if report.update_readiness.blockers:
         body.append(
             Panel(
