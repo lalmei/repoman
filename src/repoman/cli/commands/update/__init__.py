@@ -35,7 +35,7 @@ from repoman.cli.messages import (
 )
 from repoman.config import load_answers
 from repoman.copier import ExtensionLifecycleError, sync_extensions
-from repoman.inspection import InspectionReport, inspect_repository
+from repoman.inspection import InspectionError, InspectionReport, inspect_repository
 from repoman.utils.logging import get_logger_console
 
 app = Typer(add_completion=True)
@@ -97,11 +97,15 @@ def update(
     answers_file_path = _resolve_answers_path(project_dir_obj, answers_file)
     template_path_obj = _resolve_template_path(template_path, logger, console)
 
-    report = inspect_repository(
-        project_dir_obj,
-        answers_file=answers_file_path,
-        skip_extensions=skip_extensions,
-    )
+    try:
+        report = inspect_repository(
+            project_dir_obj,
+            answers_file=answers_file_path,
+            skip_extensions=skip_extensions,
+        )
+    except InspectionError as exc:
+        console.print(error_panel(str(exc), console=console))
+        raise Exit(1) from exc
 
     if plan:
         _print_update_plan(

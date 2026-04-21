@@ -149,6 +149,22 @@ def test_update_command_missing_project_directory(cli_runner: CliRunner, cli_app
     # Rich Panel output may not be captured in result.output, but error message is visible in pytest output
 
 
+def test_update_command_non_git_repository(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test update command with a directory that is not a git repository."""
+    project_dir = tmp_path / "test-project"
+    project_dir.mkdir()
+
+    answers_file = project_dir / ".copier-answers.yml"
+    answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
+
+    result = cli_runner.invoke(cli_app, ["update", str(project_dir)], input="")
+
+    assert result.exit_code == 1
+    if result.output:
+        output_lower = result.output.lower()
+        assert "not a git repository" in output_lower or "error" in output_lower
+
+
 def test_update_command_missing_answers_file(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test update command with missing .copier-answers.yml file."""
     project_dir = _make_project_dir(tmp_path)
@@ -523,8 +539,7 @@ def test_update_command_runtime_error(tmp_path: Path, cli_runner: CliRunner, cli
 
     This test verifies RuntimeError handling (lines 236-245).
     """
-    project_dir = tmp_path / "test-project"
-    project_dir.mkdir()
+    project_dir = _make_project_dir(tmp_path)
 
     answers_file = project_dir / ".copier-answers.yml"
     answers_file.write_text(yaml.dump(_answers_with_copier_metadata()))
