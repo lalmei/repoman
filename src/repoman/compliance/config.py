@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
 from repoman.compliance.models import (
+    TIER_ORDER,
     ComplianceConfig,
     ComplianceConfigError,
     ControlOverride,
     ProfileSettings,
-    TIER_ORDER,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 VALID_STATUSES = {"met", "unmet", "unknown", "waived"}
 

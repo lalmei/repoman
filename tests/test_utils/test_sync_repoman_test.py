@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 
-def _load_module():
+def _load_module() -> Any:
     script_path = Path(__file__).resolve().parents[2] / "scripts" / "sync_repoman_test.py"
     spec = importlib.util.spec_from_file_location("sync_repoman_test", script_path)
     assert spec is not None
@@ -26,7 +27,7 @@ def test_normalize_copier_answers_removes_only_volatile_keys(tmp_path: Path) -> 
         yaml.safe_dump(
             {
                 "_commit": "abc123",
-                "_src_path": "/tmp/workspace",
+                "_src_path": "/example/workspace",
                 "_vcs_ref": "mainline",
                 "_repoman_extensions": {"instances": []},
                 "project_name": "repoman-test",

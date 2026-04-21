@@ -72,7 +72,6 @@ def create(
     Use a preset, a typed subcommand (cli, docs, library, fastapi), or an answers file.
 
     Examples:
-
         repoman create -pn my-app --preset cli
         repoman create -pn my-app --preset fastapi -o ~/projects
         repoman create cli cli my-app

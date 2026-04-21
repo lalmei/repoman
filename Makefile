@@ -9,6 +9,8 @@ cache.dir := $(shell find . -type d -name __pycache__)
 checkpoint.dir := $(shell find . -type d -name .ipynb_checkpoints)
 mypy.cache.dir := $(shell find . -type d -name ".mypy_cache")
 pytest.cache.dir := $(shell find . -type d -name ".pytest_cache" )
+docs.coverage.dir := docs/htmlcov
+docs.coverage.index := $(docs.coverage.dir)/index.html
 
 
 # notebooks := $(shell find ./notebooks -type f -name "*.ipynb" || :)
@@ -24,7 +26,7 @@ docker.image.deploy := repoman:$(version)
 
 
 
-.PHONY: help
+.PHONY: help ensure-docs-coverage-report
 help: ## Print the help screen.
 	@echo "$(subdirs)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":|:[[:space:]].*?##"}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -95,6 +97,8 @@ check-types: ## Type check code using mypy
 
 type-check: check-types ## Alias for check-types
 
+check-quality: format-check lint ## Run formatting and linting checks
+
 check: format-check lint check-types ## Run all quality checks (format-check, lint, check-types)
 
 #######################
@@ -106,21 +110,41 @@ compliance-check: ## Run repoman's own baseline compliance readiness check
 #######################
 #   Documentation     #
 #######################
+ensure-docs-coverage-report:
+	@mkdir -p $(docs.coverage.dir)
+	@if [ ! -f "$(docs.coverage.index)" ]; then \
+		printf '%s\n' \
+			'<!doctype html>' \
+			'<html lang="en">' \
+			'<head>' \
+			'  <meta charset="utf-8">' \
+			'  <title>Coverage report unavailable</title>' \
+			'</head>' \
+			'<body>' \
+			'  <h1>Coverage report unavailable</h1>' \
+			'  <p>Run <code>make test-coverage</code> to generate docs/htmlcov for the documentation site.</p>' \
+			'</body>' \
+			'</html>' \
+			> "$(docs.coverage.index)"; \
+	fi
+
 docs-trees: ## Regenerate tree blocks in documentation
 	uv run python scripts/gen_tree_docs.py
 
-docs: ## Build documentation
+docs: ensure-docs-coverage-report ## Build documentation
 	uv run mkdocs build --config-file=config/mkdocs.yml
 
-docs-serve: ## Serve documentation locally
+docs-serve: ensure-docs-coverage-report ## Serve documentation locally
 	uv run mkdocs serve --config-file=config/mkdocs.yml
 
-docs-serve-open: ## Serve documentation and open in default browser
+docs-serve-open: ensure-docs-coverage-report ## Serve documentation and open in default browser
 	@(sleep 2 && uv run python -m webbrowser "http://127.0.0.1:8000") &
 	uv run mkdocs serve --config-file=config/mkdocs.yml
 
-docs-check: ## Check documentation for issues
+docs-check: ensure-docs-coverage-report ## Check documentation for issues
 	uv run mkdocs build --config-file=config/mkdocs.yml --strict
+
+check-docs: docs-check ## Alias for docs-check
 
 update-instantiated-template-coverage: ## Update instantiated template coverage %% in docs/development/testing.md
 	uv run python scripts/update_instantiated_template_coverage.py
@@ -128,6 +152,14 @@ update-instantiated-template-coverage: ## Update instantiated template coverage 
 #######################
 #      Setup          #
 #######################
+setup: ## Install dependencies using uv
+	uv sync
+
+install: setup ## Alias for setup
+
+sync: ## Sync dependencies
+	uv sync
+
 setup-cursor: ## Copy cursor configuration from config/cursor to .cursor
 	@mkdir -p .cursor
 	@cp -r config/cursor/* .cursor/

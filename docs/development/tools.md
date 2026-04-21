@@ -47,6 +47,11 @@ The project includes a comprehensive Makefile that automates common development 
 Run `make help` for the authoritative list. Summary:
 
 ```bash
+# Setup
+make setup                   # Install dependencies with uv
+make install                 # Alias for setup
+make sync                    # Sync dependencies with uv
+
 # Testing
 make test                    # Run all tests
 make test-coverage           # Run tests with coverage report
@@ -65,15 +70,17 @@ make format-check            # Check if code is formatted correctly
 make fix                     # Auto-fix linting issues
 make check-types             # Type check (mypy)
 make type-check              # Alias for check-types
+make check-quality           # Run formatting and linting checks
 make check                   # Run all quality checks (format-check, lint, check-types)
 
 # Compliance
 make compliance-check        # Run repoman against this repository's own compliance baseline
 
 # Documentation
-make docs                    # Build documentation
+make docs                    # Build documentation (uses a placeholder coverage page if needed)
 make docs-serve              # Serve documentation locally (e.g. http://localhost:8000)
 make docs-check              # Check documentation for issues (strict build)
+make check-docs              # Alias for docs-check
 
 # Other
 make clean                   # Clean cache and build files

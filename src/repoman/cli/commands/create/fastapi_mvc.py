@@ -41,7 +41,6 @@ def fastapi(
     """Create a FastAPI server project with no dataset modules.
 
     Examples:
-
         repoman create fastapi fastapi my-api
     """
     current_file = Path(__file__)

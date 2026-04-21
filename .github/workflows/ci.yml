@@ -3,7 +3,7 @@ name: ci
 on:
   pull_request:
     branches:
-    - main
+    - mainline
 
 
 defaults:
@@ -43,14 +43,8 @@ jobs:
     - name: Install dependencies
       run: make setup
 
-    - name: Check the code quality
-      run: make check-quality
-
-    - name: Check if the code is correctly typed
-      run: make check-types
-
-    - name: Check for breaking changes in the API
-      run: make check-api
+    - name: Check the project quality
+      run: make check
 
     - name: Store objects inventory for tests
       uses: actions/upload-artifact@v4
@@ -102,7 +96,9 @@ jobs:
       uses: astral-sh/setup-uv@v5
       with:
         enable-cache: true
-        cache-dependency-glob: pyproject.toml
+        cache-dependency-glob: |
+          pyproject.toml
+          uv.lock
         cache-suffix: ${{ matrix.resolution }}
 
     - name: Install dependencies
@@ -110,11 +106,6 @@ jobs:
         UV_RESOLUTION: ${{ matrix.resolution }}
       run: make setup
 
-    - name: Download objects inventory
-      uses: actions/download-artifact@v4
-      with:
-        name: objects.inv
-        path: site/
 
     - name: Run the test suite
       run: make test
