@@ -53,6 +53,14 @@ def test_hotspots_command_registered(cli_runner: CliRunner, cli_app: Typer) -> N
     assert "hotspots" in result.output.lower(), "Command name should appear in help"
 
 
+def test_inspect_command_registered(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Test that the 'inspect' command is dynamically registered and can be invoked."""
+    result = cli_runner.invoke(cli_app, ["inspect", "--help"], input="")
+    assert result.exit_code == 0
+    assert "Usage:" in result.output
+    assert "inspect" in result.output.lower()
+
+
 def test_dynamic_command_discovery(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test that commands are discovered from modules in the cli directory."""
     # Test that an unknown command fails (proving command discovery is working)

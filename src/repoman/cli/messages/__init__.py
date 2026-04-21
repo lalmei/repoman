@@ -21,6 +21,7 @@ from repoman.cli.messages.dry_run import (
 )
 from repoman.cli.messages.error import error_panel
 from repoman.cli.messages.error_text import (
+    answers_file_must_live_in_project,
     answers_file_not_found,
     command_file_exists_use_force,
     copier_answers_not_found_for_update,
@@ -33,10 +34,13 @@ from repoman.cli.messages.error_text import (
     is_cannot_obtain_old_template_references_message,
     key_not_in_template,
     missing_python_package_import_name,
+    not_a_git_repository,
     output_dir_exists_use_force,
     output_path_not_file,
     project_dir_not_found,
     project_path_not_directory,
+    repair_requires_commit,
+    repair_requires_template_source,
     schema_not_found,
     schema_not_found_skipping_validation,
     template_dir_not_found,
@@ -45,6 +49,7 @@ from repoman.cli.messages.error_text import (
     template_path_not_file,
     test_file_exists_use_force,
     unknown_format,
+    update_modes_mutually_exclusive,
 )
 from repoman.cli.messages.success import (
     command_created,
@@ -56,6 +61,7 @@ from repoman.cli.messages.warning import warning_panel
 
 __all__ = [
     "answers_file_not_found",
+    "answers_file_must_live_in_project",
     "command_created",
     "command_file_exists_use_force",
     "copier_answers_not_found_for_update",
@@ -73,12 +79,15 @@ __all__ = [
     "is_cannot_obtain_old_template_references_message",
     "key_not_in_template",
     "missing_python_package_import_name",
+    "not_a_git_repository",
     "output_dir_exists_use_force",
     "output_path_not_file",
     "project_created",
     "project_dir_not_found",
     "project_path_not_directory",
     "project_updated",
+    "repair_requires_commit",
+    "repair_requires_template_source",
     "schema_not_found",
     "schema_not_found_skipping_validation",
     "supports_unicode_markdown",
@@ -88,5 +97,6 @@ __all__ = [
     "template_path_not_file",
     "test_file_exists_use_force",
     "unknown_format",
+    "update_modes_mutually_exclusive",
     "warning_panel",
 ]
