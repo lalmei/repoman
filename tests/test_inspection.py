@@ -21,6 +21,7 @@ def _write_answers(repo: Path, payload: dict[str, object]) -> Path:
 
 
 def test_inspect_repository_non_managed_repo(tmp_path: Path) -> None:
+    """Repositories without Copier answers should be reported as unmanaged."""
     repo = _make_repo(tmp_path)
 
     report = inspect_repository(repo)
@@ -33,6 +34,7 @@ def test_inspect_repository_non_managed_repo(tmp_path: Path) -> None:
 
 
 def test_inspect_repository_valid_managed_repo(tmp_path: Path) -> None:
+    """Managed repositories with complete metadata should be update-ready."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo,
@@ -60,6 +62,7 @@ def test_inspect_repository_valid_managed_repo(tmp_path: Path) -> None:
 
 
 def test_inspect_repository_missing_commit_blocks_update(tmp_path: Path) -> None:
+    """A missing Copier commit should block update readiness."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo,
@@ -77,6 +80,7 @@ def test_inspect_repository_missing_commit_blocks_update(tmp_path: Path) -> None
 
 
 def test_inspect_repository_blank_src_path_warns(tmp_path: Path) -> None:
+    """A blank template source should warn when a commit is still present."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo,
@@ -94,6 +98,7 @@ def test_inspect_repository_blank_src_path_warns(tmp_path: Path) -> None:
 
 
 def test_inspect_repository_invalid_yaml_is_fatal(tmp_path: Path) -> None:
+    """Malformed answers YAML should mark the inspection as fatal."""
     repo = _make_repo(tmp_path)
     answers_file = repo / ".copier-answers.yml"
     answers_file.write_text("_src_path: [", encoding="utf-8")
@@ -107,6 +112,7 @@ def test_inspect_repository_invalid_yaml_is_fatal(tmp_path: Path) -> None:
 
 
 def test_inspect_repository_manifest_parse_failure(tmp_path: Path) -> None:
+    """Invalid extension manifests should surface as fatal inspection errors."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo,
@@ -128,6 +134,7 @@ def test_inspect_repository_manifest_parse_failure(tmp_path: Path) -> None:
 
 
 def test_inspect_repository_extension_summary_extraction(tmp_path: Path) -> None:
+    """Active extensions should be reflected in the inspection summary."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo,

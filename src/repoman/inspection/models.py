@@ -17,6 +17,7 @@ class AnswersFileState:
     within_project: bool | None = None
 
     def to_dict(self) -> dict[str, object]:
+        """Return a JSON-safe representation of the answers file state."""
         return {
             "path": self.path,
             "exists": self.exists,
@@ -33,6 +34,7 @@ class TemplateMetadata:
     vcs_ref: str | None = None
 
     def to_dict(self) -> dict[str, object]:
+        """Return template metadata using the public inspect JSON shape."""
         return {
             "src_path": self.src_path,
             "commit": self.commit,
@@ -51,6 +53,7 @@ class FeatureFlags:
     cli_enabled: bool = False
 
     def to_dict(self) -> dict[str, object]:
+        """Return derived feature flags for inspect output."""
         return {
             "docs_only": self.docs_only,
             "fastapi_enabled": self.fastapi_enabled,
@@ -72,6 +75,7 @@ class ExtensionState:
     template_id: str
 
     def to_dict(self) -> dict[str, object]:
+        """Return the active extension summary as plain data."""
         return {
             "id": self.id,
             "type": self.type,
@@ -93,6 +97,7 @@ class ExtensionSummary:
     warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, object]:
+        """Return manifest-level extension state for inspect output."""
         return {
             "manifest_path": self.manifest_path,
             "exists": self.exists,
@@ -111,6 +116,7 @@ class UpdateReadiness:
     warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, object]:
+        """Return update readiness details as plain serializable data."""
         return {
             "ready": self.ready,
             "blockers": self.blockers,
@@ -133,6 +139,7 @@ class InspectionReport:
     fatal: bool = False
 
     def to_dict(self) -> dict[str, object]:
+        """Return the stable v1 inspect JSON contract."""
         return {
             "path": self.path,
             "managed": self.managed,

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -20,6 +19,9 @@ from repoman.inspection.models import (
     TemplateMetadata,
     UpdateReadiness,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class InspectionError(RuntimeError):

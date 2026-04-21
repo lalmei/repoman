@@ -30,6 +30,7 @@ def _all_output(result: object) -> str:
 
 
 def _captured_text(result: object, capsys: CaptureFixture[str]) -> str:
+    """Return command output from Typer result data or captured streams."""
     captured = _all_output(result)
     if captured:
         return captured
@@ -38,6 +39,7 @@ def _captured_text(result: object, capsys: CaptureFixture[str]) -> str:
 
 
 def test_inspect_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Inspect help should expose the public command options."""
     result = cli_runner.invoke(cli_app, ["inspect", "--help"], input="")
 
     assert result.exit_code == 0
@@ -49,6 +51,7 @@ def test_inspect_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
 def test_inspect_command_table_output(
     cli_runner: CliRunner, cli_app: Typer, tmp_path: Path, capsys: CaptureFixture[str]
 ) -> None:
+    """Table output should summarize readiness and enabled features."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo / ".copier-answers.yml",
@@ -72,6 +75,7 @@ def test_inspect_command_table_output(
 def test_inspect_command_json_contract(
     cli_runner: CliRunner, cli_app: Typer, tmp_path: Path, capsys: CaptureFixture[str]
 ) -> None:
+    """JSON output should match the documented v1 contract."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo / ".copier-answers.yml",
@@ -104,6 +108,7 @@ def test_inspect_command_json_contract(
 def test_inspect_command_answers_override(
     cli_runner: CliRunner, cli_app: Typer, tmp_path: Path, capsys: CaptureFixture[str]
 ) -> None:
+    """The explicit answers override should control the inspected file."""
     repo = _make_repo(tmp_path)
     custom_answers = repo / "custom-answers.yml"
     _write_answers(
@@ -135,6 +140,7 @@ def test_inspect_command_answers_override(
 
 
 def test_inspect_command_non_git_repo_fails(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Non-git directories should fail hard during inspection."""
     repo = tmp_path / "repo"
     repo.mkdir()
 
@@ -146,6 +152,7 @@ def test_inspect_command_non_git_repo_fails(cli_runner: CliRunner, cli_app: Type
 def test_inspect_command_missing_answers_exits_zero_with_warning(
     cli_runner: CliRunner, cli_app: Typer, tmp_path: Path, capsys: CaptureFixture[str]
 ) -> None:
+    """Missing answers should warn but still complete the inspection."""
     repo = _make_repo(tmp_path)
 
     result = cli_runner.invoke(cli_app, ["inspect", "--path", str(repo), "--format", "json"], input="")
@@ -159,6 +166,7 @@ def test_inspect_command_missing_answers_exits_zero_with_warning(
 def test_inspect_command_invalid_yaml_exits_one(
     cli_runner: CliRunner, cli_app: Typer, tmp_path: Path, capsys: CaptureFixture[str]
 ) -> None:
+    """Invalid answers YAML should surface as a fatal inspection error."""
     repo = _make_repo(tmp_path)
     (repo / ".copier-answers.yml").write_text("_src_path: [", encoding="utf-8")
 
