@@ -158,8 +158,8 @@ class TestGetDebugInfo:
         """Test get_debug_info skips distributions whose metadata Name is None (_version line 118)."""
         real_dists = list(metadata.distributions())
         mock_meta = MagicMock()
-        mock_meta.get.side_effect = (
-            lambda k, default=None: None if k == "Name" else ("1.0.0" if k == "Version" else default)
+        mock_meta.get.side_effect = lambda k, default=None: (
+            None if k == "Name" else ("1.0.0" if k == "Version" else default)
         )
         mock_dist = MagicMock(spec=Distribution)
         mock_dist.metadata = mock_meta

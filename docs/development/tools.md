@@ -77,7 +77,7 @@ make check                   # Run all quality checks (format-check, lint, check
 make compliance-check        # Run repoman against this repository's own compliance baseline
 
 # Documentation
-make docs                    # Build documentation
+make docs                    # Build documentation (uses a placeholder coverage page if needed)
 make docs-serve              # Serve documentation locally (e.g. http://localhost:8000)
 make docs-check              # Check documentation for issues (strict build)
 make check-docs              # Alias for docs-check

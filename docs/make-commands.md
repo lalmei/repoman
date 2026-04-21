@@ -45,10 +45,10 @@ The following sections group targets by purpose.
 
 | Target | Description |
 |--------|-------------|
-| `make docs` | Build documentation (include the [coverage report](coverage.md) by running `make test-coverage` first) |
+| `make docs` | Build documentation (uses a placeholder coverage page until you run `make test-coverage`) |
 | `make docs-serve` | Serve documentation locally (e.g. http://localhost:8000) |
 | `make docs-serve-open` | Serve documentation and open in the default browser |
-| `make docs-check` | Check documentation for issues (strict build) |
+| `make docs-check` | Check documentation for issues (strict build, with a placeholder coverage page if needed) |
 | `make check-docs` | Alias for `make docs-check` |
 
 ## Other
