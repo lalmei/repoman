@@ -10,11 +10,11 @@ import yaml
 from copier.errors import CopierError
 
 from repoman.copier.extension_lifecycle import (
-    MIRROR_KEY,
     EXTENSION_TYPE_COMMAND,
-    ExtensionManifest,
+    MIRROR_KEY,
     ExtensionInstance,
     ExtensionLifecycleError,
+    ExtensionManifest,
     _create_extension_instance,
     _ensure_no_conflicting_instance,
     _run_copy_or_raise,
@@ -293,9 +293,11 @@ def test_upsert_and_conflict_detection_cover_replace_duplicate_and_singleton_rul
 
 def test_run_copy_or_raise_wraps_copier_errors() -> None:
     """Translate Copier errors into lifecycle errors."""
-    with patch("repoman.copier.extension_lifecycle.Worker", side_effect=CopierError("boom")):
-        with pytest.raises(ExtensionLifecycleError, match="boom"):
-            _run_copy_or_raise({"src_path": "/tmp/template"})
+    with (
+        patch("repoman.copier.extension_lifecycle.Worker", side_effect=CopierError("boom")),
+        pytest.raises(ExtensionLifecycleError, match="boom"),
+    ):
+        _run_copy_or_raise({"src_path": "template"})
 
 
 def test_create_command_extension_rejects_missing_package_name(tmp_path: Path) -> None:
@@ -422,16 +424,18 @@ def test_sync_extensions_rejects_missing_template_answers_and_worker_failures(tm
     answers_path.parent.mkdir(parents=True, exist_ok=True)
     answers_path.write_text("_src_path: test\n", encoding="utf-8")
 
-    with patch("repoman.copier.extension_lifecycle._command_template_dir", return_value=tmp_path / "missing-template"):
-        with pytest.raises(ExtensionLifecycleError, match="Extension template not found"):
-            sync_extensions(
-                project_dir=tmp_path,
-                force=False,
-                conflict="inline",
-                dry_run=False,
-                extension_type=None,
-                extension_name=None,
-            )
+    with (
+        patch("repoman.copier.extension_lifecycle._command_template_dir", return_value=tmp_path / "missing-template"),
+        pytest.raises(ExtensionLifecycleError, match="Extension template not found"),
+    ):
+        sync_extensions(
+            project_dir=tmp_path,
+            force=False,
+            conflict="inline",
+            dry_run=False,
+            extension_type=None,
+            extension_name=None,
+        )
 
     answers_path.unlink()
     with pytest.raises(ExtensionLifecycleError, match="answers file is missing"):
@@ -445,13 +449,15 @@ def test_sync_extensions_rejects_missing_template_answers_and_worker_failures(tm
         )
 
     answers_path.write_text("_src_path: test\n", encoding="utf-8")
-    with patch("repoman.copier.extension_lifecycle.Worker", side_effect=CopierError("boom")):
-        with pytest.raises(ExtensionLifecycleError, match="boom"):
-            sync_extensions(
-                project_dir=tmp_path,
-                force=False,
-                conflict="inline",
-                dry_run=False,
-                extension_type=None,
-                extension_name=None,
-            )
+    with (
+        patch("repoman.copier.extension_lifecycle.Worker", side_effect=CopierError("boom")),
+        pytest.raises(ExtensionLifecycleError, match="boom"),
+    ):
+        sync_extensions(
+            project_dir=tmp_path,
+            force=False,
+            conflict="inline",
+            dry_run=False,
+            extension_type=None,
+            extension_name=None,
+        )

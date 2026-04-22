@@ -192,15 +192,20 @@ def test_inspect_command_invalid_yaml_exits_one(
 
 def test_bool_text_and_print_table_cover_optional_panels() -> None:
     """Render blockers and warnings panels and keep None values readable."""
+    repo_path = "repo"
+    answers_path = "repo/.copier-answers.yml"
+    manifest_path = "repo/.repoman/extensions.yml"
+    enabled = True
+    disabled = False
     console = Console(record=True)
     report = InspectionReport(
-        path="/tmp/repo",
+        path=repo_path,
         managed=True,
         status="warning",
-        answers_file=AnswersFileState(path="/tmp/repo/.copier-answers.yml", exists=True, within_project=None),
+        answers_file=AnswersFileState(path=answers_path, exists=True, within_project=None),
         template=TemplateMetadata(),
         features=FeatureFlags(),
-        extensions=ExtensionSummary(manifest_path="/tmp/repo/.repoman/extensions.yml", exists=False),
+        extensions=ExtensionSummary(manifest_path=manifest_path, exists=False),
         update_readiness=UpdateReadiness(
             ready=False,
             blockers=["Missing answers"],
@@ -212,22 +217,25 @@ def test_bool_text_and_print_table_cover_optional_panels() -> None:
     rendered = console.export_text()
 
     assert _bool_text(None) == "-"
-    assert _bool_text(True) == "yes"
-    assert _bool_text(False) == "no"
+    assert _bool_text(enabled) == "yes"
+    assert _bool_text(disabled) == "no"
     assert "Blockers" in rendered
     assert "Warnings" in rendered
 
 
 def test_print_table_returns_for_non_printing_console() -> None:
     """Ignore console-like objects that do not provide a print method."""
+    repo_path = "repo"
+    answers_path = "repo/.copier-answers.yml"
+    manifest_path = "repo/.repoman/extensions.yml"
     report = InspectionReport(
-        path="/tmp/repo",
+        path=repo_path,
         managed=False,
         status="ok",
-        answers_file=AnswersFileState(path="/tmp/repo/.copier-answers.yml", exists=False),
+        answers_file=AnswersFileState(path=answers_path, exists=False),
         template=TemplateMetadata(),
         features=FeatureFlags(),
-        extensions=ExtensionSummary(manifest_path="/tmp/repo/.repoman/extensions.yml", exists=False),
+        extensions=ExtensionSummary(manifest_path=manifest_path, exists=False),
         update_readiness=UpdateReadiness(ready=True),
     )
 
