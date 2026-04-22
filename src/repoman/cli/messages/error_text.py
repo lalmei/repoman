@@ -65,6 +65,11 @@ def project_path_not_directory(path: Path | str) -> str:
     return f"Project path is not a directory: {path}"
 
 
+def not_a_git_repository(path: Path | str) -> str:
+    """Return message when the target path is not a git repository."""
+    return f"Not a git repository (no .git directory): {path}"
+
+
 def output_path_not_file(path: Path | str) -> str:
     """Return message when output path is not a file. For error_panel.
 
@@ -138,6 +143,11 @@ def invalid_conflict_mode(conflict: str) -> str:
     return f"Invalid conflict mode: {conflict}. Must be 'inline' or 'rej'."
 
 
+def update_modes_mutually_exclusive() -> str:
+    """Return message when mutually exclusive update modes are combined."""
+    return "Options --plan, --dry-run, and --repair are mutually exclusive."
+
+
 def copier_answers_not_found_for_update(path: Path | str) -> str:
     """Return message when .copier-answers.yml is missing for update. For error_panel.
 
@@ -157,6 +167,11 @@ def copier_answers_not_found_for_update(path: Path | str) -> str:
         "Make sure you're in a repoman-generated project directory,\n"
         "or specify the answers file with --answers."
     )
+
+
+def answers_file_must_live_in_project(path: Path | str) -> str:
+    """Return message when the answers file is outside the project directory."""
+    return f"Answers file must be inside the project directory for Copier update (got {path})."
 
 
 def copier_answers_not_found_with_hint(e: BaseException | str) -> str:
@@ -314,6 +329,16 @@ def copier_update_missing_commit_remediation(
     if preceding_error:
         return f"{preceding_error.rstrip()}\n\n{fix}"
     return fix
+
+
+def repair_requires_commit() -> str:
+    """Return message when repair mode is missing --commit."""
+    return "Repair mode requires --commit."
+
+
+def repair_requires_template_source() -> str:
+    """Return message when repair mode has neither existing nor explicit template source."""
+    return "Repair mode needs an existing `_src_path` or an explicit --template value."
 
 
 def copier_commit_missing_validate_warning() -> str:

@@ -14,12 +14,13 @@ from tests.conftest import strip_ansi_codes
 def test_hotspots_command_help(cli_runner: CliRunner) -> None:
     """Test hotspots command help."""
     result = cli_runner.invoke(cli, ["hotspots", "--help"], input="")
+    plain = strip_ansi_codes(result.output)
 
     assert result.exit_code == 0
-    assert "Usage:" in result.output
-    assert "hotspots" in result.output.lower()
-    assert "--limit" in result.output or "-n" in result.output
-    assert "--format" in result.output or "-f" in result.output
+    assert "Usage:" in plain
+    assert "hotspots" in plain.lower()
+    assert "--limit" in plain or "-n" in plain
+    assert "--format" in plain or "-f" in plain
 
 
 def test_hotspots_command_registered(cli_runner: CliRunner) -> None:

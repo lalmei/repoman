@@ -19,6 +19,13 @@ repoman update <project_dir>
 
 Example: from the repo root, `repoman update ./my-project`. Repoman (and Copier) read `.copier-answers.yml` from `<project_dir>` and re-run the template against that directory.
 
+Before updating, you can inspect the repository or preview the update plan:
+
+```bash
+repoman inspect --path ./my-project
+repoman update ./my-project --plan
+```
+
 ## How answers are reused
 
 - The **answers file** is by default `<project_dir>/.copier-answers.yml`. It was created when you first ran `repoman create` (or a previous update).
@@ -33,7 +40,10 @@ Example: from the repo root, `repoman update ./my-project`. Repoman (and Copier)
 | `--vcs-ref`, `-r`  | Git ref or tag to use for the template (e.g. a specific version).                    |
 | `--answers`, `-a`  | Path to `.copier-answers.yml` (default: `<project_dir>/.copier-answers.yml`).        |
 | `--force`, `-f`    | Overwrite without asking.                                                            |
+| `--plan`           | Show an update plan and blockers without writing files.                             |
 | `--dry-run`        | Show what would be updated without writing files.                                    |
+| `--repair`         | Repair Copier metadata in the answers file instead of running update.                |
+| `--commit`         | Commit value to write when using `--repair`.                                         |
 | `--conflict`       | Conflict resolution: `inline` or `rej` (default: inline).                            |
 | `--skip-extensions`| Skip syncing Copier-managed extensions after the base template update.                |
 
@@ -44,7 +54,7 @@ If you have edited generated files and the template has changed, Copier may repo
 - **`inline`** — Conflict markers are written in the file; resolve them by hand.
 - **`rej`** — Reject files (e.g. `.rej` files) are written; apply or discard changes as needed.
 
-Use `--dry-run` to see what would be updated before applying. For more help, see [Troubleshooting](../reference/troubleshooting.md) and the [CLI reference](../cli.md).
+Use `--plan` to see blockers and intended update inputs, or `--dry-run` to preview Copier options without applying changes. For more help, see [Troubleshooting](../reference/troubleshooting.md) and the [CLI reference](../cli.md).
 
 ## Copier update metadata
 
@@ -61,6 +71,15 @@ Common ways this happens:
 - The file was **not produced by a full Copier copy** (e.g. partially checked in).
 
 ### Repairing a missing `_commit`
+
+You can repair the metadata directly through repoman:
+
+```bash
+repoman update ./my-project --repair --commit v1.2.3
+repoman update ./my-project --repair --template /path/to/repoman --commit v1.2.3
+```
+
+`--repair` updates only the answers file. It does **not** run Copier or sync extensions.
 
 1. Identify the **template** your project points to: the `_src_path` value in `.copier-answers.yml` (or use `repoman update --template /path/to/checkout` to aim at a local clone while fixing things).
 2. Use a checkout whose **Git root** matches how Copier tracks the template. For repoman itself, the template is configured under `src/repoman/` in the repo (see [The template](../template.md)); `_src_path` should usually refer to a **repository root** that contains `src/repoman/copier.yml`, not only a lone subdirectory such as `main_template/`, so Git metadata and tags resolve correctly.

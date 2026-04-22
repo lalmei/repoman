@@ -18,6 +18,14 @@ from repoman.utils.logging import (
 )
 
 
+def _close_rotating_handlers(logger: Logger) -> None:
+    """Close and detach rotating file handlers for Windows-safe temp cleanup."""
+    for handler in logger.handlers[:]:
+        if handler.get_name() == "rotating_file_handler":
+            handler.close()
+            logger.removeHandler(handler)
+
+
 @pytest.fixture
 def temp_log_dir(tmp_path: Path) -> Any:
     """Provide a temporary directory for log files with automatic cleanup.
@@ -434,19 +442,18 @@ class TestLoggingErrorHandling:
 
             # Test with empty string path - should work (empty string is valid)
             with tempfile.TemporaryDirectory() as temp_dir:
-                log_file = Path(temp_dir) / "test.log"
-                logger = _attach_rotating_file_handler(logger, str(log_file))
-                assert isinstance(logger, Logger)
+                try:
+                    log_file = Path(temp_dir) / "test.log"
+                    logger = _attach_rotating_file_handler(logger, str(log_file))
+                    assert isinstance(logger, Logger)
+                finally:
+                    _close_rotating_handlers(logger)
 
             # Test with invalid path type - should raise TypeError from Python's logging module
             with pytest.raises(TypeError):
                 _attach_rotating_file_handler(logger, 123)
         finally:
-            # Clean up rotating file handlers to prevent resource warnings
-            for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
-                if handler.get_name() == "rotating_file_handler":
-                    handler.close()
-                    logger.removeHandler(handler)
+            _close_rotating_handlers(logger)
 
     def test_attach_rotating_file_handler_with_invalid_settings(self, temp_log_dir: Any) -> None:
         """Test rotating file handler with invalid settings."""
@@ -467,11 +474,7 @@ class TestLoggingErrorHandling:
             logger = _attach_rotating_file_handler(logger, str(log_file), maximum_log_file_size_mb=0)
             assert isinstance(logger, Logger)
         finally:
-            # Clean up rotating file handlers to prevent resource warnings
-            for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
-                if handler.get_name() == "rotating_file_handler":
-                    handler.close()
-                    logger.removeHandler(handler)
+            _close_rotating_handlers(logger)
 
     def test_get_logger_console_with_invalid_parameters(self) -> None:
         """Test get_logger_console with invalid parameters."""
@@ -531,6 +534,7 @@ class TestLoggingErrorHandling:
                 # Permission error is acceptable in this scenario
                 pass
             finally:
+                _close_rotating_handlers(logger)
                 # Restore permissions for cleanup
                 os.chmod(temp_dir, 0o755)  # noqa: S103 - Test cleanup: restore permissions after test
 
@@ -556,11 +560,7 @@ class TestLoggingErrorHandling:
             finally:
                 # Clean up large file
                 large_file.unlink(missing_ok=True)
-                # Clean up rotating file handlers to prevent resource warnings
-                for handler in logger.handlers[:]:  # Copy list to avoid modification during iteration
-                    if handler.get_name() == "rotating_file_handler":
-                        handler.close()
-                        logger.removeHandler(handler)
+                _close_rotating_handlers(logger)
 
     def test_logging_with_concurrent_access(self) -> None:
         """Test logging behavior with concurrent access scenarios."""

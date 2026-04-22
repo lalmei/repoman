@@ -35,6 +35,32 @@ These options apply to the main `repoman` command and can be used with any subco
 
 ## Commands
 
+### inspect
+
+Inspect a git repository and report whether it looks repoman-managed and ready for `repoman update`.
+
+```bash
+repoman inspect [OPTIONS]
+```
+
+**Options**
+
+| Option       | Short | Description                                                    |
+| ------------ | ----- | -------------------------------------------------------------- |
+| `--path`     | `-p`  | Path to the git repository (default: current directory)        |
+| `--answers`  | `-a`  | Override path to the answers file                              |
+| `--format`   | `-f`  | Output format: `table` (default) or `json`                     |
+| `--no-header`|       | Hide column headers for terminal output                        |
+
+**Examples**
+
+```bash
+repoman inspect
+repoman inspect --path ./my-project
+repoman inspect --path ./my-project --format json
+repoman inspect --path ./my-project --answers ./my-project/custom-answers.yml
+```
+
 ### create
 
 Create a new Python project using the repoman template. For the default (interactive or answers-based) flow, use options; project name is passed with `--project_name` / `-pn`. Alternatively, use a subcommand (e.g. `create cli`) and pass the project name as a positional argument.
@@ -108,7 +134,10 @@ repoman update PROJECT_DIR [OPTIONS]
 | `--vcs-ref`  | `-r`  | Git ref/tag to update to (defaults to latest)                               |
 | `--answers`  | `-a`  | Path to `.copier-answers.yml` (defaults to project_dir/.copier-answers.yml) |
 | `--force`    | `-f`  | Force overwrite without asking                                              |
+| `--plan`     |       | Show an update plan and blockers without writing files                      |
 | `--dry-run`  |       | Show what would be updated without making changes                           |
+| `--repair`   |       | Repair Copier metadata in the answers file instead of running update        |
+| `--commit`   |       | Commit value to write when using `--repair`                                 |
 | `--conflict` |       | Conflict resolution: `inline` or `rej` (default: inline)                    |
 | `--skip-extensions` | | Skip syncing Copier-managed extensions after the base update               |
 
@@ -116,7 +145,9 @@ repoman update PROJECT_DIR [OPTIONS]
 
 ```bash
 repoman update ./my-project
+repoman update ./my-project --plan
 repoman update /path/to/my-project --vcs-ref v1.0 --dry-run
+repoman update ./my-project --repair --commit v1.2.3
 ```
 
 ### config

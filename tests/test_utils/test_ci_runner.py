@@ -1,8 +1,10 @@
 """Unit tests for ci_runner utility functions."""
 
+import io
 import subprocess
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -116,3 +118,29 @@ def test_run_make_command_streams_output(tmp_path: Path, capsys: Any) -> None:
     # Output should also be visible in pytest output (captured by capsys)
     captured = capsys.readouterr()
     assert "streamed output" in captured.out or "streamed output" in result.stdout
+
+
+def test_run_make_command_waits_for_returncode_when_streams_finish_first(tmp_path: Path) -> None:
+    """Ensure the process is reaped even if stdout/stderr finish before poll() updates returncode."""
+
+    class FakeProcess:
+        def __init__(self) -> None:
+            self.stdout = io.StringIO("stdout message\n")
+            self.stderr = io.StringIO("")
+            self.returncode: int | None = None
+
+        def poll(self) -> int | None:
+            return self.returncode
+
+        def wait(self, _timeout: float | None = None) -> int:
+            self.returncode = 0
+            return 0
+
+        def kill(self) -> None:
+            self.returncode = -9
+
+    with patch("tests.ci_runner.subprocess.Popen", return_value=FakeProcess()):
+        result = run_make_command(tmp_path, "test-target")
+
+    assert result.returncode == 0
+    assert "stdout message" in result.stdout

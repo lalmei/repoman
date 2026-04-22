@@ -110,6 +110,7 @@ def get_debug_info() -> Environment:
         Environment information.
     """
     py_name, py_version = _interpreter_name_version()
+    repoman_prefix = "REPOMAN"
 
     # Get all installed packages with their dependencies
     try:
@@ -131,7 +132,7 @@ def get_debug_info() -> Environment:
 
     variables = [
         "PYTHONPATH",
-        *[var for var in os.environ if var.startswith("REPOMAN")],
+        *[var for var in os.environ if var.upper().startswith(repoman_prefix)],
     ]
     return Environment(
         interpreter_name=py_name,

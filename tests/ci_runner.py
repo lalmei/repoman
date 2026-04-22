@@ -251,7 +251,12 @@ def run_make_command(
 
         stdout = "".join(stdout_lines)
         stderr = "".join(stderr_lines)
-        returncode = process.returncode
+        if timeout:
+            elapsed = time.time() - start_time
+            remaining_timeout = max(timeout - elapsed, 0)
+            returncode = process.wait(timeout=remaining_timeout)
+        else:
+            returncode = process.wait()
 
         logger.debug(f"Command completed with return code {returncode}")
 
