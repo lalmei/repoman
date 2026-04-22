@@ -102,9 +102,10 @@ def get_debug_info() -> Environment:
     """
     py_name, py_version = _interpreter_name_version()
     packages = ["{{python_package_import_name}}"]
+    package_prefix = "{{python_package_import_name}}".upper()
     variables = [
         "PYTHONPATH",
-        *[var for var in os.environ if var.startswith("{{python_package_import_name}}")],
+        *[var for var in os.environ if var.upper().startswith(package_prefix)],
     ]
     return Environment(
         interpreter_name=py_name,

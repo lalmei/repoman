@@ -134,7 +134,7 @@ class TestGetDebugInfo:
     def test_get_debug_info_with_environment_variables(self) -> None:
         """Test get_debug_info with environment variables."""
         result = get_debug_info()
-        variable_names = [var.name for var in result.variables]
+        variable_names = {var.name.upper() for var in result.variables}
         assert "PYTHONPATH" in variable_names
         assert "REPOMAN_DEBUG" in variable_names
 
