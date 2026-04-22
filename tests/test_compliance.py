@@ -432,9 +432,7 @@ def test_analyze_compliance_skips_disabled_profiles_and_respects_include_exclude
         ),
     ],
 )
-def test_analyze_compliance_rejects_invalid_profile_configuration(
-    tmp_path: Path, content: str, match: str
-) -> None:
+def test_analyze_compliance_rejects_invalid_profile_configuration(tmp_path: Path, content: str, match: str) -> None:
     """Fail fast on bad profile ids and invalid include/exclude control ids."""
     repo = _make_repo(tmp_path)
     (repo / "compliance.yml").write_text(content, encoding="utf-8")
