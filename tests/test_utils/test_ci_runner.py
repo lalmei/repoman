@@ -132,7 +132,7 @@ def test_run_make_command_waits_for_returncode_when_streams_finish_first(tmp_pat
         def poll(self) -> int | None:
             return self.returncode
 
-        def wait(self, timeout: float | None = None) -> int:
+        def wait(self, _timeout: float | None = None) -> int:
             self.returncode = 0
             return 0
 
