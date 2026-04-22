@@ -10,18 +10,21 @@ from typer import Typer
 from typer.testing import CliRunner
 
 from repoman.copier.extension_lifecycle import ExtensionLifecycleError
+from tests.conftest import strip_ansi_codes
 
 
 def test_extensions_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     result = cli_runner.invoke(cli_app, ["extensions", "--help"], input="")
+    plain = strip_ansi_codes(result.output)
     assert result.exit_code == 0
-    assert "sync" in result.output.lower()
+    assert "sync" in plain.lower()
 
 
 def test_extensions_sync_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     result = cli_runner.invoke(cli_app, ["extensions", "sync", "--help"], input="")
+    plain = strip_ansi_codes(result.output)
     assert result.exit_code == 0
-    assert "--type" in result.output
+    assert "--type" in plain
 
 
 def test_extensions_sync_missing_project(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:

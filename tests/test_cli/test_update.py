@@ -53,14 +53,15 @@ def _captured_text(result: object, capsys: CaptureFixture[str]) -> str:
 def test_update_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test update command help."""
     result = cli_runner.invoke(cli_app, ["update", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
 
     assert result.exit_code == 0
-    assert "Usage:" in result.output
-    assert "update" in result.output.lower()
-    assert "PROJECT_DIR" in result.output or "project_dir" in result.output
-    assert "--plan" in result.output
-    assert "--repair" in result.output
-    assert "--commit" in result.output
+    assert "Usage:" in plain
+    assert "update" in plain.lower()
+    assert "PROJECT_DIR" in plain or "project_dir" in plain
+    assert "--plan" in plain
+    assert "--repair" in plain
+    assert "--commit" in plain
 
 
 def test_update_command_dry_run(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:

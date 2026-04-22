@@ -41,11 +41,12 @@ def _captured_text(result: object, capsys: CaptureFixture[str]) -> str:
 def test_inspect_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Inspect help should expose the public command options."""
     result = cli_runner.invoke(cli_app, ["inspect", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
 
     assert result.exit_code == 0
-    assert "inspect" in result.output.lower()
-    assert "--format" in result.output
-    assert "--answers" in result.output
+    assert "inspect" in plain.lower()
+    assert "--format" in plain
+    assert "--answers" in plain
 
 
 def test_inspect_command_table_output(

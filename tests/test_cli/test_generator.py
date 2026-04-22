@@ -10,6 +10,7 @@ from typer import Typer
 from typer.testing import CliRunner
 
 from repoman.copier.extension_lifecycle import ExtensionLifecycleError
+from tests.conftest import strip_ansi_codes
 
 
 def _create_project(tmp_path: Path, package_name: str = "test_package") -> Path:
@@ -30,18 +31,20 @@ def _create_project(tmp_path: Path, package_name: str = "test_package") -> Path:
 
 def test_generator_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     result = cli_runner.invoke(cli_app, ["generator", "--help"], input="")
+    plain = strip_ansi_codes(result.output)
 
     assert result.exit_code == 0
-    assert "Usage:" in result.output
-    assert "generator" in result.output.lower()
+    assert "Usage:" in plain
+    assert "generator" in plain.lower()
 
 
 def test_generator_add_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     result = cli_runner.invoke(cli_app, ["generator", "add", "--help"], input="")
+    plain = strip_ansi_codes(result.output)
 
     assert result.exit_code == 0
-    assert "COMMAND_NAME" in result.output or "command_name" in result.output
-    assert "--project-dir" in result.output
+    assert "COMMAND_NAME" in plain or "command_name" in plain
+    assert "--project-dir" in plain
 
 
 def test_generator_add_invalid_name(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:

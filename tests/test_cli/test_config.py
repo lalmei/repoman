@@ -27,26 +27,28 @@ def _all_output(result: object) -> str:
 def test_config_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test repoman config --help shows parent help and lists subcommands."""
     result = cli_runner.invoke(cli_app, ["config", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
     assert result.exit_code == 0
-    assert "Usage:" in result.output
-    assert "config" in result.output.lower()
-    assert "init" in result.output.lower()
-    assert "path" in result.output.lower()
-    assert "validate" in result.output.lower()
-    assert "show" in result.output.lower()
-    assert "list-keys" in result.output.lower()
-    assert "Manage repoman" in result.output or "configuration" in result.output.lower()
+    assert "Usage:" in plain
+    assert "config" in plain.lower()
+    assert "init" in plain.lower()
+    assert "path" in plain.lower()
+    assert "validate" in plain.lower()
+    assert "show" in plain.lower()
+    assert "list-keys" in plain.lower()
+    assert "Manage repoman" in plain or "configuration" in plain.lower()
 
 
 def test_config_init_command_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test repoman config init --help shows init options."""
     result = cli_runner.invoke(cli_app, ["config", "init", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
     assert result.exit_code == 0
-    assert "Usage:" in result.output
-    assert "init" in result.output.lower()
-    assert "--output" in result.output or "-o" in result.output
-    assert "--force" in result.output or "-f" in result.output
-    assert ".copier-answers.yml" in result.output
+    assert "Usage:" in plain
+    assert "init" in plain.lower()
+    assert "--output" in plain or "-o" in plain
+    assert "--force" in plain or "-f" in plain
+    assert ".copier-answers.yml" in plain
 
 
 def test_config_init_writes_file(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
@@ -196,10 +198,11 @@ def test_config_init_write_os_error(cli_runner: CliRunner, cli_app: Typer, tmp_p
 def test_config_validate_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test config validate --help."""
     result = cli_runner.invoke(cli_app, ["config", "validate", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
     assert result.exit_code == 0
-    assert "--answers" in result.output or "-a" in result.output
-    assert "strict" in result.output.lower()
-    assert "quiet" in result.output.lower()
+    assert "--answers" in plain or "-a" in plain
+    assert "strict" in plain.lower()
+    assert "quiet" in plain.lower()
 
 
 def test_config_validate_success(cli_runner: CliRunner, cli_app: Typer) -> None:
@@ -323,8 +326,9 @@ def test_config_validate_format_report_branches() -> None:
 def test_config_path_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test config path --help."""
     result = cli_runner.invoke(cli_app, ["config", "path", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
     assert result.exit_code == 0
-    assert "--config" in result.output or "-c" in result.output
+    assert "--config" in plain or "-c" in plain
 
 
 def test_config_path_prints_default_path(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
@@ -355,9 +359,10 @@ def test_config_path_custom_config(cli_runner: CliRunner, cli_app: Typer, tmp_pa
 def test_config_show_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test config show --help."""
     result = cli_runner.invoke(cli_app, ["config", "show", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
     assert result.exit_code == 0
-    assert "--key" in result.output or "-k" in result.output
-    assert "output" in result.output.lower()
+    assert "--key" in plain or "-k" in plain
+    assert "output" in plain.lower()
 
 
 def test_config_show_prints_template(cli_runner: CliRunner, cli_app: Typer) -> None:
@@ -481,9 +486,10 @@ def test_config_show_uses_layout_when_wide(cli_runner: CliRunner, cli_app: Typer
 def test_config_list_keys_help(cli_runner: CliRunner, cli_app: Typer) -> None:
     """Test config list-keys --help."""
     result = cli_runner.invoke(cli_app, ["config", "list-keys", "--help"], input="")
+    plain = strip_ansi_codes(_all_output(result))
     assert result.exit_code == 0
-    assert "format" in result.output.lower()
-    assert "include-meta" in result.output.lower()
+    assert "format" in plain.lower()
+    assert "include-meta" in plain.lower()
 
 
 def test_config_list_keys_table(cli_runner: CliRunner, cli_app: Typer) -> None:

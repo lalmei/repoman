@@ -102,8 +102,9 @@ def test_missing_commit_for_copier_update_non_string_src() -> None:
 # --- get_os_config_path tests ---
 
 
-def test_get_os_config_path_linux(tmp_path: Path) -> None:
+def test_get_os_config_path_linux(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """get_os_config_path returns ~/.config/app/config.json on Linux."""
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
     with (
         patch("repoman.config.paths.platform.system", return_value="Linux"),
         patch("repoman.config.paths.Path.home", return_value=tmp_path),
