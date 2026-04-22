@@ -5,6 +5,12 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from repoman.hotspots import HotspotResult, find_hotspots, generate_report
+from repoman.hotspots.report import (
+    _badge_class,
+    _path_to_filename,
+    _severity_class,
+    _severity_label,
+)
 
 
 @patch("repoman.hotspots.analysis.ContributorsCount")
@@ -158,6 +164,54 @@ def test_generate_report_creates_index_and_file_pages(tmp_path: Path) -> None:
     file_content = file_page.read_text()
     assert "src/foo.py" in file_content
     assert "hello" in file_content  # source code is HTML-escaped
+
+
+def test_hotspot_report_helper_functions_cover_threshold_boundaries() -> None:
+    """Map hotspot ranks onto stable filenames, table classes, and badges."""
+    assert _path_to_filename(r"src\foo.py") == "src_foo.py.html"
+    assert _severity_class(0.0) == "hot-high"
+    assert _severity_class(0.2) == "hot-medium"
+    assert _severity_class(0.5) == "hot-low"
+    assert _badge_class(0.0) == "badge-high"
+    assert _badge_class(0.2) == "badge-medium"
+    assert _badge_class(0.5) == "badge-low"
+    assert _severity_label(0.0) == "high"
+    assert _severity_label(0.2) == "medium"
+    assert _severity_label(0.5) == "low"
+
+
+def test_generate_report_renders_date_range_and_skips_unreadable_paths(tmp_path: Path) -> None:
+    """Render severity tiers and skip per-file pages that cannot be read."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "src").mkdir()
+    (repo / "docs").mkdir()
+    (repo / "src" / "foo.py").write_text("print('hot')\n", encoding="utf-8")
+    (repo / "src" / "bar.py").write_text("print('warm')\n", encoding="utf-8")
+    (repo / "docs" / "notes.md").write_text("cool\n", encoding="utf-8")
+    out = tmp_path / "report"
+    since = datetime(2024, 1, 1, tzinfo=UTC)
+    to = datetime(2024, 6, 1, tzinfo=UTC)
+
+    results = [
+        HotspotResult("src/foo.py", commits_count=20, code_churn=500, contributors_count=4, score=100.0),
+        HotspotResult("src/bar.py", commits_count=10, code_churn=200, contributors_count=2, score=60.0),
+        HotspotResult("docs/notes.md", commits_count=3, code_churn=20, contributors_count=1, score=10.0),
+        HotspotResult("src", commits_count=1, code_churn=1, contributors_count=1, score=5.0),
+    ]
+
+    generate_report(results, repo, out, since=since, to=to)
+
+    index_content = (out / "index.html").read_text(encoding="utf-8")
+    assert "Since: 2024-01-01" in index_content
+    assert "To: 2024-06-01" in index_content
+    assert 'class="hot-high"' in index_content
+    assert 'class="hot-medium"' in index_content
+    assert 'class="hot-low"' in index_content
+    assert (out / "src_foo.py.html").read_text(encoding="utf-8").find("badge-high") >= 0
+    assert (out / "src_bar.py.html").read_text(encoding="utf-8").find("badge-medium") >= 0
+    assert (out / "docs_notes.md.html").read_text(encoding="utf-8").find("badge-low") >= 0
+    assert not (out / "src.html").exists()
 
 
 def test_hotspot_result_dataclass() -> None:

@@ -5,10 +5,12 @@
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 import yaml
 from typer import Typer
 from typer.testing import CliRunner
 
+from repoman.cli.commands.generator.add import detect_project_structure, validate_command_name
 from repoman.copier.extension_lifecycle import ExtensionLifecycleError
 from tests.conftest import strip_ansi_codes
 
@@ -77,6 +79,85 @@ def test_generator_add_existing_files_without_force(cli_runner: CliRunner, cli_a
     command_file = project_dir / "src" / "test_package" / "cli" / "commands" / "foo" / "__init__.py"
     command_file.parent.mkdir(parents=True, exist_ok=True)
     command_file.write_text("# existing")
+
+    result = cli_runner.invoke(
+        cli_app,
+        ["generator", "add", "--project-dir", str(project_dir), "foo"],
+        input="",
+    )
+
+    assert result.exit_code == 1
+
+
+@pytest.mark.parametrize(
+    ("command_name", "match"),
+    [
+        ("   ", "empty or whitespace"),
+        ("../evil", "path traversal"),
+        ("bad/name", "invalid character"),
+        ("CON", "reserved system name"),
+    ],
+)
+def test_validate_command_name_rejects_invalid_patterns(command_name: str, match: str) -> None:
+    with pytest.raises(ValueError, match=match):
+        validate_command_name(command_name)
+
+
+def test_detect_project_structure_requires_commands_dir(tmp_path: Path) -> None:
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+
+    with pytest.raises(ValueError, match="Could not find CLI commands directory"):
+        detect_project_structure(project_dir, "pkg")
+
+
+def test_generator_add_missing_project_dir(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    missing = tmp_path / "missing"
+
+    result = cli_runner.invoke(
+        cli_app,
+        ["generator", "add", "--project-dir", str(missing), "foo"],
+        input="",
+    )
+
+    assert result.exit_code == 1
+
+
+def test_generator_add_invalid_answers_yaml(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    project_dir = _create_project(tmp_path)
+    (project_dir / ".copier-answers.yml").write_text("python_package_import_name: [\n", encoding="utf-8")
+
+    result = cli_runner.invoke(
+        cli_app,
+        ["generator", "add", "--project-dir", str(project_dir), "foo"],
+        input="",
+    )
+
+    assert result.exit_code == 1
+
+
+def test_generator_add_missing_python_package_import_name(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path
+) -> None:
+    project_dir = _create_project(tmp_path)
+    (project_dir / ".copier-answers.yml").write_text(
+        yaml.safe_dump({"python_package_command_line_name": "test"}, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    result = cli_runner.invoke(
+        cli_app,
+        ["generator", "add", "--project-dir", str(project_dir), "foo"],
+        input="",
+    )
+
+    assert result.exit_code == 1
+
+
+def test_generator_add_existing_test_file_without_force(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    project_dir = _create_project(tmp_path)
+    test_file = project_dir / "tests" / "test_cli" / "test_foo.py"
+    test_file.write_text("# existing\n", encoding="utf-8")
 
     result = cli_runner.invoke(
         cli_app,

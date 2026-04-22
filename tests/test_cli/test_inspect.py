@@ -2,12 +2,24 @@
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 from _pytest.capture import CaptureFixture
+from rich.console import Console
 from typer import Typer
 from typer.testing import CliRunner
 
+from repoman.cli.commands.inspect import _bool_text, _print_table
+from repoman.inspection import InspectionError
+from repoman.inspection.models import (
+    AnswersFileState,
+    ExtensionSummary,
+    FeatureFlags,
+    InspectionReport,
+    TemplateMetadata,
+    UpdateReadiness,
+)
 from tests.conftest import strip_ansi_codes
 
 
@@ -172,6 +184,120 @@ def test_inspect_command_invalid_yaml_exits_one(
     (repo / ".copier-answers.yml").write_text("_src_path: [", encoding="utf-8")
 
     result = cli_runner.invoke(cli_app, ["inspect", "--path", str(repo), "--format", "json"], input="")
+
+    assert result.exit_code == 1
+    payload = json.loads(_captured_text(result, capsys))
+    assert payload["status"] == "error"
+
+
+def test_bool_text_and_print_table_cover_optional_panels() -> None:
+    """Render blockers and warnings panels and keep None values readable."""
+    console = Console(record=True)
+    report = InspectionReport(
+        path="/tmp/repo",
+        managed=True,
+        status="warning",
+        answers_file=AnswersFileState(path="/tmp/repo/.copier-answers.yml", exists=True, within_project=None),
+        template=TemplateMetadata(),
+        features=FeatureFlags(),
+        extensions=ExtensionSummary(manifest_path="/tmp/repo/.repoman/extensions.yml", exists=False),
+        update_readiness=UpdateReadiness(
+            ready=False,
+            blockers=["Missing answers"],
+            warnings=["Missing commit metadata"],
+        ),
+    )
+
+    _print_table(console, report, show_header=False)
+    rendered = console.export_text()
+
+    assert _bool_text(None) == "-"
+    assert _bool_text(True) == "yes"
+    assert _bool_text(False) == "no"
+    assert "Blockers" in rendered
+    assert "Warnings" in rendered
+
+
+def test_print_table_returns_for_non_printing_console() -> None:
+    """Ignore console-like objects that do not provide a print method."""
+    report = InspectionReport(
+        path="/tmp/repo",
+        managed=False,
+        status="ok",
+        answers_file=AnswersFileState(path="/tmp/repo/.copier-answers.yml", exists=False),
+        template=TemplateMetadata(),
+        features=FeatureFlags(),
+        extensions=ExtensionSummary(manifest_path="/tmp/repo/.repoman/extensions.yml", exists=False),
+        update_readiness=UpdateReadiness(ready=True),
+    )
+
+    _print_table(object(), report, show_header=True)
+
+
+def test_inspect_command_missing_path_fails(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Missing inspect paths should fail before repository analysis."""
+    missing = tmp_path / "missing"
+
+    result = cli_runner.invoke(cli_app, ["inspect", "--path", str(missing)], input="")
+
+    assert result.exit_code == 1
+
+
+def test_inspect_command_non_directory_path_fails(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """File paths should be rejected by the inspect command."""
+    repo_file = tmp_path / "repo.txt"
+    repo_file.write_text("not a directory\n", encoding="utf-8")
+
+    result = cli_runner.invoke(cli_app, ["inspect", "--path", str(repo_file)], input="")
+
+    assert result.exit_code == 1
+
+
+def test_inspect_command_unknown_format_fails(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Unsupported output formats should fail after inspection succeeds."""
+    repo = _make_repo(tmp_path)
+    _write_answers(
+        repo / ".copier-answers.yml",
+        {
+            "_src_path": "https://example.com/template.git",
+            "_commit": "deadbeef",
+        },
+    )
+
+    result = cli_runner.invoke(cli_app, ["inspect", "--path", str(repo), "--format", "yaml"], input="")
+
+    assert result.exit_code == 1
+
+
+def test_inspect_command_handles_inspection_errors(cli_runner: CliRunner, cli_app: Typer, tmp_path: Path) -> None:
+    """Surface repository analysis failures as exit code 1."""
+    repo = _make_repo(tmp_path)
+
+    with patch("repoman.cli.commands.inspect.inspect_repository", side_effect=InspectionError("boom")):
+        result = cli_runner.invoke(cli_app, ["inspect", "--path", str(repo)], input="")
+
+    assert result.exit_code == 1
+
+
+def test_inspect_command_exits_one_for_fatal_reports(
+    cli_runner: CliRunner, cli_app: Typer, tmp_path: Path, capsys: CaptureFixture[str]
+) -> None:
+    """Fatal inspection reports should still serialize and then exit non-zero."""
+    repo = _make_repo(tmp_path)
+    report = InspectionReport(
+        path=str(repo.resolve()),
+        managed=True,
+        status="error",
+        answers_file=AnswersFileState(path=str((repo / ".copier-answers.yml").resolve()), exists=True),
+        template=TemplateMetadata(src_path="https://example.com/template.git", commit="deadbeef"),
+        features=FeatureFlags(cli_enabled=True),
+        extensions=ExtensionSummary(manifest_path=str((repo / ".repoman" / "extensions.yml").resolve()), exists=False),
+        update_readiness=UpdateReadiness(ready=False, blockers=["fatal blocker"]),
+        fatal=True,
+    )
+
+    with patch("repoman.cli.commands.inspect.inspect_repository", return_value=report):
+        result = cli_runner.invoke(cli_app, ["inspect", "--path", str(repo), "--format", "json"], input="")
 
     assert result.exit_code == 1
     payload = json.loads(_captured_text(result, capsys))

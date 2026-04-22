@@ -5,9 +5,23 @@ from pathlib import Path
 import pytest
 
 from repoman.compliance import BUILTIN_PROFILES, ComplianceConfigError, analyze_compliance
+from repoman.compliance.analysis import (
+    _build_gate_result,
+    _evaluate_control,
+    _next_tier,
+    manual_controls_for_profiles,
+)
 from repoman.compliance.config import load_compliance_config
 from repoman.compliance.detectors import evaluate_detector
-from repoman.compliance.models import ComplianceReport, ControlResult, DetectorSpec, GateResult, SectionSummary
+from repoman.compliance.models import (
+    ComplianceReport,
+    ControlDefinition,
+    ControlOverride,
+    ControlResult,
+    DetectorSpec,
+    GateResult,
+    SectionSummary,
+)
 from repoman.compliance.report import build_starter_config, reports_to_markdown, write_reports
 
 
@@ -161,6 +175,93 @@ def test_load_compliance_config_rejects_invalid_profile_shape(tmp_path: Path) ->
         load_compliance_config(config)
 
 
+@pytest.mark.parametrize(
+    ("content", "match"),
+    [
+        ("profiles: [\n", "Invalid YAML"),
+        ("[1]\n", "must contain a mapping"),
+        ("version: nope\n", "field 'version' must be an integer"),
+    ],
+)
+def test_load_compliance_config_rejects_invalid_yaml_top_level_and_version(
+    tmp_path: Path, content: str, match: str
+) -> None:
+    """Reject malformed YAML, non-mapping payloads, and non-integer versions."""
+    config = tmp_path / "compliance.yml"
+    config.write_text(content, encoding="utf-8")
+
+    with pytest.raises(ComplianceConfigError, match=match):
+        load_compliance_config(config)
+
+
+def test_load_compliance_config_accepts_null_sections_and_null_string_lists(tmp_path: Path) -> None:
+    """Treat null sections and null list-like fields as empty values."""
+    config = tmp_path / "compliance.yml"
+    config.write_text(
+        "\n".join(
+            [
+                "version: 1",
+                "profiles:",
+                "controls:",
+                "defaults:",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    parsed = load_compliance_config(config)
+
+    assert parsed.profiles == {}
+    assert parsed.controls == {}
+    assert parsed.defaults == {}
+
+    config.write_text(
+        "\n".join(
+            [
+                "profiles:",
+                "  oss-best-practices:",
+                "    include:",
+                "    exclude:",
+                "controls:",
+                "  oss.docs.readme:",
+                "    evidence:",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    parsed = load_compliance_config(config)
+
+    assert parsed.profiles["oss-best-practices"].include == []
+    assert parsed.profiles["oss-best-practices"].exclude == []
+    assert parsed.controls["oss.docs.readme"].evidence == []
+
+
+@pytest.mark.parametrize(
+    ("content", "match"),
+    [
+        ("profiles: []\n", "field 'profiles' must be a mapping"),
+        ("profiles:\n  oss-best-practices:\n    tier_target: platinum\n", "invalid tier_target"),
+        ("profiles:\n  oss-best-practices:\n    include: [ok, 3]\n", "include must be a list of strings"),
+        ("controls: []\n", "field 'controls' must be a mapping"),
+        ("controls:\n  oss.docs.readme: []\n", "control 'oss.docs.readme' must be a mapping"),
+        ("controls:\n  oss.docs.readme:\n    status: maybe\n", "invalid status"),
+        ("controls:\n  oss.docs.readme:\n    evidence: [ok, 3]\n", "evidence must be a list of strings"),
+    ],
+)
+def test_load_compliance_config_rejects_invalid_profile_and_control_fields(
+    tmp_path: Path, content: str, match: str
+) -> None:
+    """Reject invalid compliance profile and control field shapes."""
+    config = tmp_path / "compliance.yml"
+    config.write_text(content, encoding="utf-8")
+
+    with pytest.raises(ComplianceConfigError, match=match):
+        load_compliance_config(config)
+
+
 def test_analyze_compliance_computes_bronze_and_manual_unknowns(tmp_path: Path) -> None:
     """Compute bronze tier and retain unknown manual controls."""
     repo = _make_repo(tmp_path)
@@ -245,6 +346,252 @@ def test_invalid_override_cannot_force_unmet_to_met(tmp_path: Path) -> None:
 
     with pytest.raises(ComplianceConfigError):
         analyze_compliance(repo, profile_ids=["oss-best-practices"])
+
+
+def test_analyze_compliance_rejects_invalid_paths_and_unknown_selected_profile(tmp_path: Path) -> None:
+    """Reject missing paths, non-git directories, and unknown selected profiles."""
+    missing = tmp_path / "missing"
+    non_git = tmp_path / "non_git"
+    non_git.mkdir()
+    repo = _make_repo(tmp_path)
+
+    with pytest.raises(ComplianceConfigError, match="Path does not exist or is not a directory"):
+        analyze_compliance(missing)
+
+    with pytest.raises(ComplianceConfigError, match="Not a git repository"):
+        analyze_compliance(non_git)
+
+    with pytest.raises(ComplianceConfigError, match="Unknown profile 'missing-profile'"):
+        analyze_compliance(repo, profile_ids=["missing-profile"])
+
+
+def test_analyze_compliance_skips_disabled_profiles_and_respects_include_exclude(tmp_path: Path) -> None:
+    """Skip disabled profiles and only evaluate included controls that are not excluded."""
+    repo = _make_repo(tmp_path)
+    (repo / "README.md").write_text("# Project\n", encoding="utf-8")
+    (repo / "CONTRIBUTING.md").write_text("pull request\n", encoding="utf-8")
+
+    (repo / "compliance.yml").write_text(
+        "\n".join(
+            [
+                "profiles:",
+                "  oss-best-practices:",
+                "    enabled: false",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    assert analyze_compliance(repo, profile_ids=["oss-best-practices"]) == []
+
+    (repo / "compliance.yml").write_text(
+        "\n".join(
+            [
+                "profiles:",
+                "  oss-best-practices:",
+                "    include:",
+                "      - oss.docs.readme",
+                "      - oss.docs.contributing",
+                "    exclude:",
+                "      - oss.docs.contributing",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    report = analyze_compliance(repo, profile_ids=["oss-best-practices"])[0]
+
+    assert [control.control_id for control in report.controls] == ["oss.docs.readme"]
+
+
+@pytest.mark.parametrize(
+    ("content", "match"),
+    [
+        (
+            "\n".join(
+                [
+                    "profiles:",
+                    "  made-up-profile:",
+                    "    enabled: true",
+                ]
+            )
+            + "\n",
+            "Unknown profile id 'made-up-profile'",
+        ),
+        (
+            "\n".join(
+                [
+                    "profiles:",
+                    "  oss-best-practices:",
+                    "    include:",
+                    "      - not.a.real.control",
+                ]
+            )
+            + "\n",
+            "Unknown control ids for profile 'oss-best-practices'",
+        ),
+    ],
+)
+def test_analyze_compliance_rejects_invalid_profile_configuration(
+    tmp_path: Path, content: str, match: str
+) -> None:
+    """Fail fast on bad profile ids and invalid include/exclude control ids."""
+    repo = _make_repo(tmp_path)
+    (repo / "compliance.yml").write_text(content, encoding="utf-8")
+
+    with pytest.raises(ComplianceConfigError, match=match):
+        analyze_compliance(repo, profile_ids=["oss-best-practices"])
+
+
+def test_evaluate_control_handles_applicability_and_override_metadata(tmp_path: Path) -> None:
+    """Preserve metadata-only overrides and mark non-applicable controls unknown."""
+    repo = _make_repo(tmp_path)
+    (repo / "README.md").write_text("# Project\n", encoding="utf-8")
+
+    gated_control = ControlDefinition(
+        control_id="custom.docs.architecture",
+        section="docs",
+        title="Architecture docs",
+        description="Architecture docs exist",
+        tier="bronze",
+        detection=DetectorSpec("file_exists", {"path": "docs/architecture.md"}),
+        required_evidence="docs/architecture.md",
+        applies_when=(DetectorSpec("file_exists", {"path": "pyproject.toml"}),),
+    )
+    gated_result = _evaluate_control(repo, gated_control, None)
+
+    assert gated_result.status == "unknown"
+    assert gated_result.required_evidence == "docs/architecture.md"
+    assert gated_result.evidence == ["Applicability conditions were not met by repository contents."]
+
+    readme_control = ControlDefinition(
+        control_id="custom.docs.readme",
+        section="docs",
+        title="README exists",
+        description="README exists",
+        tier="bronze",
+        detection=DetectorSpec("file_exists", {"path": "README.md"}),
+    )
+    result = _evaluate_control(
+        repo,
+        readme_control,
+        ControlOverride(
+            status=None,
+            justification="Reviewed by maintainer",
+            owner="docs",
+            evidence=["Found README.md", "Linked from project homepage"],
+            last_reviewed="2026-04-20",
+            notes="Looks good",
+        ),
+    )
+
+    assert result.status == "met"
+    assert result.justification == "Reviewed by maintainer"
+    assert result.owner == "docs"
+    assert result.last_reviewed == "2026-04-20"
+    assert result.notes == "Looks good"
+    assert result.evidence == ["Found README.md", "Linked from project homepage"]
+
+
+def test_evaluate_control_handles_waivers_manual_controls_and_status_downgrades(tmp_path: Path) -> None:
+    """Support manual overrides and reject unjustified waivers."""
+    repo = _make_repo(tmp_path)
+    (repo / "README.md").write_text("# Project\n", encoding="utf-8")
+
+    readme_control = ControlDefinition(
+        control_id="custom.docs.readme",
+        section="docs",
+        title="README exists",
+        description="README exists",
+        tier="bronze",
+        detection=DetectorSpec("file_exists", {"path": "README.md"}),
+    )
+    downgraded = _evaluate_control(repo, readme_control, ControlOverride(status="unknown"))
+    assert downgraded.status == "unknown"
+
+    manual_control = ControlDefinition(
+        control_id="custom.manual.review",
+        section="ops",
+        title="Manual review",
+        description="Manual review completed",
+        tier="silver",
+        detection=DetectorSpec("manual_only", {"prompt": "Manual review required"}),
+    )
+    manual_result = _evaluate_control(repo, manual_control, ControlOverride(status="met"))
+    assert manual_result.status == "met"
+
+    with pytest.raises(ComplianceConfigError, match="waiver requires a justification"):
+        _evaluate_control(repo, manual_control, ControlOverride(status="waived"))
+
+
+def test_gate_helpers_cover_unmet_unknown_strict_and_requested_tier_outcomes() -> None:
+    """Exercise remaining gate result branches and helper outputs."""
+    unmet_result = ControlResult(
+        control_id="custom.unmet",
+        section="ops",
+        title="Unmet control",
+        description="Unmet",
+        tier="bronze",
+        status="unmet",
+        detection_kind="file_exists",
+    )
+    unknown_result = ControlResult(
+        control_id="custom.unknown",
+        section="ops",
+        title="Unknown control",
+        description="Unknown",
+        tier="bronze",
+        status="unknown",
+        detection_kind="manual_only",
+    )
+
+    unmet_gate = _build_gate_result(
+        control_results=[unmet_result],
+        achieved_tier=None,
+        requested_tier=None,
+        fail_on="unmet",
+        strict=False,
+    )
+    unknown_gate = _build_gate_result(
+        control_results=[unknown_result],
+        achieved_tier=None,
+        requested_tier=None,
+        fail_on="unknown",
+        strict=False,
+    )
+    strict_gate = _build_gate_result(
+        control_results=[unknown_result],
+        achieved_tier=None,
+        requested_tier=None,
+        fail_on="unmet",
+        strict=True,
+    )
+    requested_gate = _build_gate_result(
+        control_results=[],
+        achieved_tier="bronze",
+        requested_tier="gold",
+        fail_on="tier",
+        strict=False,
+    )
+
+    assert unmet_gate.passed is False
+    assert unmet_gate.reasons == ["Unmet controls: custom.unmet"]
+    assert unknown_gate.passed is False
+    assert unknown_gate.reasons == ["Unknown controls: custom.unknown"]
+    assert strict_gate.passed is False
+    assert strict_gate.reasons == ["Strict mode failed due to unknown controls: custom.unknown"]
+    assert requested_gate.passed is False
+    assert requested_gate.reasons == ["Achieved tier bronze is below requested tier gold"]
+    assert _next_tier("gold") is None
+
+
+def test_manual_controls_for_profiles_returns_only_manual_controls() -> None:
+    """Group only manual-only controls for the requested profiles."""
+    grouped = manual_controls_for_profiles(["oss-best-practices"])
+
+    assert list(grouped) == ["oss-best-practices"]
+    assert grouped["oss-best-practices"]
+    assert all(control.detection.kind == "manual_only" for control in grouped["oss-best-practices"])
 
 
 def test_manual_control_can_be_met_via_compliance_file(tmp_path: Path) -> None:
