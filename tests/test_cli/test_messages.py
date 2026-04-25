@@ -34,7 +34,13 @@ from repoman.cli.messages.dry_run import (
     dry_run_create,
     dry_run_update,
 )
-from repoman.cli.messages.layout import (
+from repoman.cli.messages.success import (
+    command_created,
+    format_next_steps,
+    project_created,
+    project_updated,
+)
+from repoman.utils.ui.layout import (
     layout_command_created,
     layout_config_show_template,
     layout_dry_run_command_add,
@@ -44,12 +50,6 @@ from repoman.cli.messages.layout import (
     layout_project_updated,
     layout_validation_failed,
     use_layout,
-)
-from repoman.cli.messages.success import (
-    command_created,
-    format_next_steps,
-    project_created,
-    project_updated,
 )
 
 # --- layout ---

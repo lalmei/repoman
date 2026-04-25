@@ -5,8 +5,7 @@ from typing import Any
 import pytest
 from rich.theme import Theme
 
-from repoman.utils.theme.terminal_colors import get_rich_color
-from repoman.utils.theme.theme import _create_theme, set_theme
+from repoman.utils.ui.theme.theme import _create_theme, set_theme
 
 
 class TestThemeCreation:
@@ -158,38 +157,6 @@ class TestSetTheme:
         assert theme_dark.styles != theme_light.styles
 
 
-class TestTerminalColors:
-    """Test terminal color mapping functionality."""
-
-    def test_get_rich_color_known_labels(self) -> None:
-        """Test that known labels return correct colors."""
-        assert get_rich_color("TP") == "green"
-        assert get_rich_color("FP") == "maroon"
-        assert get_rich_color("FN") == "red"
-        assert get_rich_color("TN") == "peach"
-        assert get_rich_color("header") == "subtext1"
-        assert get_rich_color("border") == "overlay1"
-
-    def test_get_rich_color_unknown_label(self) -> None:
-        """Test that unknown labels return default 'text' color."""
-        assert get_rich_color("unknown") == "text"
-        assert get_rich_color("") == "text"
-        assert get_rich_color("CUSTOM_LABEL") == "text"
-
-    def test_get_rich_color_case_sensitive(self) -> None:
-        """Test that color mapping is case sensitive."""
-        assert get_rich_color("tp") == "text"  # lowercase should return default
-        assert get_rich_color("Tp") == "text"  # mixed case should return default
-        assert get_rich_color("TP") == "green"  # exact match should work
-
-    def test_get_rich_color_special_characters(self) -> None:
-        """Test that special characters in labels are handled correctly."""
-        assert get_rich_color("TP_123") == "text"  # alphanumeric with underscore
-        assert get_rich_color("TP-123") == "text"  # alphanumeric with hyphen
-        assert get_rich_color("TP.123") == "text"  # alphanumeric with dot
-        assert get_rich_color("TP 123") == "text"  # alphanumeric with space
-
-
 class TestThemeErrorHandling:
     """Test error handling and edge cases in theme utilities."""
 
@@ -333,35 +300,6 @@ class TestThemeErrorHandling:
 
         with pytest.raises(ValueError, match="Unknown theme"):
             set_theme("light-中文")
-
-    def test_get_rich_color_with_edge_cases(self) -> None:
-        """Test get_rich_color with edge case inputs."""
-        # Test with None - should return default since .get() handles None gracefully
-        result = get_rich_color(None)
-        assert result == "text"  # Should return default
-
-        # Test with empty string
-        result = get_rich_color("")
-        assert result == "text"  # Should return default
-
-        # Test with whitespace-only string
-        result = get_rich_color("   ")
-        assert result == "text"  # Should return default
-
-        # Test with very long strings
-        long_label = "a" * 1000
-        result = get_rich_color(long_label)
-        assert result == "text"  # Should return default
-
-        # Test with unicode strings
-        unicode_label = "TP-🚀-中文"
-        result = get_rich_color(unicode_label)
-        assert result == "text"  # Should return default
-
-        # Test with special characters
-        special_label = "TP@#$%^&*()"
-        result = get_rich_color(special_label)
-        assert result == "text"  # Should return default
 
     def test_theme_creation_with_corrupted_color_data(self) -> None:
         """Test theme creation with corrupted or unexpected color data."""

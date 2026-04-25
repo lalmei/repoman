@@ -16,6 +16,7 @@ from repoman.utils.logging import (
     _set_up_logger,
     get_logger_console,
 )
+from repoman.utils.ui.console import get_console
 
 
 def _close_rotating_handlers(logger: Logger) -> None:
@@ -53,6 +54,15 @@ def temp_log_dir(tmp_path: Path) -> Any:
 
 class TestSetUpLogger:
     """Test logger setup functionality."""
+
+    def test_set_up_logger_uses_global_console(self) -> None:
+        """Test logger setup uses the shared global console by default."""
+        console = get_console()
+        logger = _set_up_logger("test_logger_global_console")
+
+        rich_handlers = [h for h in logger.handlers if h.get_name() == "rich"]
+        assert len(rich_handlers) == 1
+        assert rich_handlers[0].console is console
 
     def test_set_up_logger_basic(self) -> None:
         """Test basic logger setup without console."""
@@ -236,6 +246,10 @@ class TestAttachRotatingFileHandler:
 
 class TestGetLoggerConsole:
     """Test get_logger_console functionality."""
+
+    def test_get_console_returns_singleton(self) -> None:
+        """Test repeated console lookups return the same instance."""
+        assert get_console() is get_console()
 
     def test_get_logger_console_basic(self) -> None:
         """Test basic get_logger_console functionality."""
@@ -622,7 +636,7 @@ def test_set_up_logger_console_creation_not_in_pytest() -> None:
     This test verifies console creation path (line 75).
     """
     # Mock _is_running_in_pytest to return False
-    with patch("repoman.utils.logging._is_running_in_pytest", return_value=False):
+    with patch("repoman.utils.ui.console._is_running_in_pytest", return_value=False):
         logger = _set_up_logger("test_logger_not_pytest")
 
         # Verify logger was created
@@ -675,7 +689,7 @@ def test_get_logger_console_not_in_pytest() -> None:
     """
     # Mock _is_running_in_pytest to return False
     with (
-        patch("repoman.utils.logging._is_running_in_pytest", return_value=False),
+        patch("repoman.utils.ui.console._is_running_in_pytest", return_value=False),
         patch("repoman.utils.logging._set_up_logger") as mock_setup,
     ):
         # Mock root logger to have no handlers to trigger fallback

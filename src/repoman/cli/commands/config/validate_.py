@@ -14,10 +14,10 @@ from repoman.cli.messages import (
     schema_not_found_skipping_validation,
     warning_panel,
 )
-from repoman.cli.messages.layout import layout_validation_failed, use_layout
 from repoman.config import load_answers, missing_commit_for_copier_update
 from repoman.copier import ValidationReport, load_prompt_schema, validate_answers
 from repoman.utils.logging import get_logger_console
+from repoman.utils.ui.layout import layout_validation_failed, use_layout
 
 app = Typer(
     add_completion=True,

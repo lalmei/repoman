@@ -8,7 +8,7 @@ Modules:
     warning: warning_panel() — yellow panels for warnings.
     success: project_created(), project_updated(), command_created() — green panels.
     dry_run: dry_run_create(), dry_run_update(), dry_run_command_add() — blue panels.
-    layout: use_layout() and layout builders — multi-panel Layout for wide terminals.
+    repoman.utils.ui.layout: use_layout() and layout builders — multi-panel Layout for wide terminals.
     error_text: Pure string helpers (e.g. answers_file_not_found()) for panel content.
     capability: supports_unicode_markdown() — Unicode/terminal capability detection.
 """
