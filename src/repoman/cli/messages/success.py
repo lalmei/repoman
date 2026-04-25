@@ -10,7 +10,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from repoman.cli.messages.capability import supports_unicode_markdown
-from repoman.cli.messages.layout import (
+from repoman.utils.ui.layout import (
     layout_command_created,
     layout_project_created,
     layout_project_updated,

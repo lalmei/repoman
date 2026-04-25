@@ -11,9 +11,9 @@ from repoman.cli.messages import (
     key_not_in_template,
     warning_panel,
 )
-from repoman.cli.messages.layout import layout_config_show_template, use_layout
 from repoman.resources import get_copier_answers_template
 from repoman.utils.logging import get_logger_console
+from repoman.utils.ui.layout import layout_config_show_template, use_layout
 
 app = Typer(
     add_completion=True,

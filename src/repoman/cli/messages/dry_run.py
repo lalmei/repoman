@@ -9,7 +9,7 @@ from rich.layout import Layout
 from rich.panel import Panel
 from rich.text import Text
 
-from repoman.cli.messages.layout import (
+from repoman.utils.ui.layout import (
     layout_dry_run_command_add,
     layout_dry_run_create,
     layout_dry_run_update,
