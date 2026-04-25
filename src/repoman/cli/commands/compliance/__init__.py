@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 app = Typer(
     add_completion=True,
+    no_args_is_help=True,
     help="""Analyze a git repository against built-in compliance profiles.
 
 The v0 feature is a readiness check, not a certification claim.
@@ -59,7 +60,12 @@ def check(
     ] = "table",
     output: Annotated[
         Path | None,
-        Option("--output", "-o", path_type=Path, help="Output file or directory for non-table formats"),
+        Option(
+            "--output",
+            "-o",
+            path_type=Path,
+            help="Output file or directory for non-table formats",
+        ),
     ] = None,
     compliance_file: Annotated[
         Path | None,
@@ -134,7 +140,12 @@ def check(
 def init_(
     path: Annotated[
         Path,
-        Option("--path", "-p", path_type=Path, help="Repository path where the starter file should be written"),
+        Option(
+            "--path",
+            "-p",
+            path_type=Path,
+            help="Repository path where the starter file should be written",
+        ),
     ] = Path("."),
     profile: Annotated[
         list[str] | None,

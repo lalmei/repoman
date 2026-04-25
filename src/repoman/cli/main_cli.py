@@ -31,7 +31,6 @@ from json import JSONDecodeError
 from pathlib import Path
 
 from pydantic import ValidationError
-from rich.console import Console
 from rich.text import Text
 from typer import Context, Exit, Option, Typer
 
@@ -39,7 +38,8 @@ from repoman._version import debug_info, version_info
 from repoman.cli.register_commands import _register_commands
 from repoman.config import Config
 from repoman.utils.logging import get_logger_console
-from repoman.utils.theme.theme import set_theme
+from repoman.utils.ui import get_console
+from repoman.utils.ui.logo_display import run_particle_logo
 
 cli_app = Typer(add_completion=True, invoke_without_command=True, no_args_is_help=True)
 
@@ -57,7 +57,7 @@ def _version_callback(value: bool) -> None:
         Whether to print version information
     """
     if value:
-        console = Console(theme=set_theme("dark"))
+        console = get_console()
         console.print(
             version_info(),
         )
@@ -73,7 +73,7 @@ def _debug_info_callback(value: bool) -> None:
         Whether to print debug information
     """
     if value:
-        console = Console(theme=set_theme("dark"))
+        console = get_console()
         debug_info(console)
         raise Exit(0)
 
@@ -118,8 +118,14 @@ def main(
         repoman extensions sync ./my-app
         repoman generator add my-command --project-dir ./my-app
     """
-    logger, _console = get_logger_console()
-
+    logger, console = get_logger_console()
+    run_particle_logo(
+        console=console,
+        hold_seconds=1.5,
+    )
+    # Clear screen for CRT boot — starts from top
+    console.file.write("\033[2J\033[H")
+    console.file.flush()
     config: Config | None = None
     try:
         config = Config.load(custom_path=Path(config_path) if config_path else None)
