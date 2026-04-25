@@ -145,7 +145,7 @@ def text_to_pixels(text: str, scale: int = 1) -> list[tuple[int, int]]:
 
 
 class Particle:
-    __slots__ = ("x", "y", "target_x", "target_y", "vx", "vy", "phase", "delay")
+    __slots__ = ("delay", "phase", "target_x", "target_y", "vx", "vy", "x", "y")
 
     def __init__(self, x: float, y: float, target_x: float, target_y: float, delay: float = 0):
         self.x = x

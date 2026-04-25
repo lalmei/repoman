@@ -143,8 +143,7 @@ class Padder:
 
 
 class UpdateTracker:
-    """
-    Class to enable dynamic updates on the UI tables. By default, rich allows you to set a refresh rate or trigger manual
+    """Class to enable dynamic updates on the UI tables. By default, rich allows you to set a refresh rate or trigger manual
     updates. This makes manual updates more performant by doing quick 'dirty' checks to determine if updating ins required. Updating
     is technically always required because the table's 'elapsed time' column always changes, but we don't want to update the table just
     because of that.
@@ -156,12 +155,11 @@ class UpdateTracker:
     """
 
     def __init__(self, max_update_timeout_ms: float = 5000, min_update_ms: float = 200) -> None:
-        """
-        Args:
-            max_update_timeout_ms: The maximum amount of time in milliseconds that can pass before an update is forced. This is useful
-            because the table usually contains an 'elapsed time' column that should update fairly frequently regardless of everything else.
-            min_update_ms: The minimum amount of time in milliseconds that must pass before an update is allowed. This prevents updates
-            from getting too frequent.
+        """Args:
+        max_update_timeout_ms: The maximum amount of time in milliseconds that can pass before an update is forced. This is useful
+        because the table usually contains an 'elapsed time' column that should update fairly frequently regardless of everything else.
+        min_update_ms: The minimum amount of time in milliseconds that must pass before an update is allowed. This prevents updates
+        from getting too frequent.
         """
         self._timeout_ms = max_update_timeout_ms
         self._min_update_ms = min_update_ms
@@ -191,7 +189,5 @@ class UpdateTracker:
     def update(self, update_fn: Callable[[], None], state: list[str | list[str]]):
         now = datetime.now().timestamp() * 1000
 
-        if self.min_update_time_passed(now) and state != self._last_update_state:
-            self._update(now, update_fn, state)
-        elif self.max_update_time_passed(now):
+        if (self.min_update_time_passed(now) and state != self._last_update_state) or self.max_update_time_passed(now):
             self._update(now, update_fn, state)

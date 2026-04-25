@@ -1,5 +1,4 @@
-"""
-Terminal display utilities — rich-powered CLI formatting.
+"""Terminal display utilities — rich-powered CLI formatting.
 """
 
 import re
@@ -11,7 +10,8 @@ from rich.panel import Panel
 
 class _LeftHeading(Heading):
     """Rich's default Markdown renders h1/h2 centered via Align.center.
-    Yield the styled text directly so headings stay left-aligned."""
+    Yield the styled text directly so headings stay left-aligned.
+    """
 
     def __rich_console__(self, console, options):
         self.text.justify = "left"
@@ -374,9 +374,7 @@ async def print_markdown(
             break
         f.write(ch)
         f.flush()
-        if ch == "\n":
-            await asyncio.sleep(0.002)
-        elif ch == " ":
+        if ch == "\n" or ch == " ":
             await asyncio.sleep(0.002)
         elif rng.random() < 0.03:
             await asyncio.sleep(0.015)
