@@ -1,5 +1,7 @@
+"""Rich tree helpers for displaying running task output."""
+
 from collections.abc import Callable
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from rich.text import Text
@@ -38,7 +40,7 @@ class TaskTree:
         self._stdout_str = []
         self._stderr_str = []
 
-    def set_stdout(self, stdout: list[str]):
+    def set_stdout(self, stdout: list[str]) -> None:
         """Set or replace the lines shown under the ``stdout`` branch.
 
         Creates the ``stdout`` branch on first non-empty call and reorders the tree
@@ -66,7 +68,7 @@ class TaskTree:
         self._stdout_str = stdout
         self._stdout_text.plain = "\n".join(stdout)
 
-    def set_stderr(self, stderr: list[str]):
+    def set_stderr(self, stderr: list[str]) -> None:
         """Set or replace the lines shown under the ``stderr`` branch.
 
         Creates the ``stderr`` branch on first non-empty call, styled in red.
@@ -86,7 +88,7 @@ class TaskTree:
         self._stderr_str = stderr
         self._stderr_text.plain = "\n".join(stderr)
 
-    def reset(self):
+    def reset(self) -> None:
         """Clear stdout/stderr branches and restore the tree to its initial state.
 
         After this call the tree contains only the original command label, and
@@ -143,10 +145,7 @@ class Padder:
 
 
 class UpdateTracker:
-    """Class to enable dynamic updates on the UI tables. By default, rich allows you to set a refresh rate or trigger manual
-    updates. This makes manual updates more performant by doing quick 'dirty' checks to determine if updating ins required. Updating
-    is technically always required because the table's 'elapsed time' column always changes, but we don't want to update the table just
-    because of that.
+    """Track whether dynamic UI tables should be refreshed.
 
     This class tracks some state and has a min/max ms time config to keep the table looking responsive without updating too often. The
     driver for this was my CPU usage while the installer was running, paired with the size of the asciinema files that were generated
@@ -155,39 +154,38 @@ class UpdateTracker:
     """
 
     def __init__(self, max_update_timeout_ms: float = 5000, min_update_ms: float = 200) -> None:
-        """Args:
-        max_update_timeout_ms: The maximum amount of time in milliseconds that can pass before an update is forced. This is useful
-        because the table usually contains an 'elapsed time' column that should update fairly frequently regardless of everything else.
-        min_update_ms: The minimum amount of time in milliseconds that must pass before an update is allowed. This prevents updates
-        from getting too frequent.
+        """Initialize the tracker.
+
+        Args:
+            max_update_timeout_ms: Maximum milliseconds before an update is forced.
+            min_update_ms: Minimum milliseconds between allowed updates.
         """
         self._timeout_ms = max_update_timeout_ms
         self._min_update_ms = min_update_ms
-        self._last_update_timestamp_ms = datetime.now().timestamp() * 1000
+        self._last_update_timestamp_ms = datetime.now(UTC).timestamp() * 1000
         self._last_update_state: list[Any] = []
 
     def max_update_time_passed(self, now: float) -> bool:
-        if now - self._last_update_timestamp_ms > self._timeout_ms:
-            return True
-        return False
+        """Return whether the forced update timeout has elapsed."""
+        return now - self._last_update_timestamp_ms > self._timeout_ms
 
     def min_update_time_passed(self, now: float) -> bool:
-        if now - self._last_update_timestamp_ms > self._min_update_ms:
-            return True
-        return False
+        """Return whether the minimum interval between updates has elapsed."""
+        return now - self._last_update_timestamp_ms > self._min_update_ms
 
     def _update(
         self,
         now: float,
         update_fn: Callable[[], None],
         state: list[str | list[str]],
-    ):
+    ) -> None:
         update_fn()
         self._last_update_timestamp_ms = now
         self._last_update_state = state
 
-    def update(self, update_fn: Callable[[], None], state: list[str | list[str]]):
-        now = datetime.now().timestamp() * 1000
+    def update(self, update_fn: Callable[[], None], state: list[str | list[str]]) -> None:
+        """Run ``update_fn`` when elapsed time and state changes require it."""
+        now = datetime.now(UTC).timestamp() * 1000
 
         if (self.min_update_time_passed(now) and state != self._last_update_state) or self.max_update_time_passed(now):
             self._update(now, update_fn, state)

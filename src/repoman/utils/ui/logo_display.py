@@ -21,8 +21,13 @@ from repoman.utils.ui.theme.theme import cool_ramp, set_theme
 """Braille-character canvas for high-resolution terminal graphics.
 
 Each terminal cell maps to a 2x4 dot grid using Unicode braille characters
-(U+2800–U+28FF), giving 2× horizontal and 4× vertical resolution.
+(U+2800-U+28FF), giving 2x horizontal and 4x vertical resolution.
 """
+
+_TARGET_EPSILON = 1.5
+_AMBIENT_ALPHA_THRESHOLD = 0.25
+
+_Bounds = tuple[int, int, int, int]
 
 
 def settle_curve(progress: float, sharpness: float = 4.0) -> float:
@@ -46,7 +51,8 @@ _DOT_MAP = (
 class BrailleCanvas:
     """A pixel canvas that renders to braille characters."""
 
-    def __init__(self, term_width: int, term_height: int):
+    def __init__(self, term_width: int, term_height: int) -> None:
+        """Initialize a terminal-sized braille canvas."""
         self.term_width = term_width
         self.term_height = term_height
         self.pixel_width = term_width * 2
@@ -54,16 +60,19 @@ class BrailleCanvas:
         self._buf = bytearray(term_width * term_height)
 
     def clear(self) -> None:
+        """Clear all pixels from the canvas."""
         for i in range(len(self._buf)):
             self._buf[i] = 0
 
     def set_pixel(self, x: int, y: int) -> None:
+        """Set one high-resolution pixel if it is within bounds."""
         if 0 <= x < self.pixel_width and 0 <= y < self.pixel_height:
             cx, rx = divmod(x, 2)
             cy, ry = divmod(y, 4)
             self._buf[cy * self.term_width + cx] |= _DOT_MAP[ry][rx]
 
     def render(self) -> list[str]:
+        """Render the canvas as terminal lines."""
         lines = []
         for row in range(self.term_height):
             offset = row * self.term_width
@@ -72,13 +81,13 @@ class BrailleCanvas:
         return lines
 
 
-# ── Bitmap font (5×7 uppercase + digits) ──────────────────────────────
+# ── Bitmap font (5x7 uppercase + digits) ──────────────────────────────
 
 _FONT: dict[str, list[str]] = {}
 
 
 def _define_font() -> None:
-    """Define a simple 5×7 bitmap font for uppercase ASCII."""
+    """Define a simple 5x7 bitmap font for uppercase ASCII."""
     glyphs = {
         "A": [" ## ", "#  #", "#  #", "####", "#  #", "#  #", "#  #"],
         "B": ["### ", "#  #", "#  #", "### ", "#  #", "#  #", "### "],
@@ -145,19 +154,30 @@ def text_to_pixels(text: str, scale: int = 1) -> list[tuple[int, int]]:
 
 
 class Particle:
+    """A moving particle that converges toward a target pixel."""
+
     __slots__ = ("delay", "phase", "target_x", "target_y", "vx", "vy", "x", "y")
 
-    def __init__(self, x: float, y: float, target_x: float, target_y: float, delay: float = 0):
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        target_x: float,
+        target_y: float,
+        delay: float = 0,
+        phase: float = 0,
+    ) -> None:
+        """Initialize a particle and its convergence target."""
         self.x = x
         self.y = y
         self.target_x = target_x
         self.target_y = target_y
         self.vx = 0.0
         self.vy = 0.0
-        self.phase = random.uniform(0, math.pi * 2)
+        self.phase = phase
         self.delay = delay
 
-    def update_converge(self, t: float, strength: float = 0.08, damping: float = 0.92):
+    def update_converge(self, t: float, strength: float = 0.08, damping: float = 0.92) -> None:
         """Move toward target with spring-like physics."""
         if t < self.delay:
             # Still in swirl phase
@@ -183,7 +203,8 @@ class Particle:
 
     @property
     def at_target(self) -> bool:
-        return abs(self.x - self.target_x) < 1.5 and abs(self.y - self.target_y) < 1.5
+        """Return whether the particle is visually close to its target."""
+        return abs(self.x - self.target_x) < _TARGET_EPSILON and abs(self.y - self.target_y) < _TARGET_EPSILON
 
 
 def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
@@ -200,7 +221,7 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
     text_pixels_line2 = text_to_pixels("MANager", scale=2)
 
     # Calculate dimensions for centering
-    def get_bounds(pixels):
+    def get_bounds(pixels: list[tuple[int, int]]) -> _Bounds:
         if not pixels:
             return 0, 0, 0, 0
         xs = [p[0] for p in pixels]
@@ -233,11 +254,11 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
     sampled_targets = all_targets[::step]
 
     # Create particles at random edge positions
-    rng = random.Random(42)
+    rng = random.Random(42)  # noqa: S311 - deterministic animation jitter, not security-sensitive.
     particles = []
     pw, ph = canvas.pixel_width, canvas.pixel_height
 
-    for i, (tx, ty) in enumerate(sampled_targets):
+    for tx, ty in sampled_targets:
         # Spawn from random edge
         side = rng.choice(["top", "bottom", "left", "right"])
         if side == "top":
@@ -250,7 +271,7 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
             sx, sy = rng.uniform(pw + 5, pw + 20), rng.uniform(0, ph)
 
         delay = rng.uniform(0, 0.4)  # staggered start
-        p = Particle(sx, sy, tx, ty, delay=delay)
+        p = Particle(sx, sy, tx, ty, delay=delay, phase=rng.uniform(0, math.pi * 2))
         # Initial velocity — gentle swirl
         angle = math.atan2(ph / 2 - sy, pw / 2 - sx) + rng.gauss(0, 0.8)
         speed = rng.uniform(1.0, 2.5)
@@ -263,7 +284,7 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
     for _ in range(200):
         ax = rng.uniform(0, pw)
         ay = rng.uniform(0, ph)
-        ap = Particle(ax, ay, ax, ay)
+        ap = Particle(ax, ay, ax, ay, phase=rng.uniform(0, math.pi * 2))
         ap.vx = rng.gauss(0, 1)
         ap.vy = rng.gauss(0, 1)
         ambient.append(ap)
@@ -293,7 +314,7 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
                 else:
                     fade = (frame - converge_frames) / hold_frames
                     alpha = (0.3 + 0.2 * math.sin(t * 2 + ap.phase)) * (1 - fade)
-                if alpha > 0.25:
+                if alpha > _AMBIENT_ALPHA_THRESHOLD:
                     canvas.set_pixel(int(ap.x), int(ap.y))
 
             if frame < converge_frames:
@@ -323,7 +344,7 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
                     canvas.set_pixel(int(jx), int(jy))
                     canvas.set_pixel(int(p.target_x), int(p.target_y))
 
-                r, g, b = style_final.color.triplet
+                r, g, b = cool_ramp(1.0)
 
             # Render with color
             lines = canvas.render()
@@ -356,6 +377,7 @@ def run_particle_logo(console: Console, hold_seconds: float = 1.5) -> None:
 
 
 def main() -> int:
+    """Run the logo animation from the command line."""
     console = Console(color_system="auto")
 
     try:

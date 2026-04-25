@@ -162,9 +162,7 @@ def _make_debug_layout(env: Environment) -> Layout:
         Text("Interpreter Path", style="rosewater"),
         Text(env.interpreter_path, style="bold"),
     )
-    header_table.add_row(
-        Text("Platform", style="rosewater"), Text(env.platform, style="bold")
-    )
+    header_table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold"))
     header = Panel(
         header_table,
         title="Debug Information",
@@ -183,9 +181,7 @@ def _make_debug_layout(env: Environment) -> Layout:
     for pkg in env.packages:
         packages_table.add_row(pkg.name, pkg.version)
 
-    env_table = Table(
-        highlight=True, box=None, show_header=True, title="Environment Variables"
-    )
+    env_table = Table(highlight=True, box=None, show_header=True, title="Environment Variables")
     env_table.add_column("Variable", style="rosewater")
     env_table.add_column("Value", style="bold")
     for var in env.variables:
@@ -197,9 +193,7 @@ def _make_debug_layout(env: Environment) -> Layout:
         Layout(name="main", ratio=1),
     )
     layout["main"].split_row(
-        Layout(
-            Panel(packages_table, border_style="bright_blue"), name="packages", ratio=1
-        ),
+        Layout(Panel(packages_table, border_style="bright_blue"), name="packages", ratio=1),
         Layout(
             Panel(env_table, border_style="bright_blue"),
             name="vars",

@@ -66,24 +66,12 @@ def update(
         help="Path to .copier-answers.yml file (defaults to .copier-answers.yml in project_dir)",
     ),
     force: bool = Option(False, "--force", "-f", help="Force overwrite without asking"),
-    dry_run: bool = Option(
-        False, "--dry-run", help="Show what would be updated without making changes"
-    ),
-    plan: bool = Option(
-        False, "--plan", help="Show an update plan without writing files"
-    ),
-    repair: bool = Option(
-        False, "--repair", help="Repair Copier metadata in the answers file"
-    ),
-    commit: str | None = Option(
-        None, "--commit", help="Copier commit to write when using --repair"
-    ),
-    conflict: str = Option(
-        "inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"
-    ),
-    skip_extensions: bool = Option(
-        False, "--skip-extensions", help="Skip syncing Copier-managed extensions"
-    ),
+    dry_run: bool = Option(False, "--dry-run", help="Show what would be updated without making changes"),
+    plan: bool = Option(False, "--plan", help="Show an update plan without writing files"),
+    repair: bool = Option(False, "--repair", help="Repair Copier metadata in the answers file"),
+    commit: str | None = Option(None, "--commit", help="Copier commit to write when using --repair"),
+    conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
+    skip_extensions: bool = Option(False, "--skip-extensions", help="Skip syncing Copier-managed extensions"),
 ) -> None:
     """Update an existing Python project using the repoman template.
 
@@ -145,43 +133,27 @@ def update(
         return
 
     if not answers_file_path.exists():
-        console.print(
-            error_panel(
-                copier_answers_not_found_for_update(answers_file_path), console=console
-            )
-        )
+        console.print(error_panel(copier_answers_not_found_for_update(answers_file_path), console=console))
         raise Exit(1) from None
     if report.answers_file.within_project is False:
-        console.print(
-            error_panel(
-                answers_file_must_live_in_project(answers_file_path), console=console
-            )
-        )
+        console.print(error_panel(answers_file_must_live_in_project(answers_file_path), console=console))
         raise Exit(1) from None
     if report.template.src_path and not report.template.commit:
         console.print(
             error_panel(
-                copier_update_missing_commit_remediation(
-                    answers_basename=answers_file_path.name
-                ),
+                copier_update_missing_commit_remediation(answers_basename=answers_file_path.name),
                 console=console,
             )
         )
         raise Exit(1) from None
     if report.fatal:
-        console.print(
-            error_panel("\n".join(report.update_readiness.blockers), console=console)
-        )
+        console.print(error_panel("\n".join(report.update_readiness.blockers), console=console))
         raise Exit(1) from None
     if report.update_readiness.blockers:
-        console.print(
-            error_panel("\n".join(report.update_readiness.blockers), console=console)
-        )
+        console.print(error_panel("\n".join(report.update_readiness.blockers), console=console))
         raise Exit(1) from None
 
-    answers_file_for_worker = str(
-        answers_file_path.resolve().relative_to(project_dir_obj.resolve())
-    )
+    answers_file_for_worker = str(answers_file_path.resolve().relative_to(project_dir_obj.resolve()))
     copier_options = _build_copier_options(
         project_dir=project_dir_obj,
         answers_file_for_worker=answers_file_for_worker,
@@ -216,9 +188,7 @@ def update(
                 console.print(error_panel(str(exc), console=console))
                 raise Exit(1) from exc
 
-        copier_options_serializable: dict[str, object] = {
-            k: v for k, v in copier_options.items() if v is not None
-        }
+        copier_options_serializable: dict[str, object] = {k: v for k, v in copier_options.items() if v is not None}
         if extension_dry_run_options is not None:
             copier_options_serializable["extensions"] = extension_dry_run_options
         console.print(
@@ -254,9 +224,7 @@ def update(
 
             progress.update(task, description="Project updated successfully!")
 
-        copier_options_serializable = {
-            k: v for k, v in copier_options.items() if v is not None
-        }
+        copier_options_serializable = {k: v for k, v in copier_options.items() if v is not None}
         console.print(
             project_updated(
                 project_dir_obj,
@@ -289,9 +257,7 @@ def _resolve_project_dir(project_dir: Path, console: Any) -> Path:
         console.print(error_panel(project_dir_not_found(project_dir), console=console))
         raise Exit(1) from None
     if not project_dir.is_dir():
-        console.print(
-            error_panel(project_path_not_directory(project_dir), console=console)
-        )
+        console.print(error_panel(project_path_not_directory(project_dir), console=console))
         raise Exit(1) from None
     return project_dir
 
@@ -302,19 +268,13 @@ def _resolve_answers_path(project_dir: Path, answers_file: str | None) -> Path:
     return Path(answers_file).resolve()
 
 
-def _resolve_template_path(
-    template_path: str | None, logger: Any, console: Any
-) -> Path | None:
+def _resolve_template_path(template_path: str | None, logger: Any, console: Any) -> Path | None:
     if template_path is None:
         logger.info("Template path will be read from .copier-answers.yml")
         return None
     template_path_obj = Path(template_path).resolve()
     if not template_path_obj.exists():
-        console.print(
-            error_panel(
-                template_path_does_not_exist(template_path_obj), console=console
-            )
-        )
+        console.print(error_panel(template_path_does_not_exist(template_path_obj), console=console))
         raise Exit(1) from None
     logger.info(f"Using custom template at {template_path_obj}")
     return template_path_obj
@@ -360,15 +320,11 @@ def _print_update_plan(
     summary.add_row("Answers file", report.answers_file.path)
     summary.add_row(
         "Template source",
-        str(template_path)
-        if template_path is not None
-        else (report.template.src_path or "-"),
+        str(template_path) if template_path is not None else (report.template.src_path or "-"),
     )
     summary.add_row("Template commit", report.template.commit or "-")
     summary.add_row("Template ref", vcs_ref or report.template.vcs_ref or "-")
-    summary.add_row(
-        "Extensions", "skipped" if skip_extensions else _extension_plan_text(report)
-    )
+    summary.add_row("Extensions", "skipped" if skip_extensions else _extension_plan_text(report))
     summary.add_row("Update ready", _bool_text(report.update_readiness.ready))
 
     next_steps = [
@@ -423,18 +379,10 @@ def _run_repair(
     report: InspectionReport,
 ) -> None:
     if not answers_file_path.exists():
-        console.print(
-            error_panel(
-                copier_answers_not_found_for_update(answers_file_path), console=console
-            )
-        )
+        console.print(error_panel(copier_answers_not_found_for_update(answers_file_path), console=console))
         raise Exit(1) from None
     if report.answers_file.within_project is False:
-        console.print(
-            error_panel(
-                answers_file_must_live_in_project(answers_file_path), console=console
-            )
-        )
+        console.print(error_panel(answers_file_must_live_in_project(answers_file_path), console=console))
         raise Exit(1) from None
     if commit is None or not commit.strip():
         console.print(error_panel(repair_requires_commit(), console=console))
@@ -446,11 +394,7 @@ def _run_repair(
         console.print(error_panel(invalid_yaml(exc), console=console))
         raise Exit(1) from exc
 
-    selected_template_source = (
-        str(template_path_obj)
-        if template_path_obj is not None
-        else report.template.src_path
-    )
+    selected_template_source = str(template_path_obj) if template_path_obj is not None else report.template.src_path
     if not selected_template_source:
         console.print(error_panel(repair_requires_template_source(), console=console))
         raise Exit(1) from None
@@ -473,9 +417,7 @@ def _run_repair(
     if not changes:
         changes_text = "No Copier metadata changes were necessary."
     else:
-        changes_text = "Updated metadata:\n" + "\n".join(
-            f"  - {change}" for change in changes
-        )
+        changes_text = "Updated metadata:\n" + "\n".join(f"  - {change}" for change in changes)
     console.print(
         Panel(
             Text(
