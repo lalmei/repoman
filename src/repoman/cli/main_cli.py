@@ -31,6 +31,7 @@ from json import JSONDecodeError
 from pathlib import Path
 
 from pydantic import ValidationError
+from rich.console import Console
 from rich.text import Text
 from typer import Context, Exit, Option, Typer
 
@@ -78,6 +79,12 @@ def _debug_info_callback(value: bool) -> None:
         raise Exit(0)
 
 
+def _should_run_startup_logo(console: Console) -> bool:
+    stream = getattr(console, "file", None)
+    is_tty = bool(getattr(stream, "isatty", lambda: False)())
+    return bool(console.is_terminal and is_tty)
+
+
 @cli_app.callback(invoke_without_command=True, no_args_is_help=True)
 def main(
     ctx: Context,
@@ -119,13 +126,14 @@ def main(
         repoman generator add my-command --project-dir ./my-app
     """
     logger, console = get_logger_console()
-    run_particle_logo(
-        console=console,
-        hold_seconds=1.5,
-    )
-    # Clear screen for CRT boot — starts from top
-    console.file.write("\033[2J\033[H")
-    console.file.flush()
+    if _should_run_startup_logo(console):
+        run_particle_logo(
+            console=console,
+            hold_seconds=1.5,
+        )
+        # Clear screen for CRT boot — starts from top
+        console.file.write("\033[2J\033[H")
+        console.file.flush()
     config: Config | None = None
     try:
         config = Config.load(custom_path=Path(config_path) if config_path else None)
