@@ -134,6 +134,7 @@ def main(
         # Clear screen for CRT boot — starts from top
         console.file.write("\033[2J\033[H")
         console.file.flush()
+
     config: Config | None = None
     try:
         config = Config.load(custom_path=Path(config_path) if config_path else None)

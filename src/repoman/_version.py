@@ -11,17 +11,31 @@ import platform
 import sys
 from dataclasses import dataclass
 from importlib import metadata
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rich.box import HEAVY_EDGE, Box
+from rich.columns import Columns
 from rich.layout import Layout
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from repoman.utils.paths import get_os_config_path
 from repoman.utils.ui import get_console
 
 if TYPE_CHECKING:
-    from rich.console import Console
+    from rich.console import Console, RenderableType
+
+
+def section(title: str, renderable: RenderableType, style: str = "blue", box: Box = HEAVY_EDGE) -> Panel:
+    return Panel(
+        renderable,
+        title=f"[bold {style}]{title}[/]",
+        border_style=style,
+        box=box,
+        padding=(1, 2),
+    )
 
 
 @dataclass
@@ -66,6 +80,8 @@ class Environment:
     """Installed packages."""
     variables: list[Variable]
     """Environment variables."""
+    platform_version: str = ""
+    """Operating System version."""
 
 
 def _interpreter_name_version() -> tuple[str, str]:
@@ -137,18 +153,72 @@ def get_debug_info() -> Environment:
         "PYTHONPATH",
         *[var for var in os.environ if var.upper().startswith(repoman_prefix)],
     ]
+
     return Environment(
         interpreter_name=py_name,
         interpreter_version=py_version,
         interpreter_path=sys.executable,
         platform=platform.platform(),
+        platform_version=platform.version(),
         variables=[Variable(var, val) for var in variables if (val := os.getenv(var))],
         packages=[Package(name, version) for name, version in packages],
     )
 
 
-def _make_debug_layout(env: Environment) -> Layout:
-    """Build a Layout for debug info: header + packages | env vars."""
+def working_paths() -> list[Path]:
+    """Get the working paths for the project.
+
+    Returns:
+        A list of Path objects. Starting with the config path and ending with the working directory.
+    """
+    config_path = get_os_config_path()
+    working_dir = Path.cwd()
+    return [config_path, working_dir]
+
+
+def package_inventory(packages: list[Package]) -> Panel:
+    """Build a Columns object for the package inventory, as tightly packed as possible.
+
+    Args:
+        packages: A list of Package objects.
+
+    Returns:
+        A Columns object.
+    """
+    items = [
+        Text.assemble(
+            (pkg.name, "bold"),
+            (" ", "dim"),
+            (pkg.version, "cyan"),
+        )
+        for pkg in packages
+    ]
+
+    return section(
+        "Package Inventory",
+        Columns(items, equal=True, expand=True, column_first=True),
+        style="lavender",
+    )
+
+
+def _make_project_panel(paths: list[Path]) -> Panel:
+    project_table = Table(highlight=True, box=None, show_header=False)
+    project_table.add_row(
+        Text("Project", style="rosewater"),
+        Text(str(paths[1]), style="bold"),
+    )
+    project_table.add_row(
+        Text("Config Dir", style="rosewater"),
+        Text(str(paths[0]), style="bold"),
+    )
+    project_table.add_row(
+        Text("Working Dir", style="rosewater"),
+        Text(str(paths[1]), style="bold"),
+    )
+    return section("Project", project_table, style="bright_blue")
+
+
+def _make_header_panel(env: Environment) -> Panel:
     header_table = Table(highlight=True, box=None, show_header=False)
     header_table.add_row(
         Text("Interpreter Name", style="rosewater"),
@@ -163,44 +233,23 @@ def _make_debug_layout(env: Environment) -> Layout:
         Text(env.interpreter_path, style="bold"),
     )
     header_table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold"))
-    header = Panel(
-        header_table,
-        title="Debug Information",
-        title_align="left",
-        border_style="bright_blue",
-    )
+    return section("Debug Information", header_table, style="bright_blue")
 
-    packages_table = Table(
-        highlight=True,
-        box=None,
-        show_header=True,
-        title=f"Packages ({len(env.packages)})",
-    )
-    packages_table.add_column("Package", style="rosewater")
-    packages_table.add_column("Version", style="bold")
-    for pkg in env.packages:
-        packages_table.add_row(pkg.name, pkg.version)
 
-    env_table = Table(highlight=True, box=None, show_header=True, title="Environment Variables")
-    env_table.add_column("Variable", style="rosewater")
-    env_table.add_column("Value", style="bold")
-    for var in env.variables:
-        env_table.add_row(var.name, var.value)
+def _make_debug_layout(env: Environment) -> Layout:
+    """Build a Layout for debug info: header + packages | env vars."""
+    header = _make_header_panel(env)
 
     layout = Layout()
     layout.split_column(
-        Layout(header, name="header", size=7),
-        Layout(name="main", ratio=1),
+        Layout(header, name="header", size=9),
+        Layout(name="main"),
     )
     layout["main"].split_row(
-        Layout(Panel(packages_table, border_style="bright_blue"), name="packages", ratio=1),
-        Layout(
-            Panel(env_table, border_style="bright_blue"),
-            name="vars",
-            ratio=1,
-            minimum_size=30,
-        ),
+        Layout(_make_project_panel(working_paths()), name="paths", ratio=1),
+        Layout(package_inventory(env.packages), name="packages", ratio=2),
     )
+
     return layout
 
 
@@ -228,7 +277,7 @@ def _make_debug_panel(env: Environment) -> Panel:
         Text("Environment Variables", style="rosewater"),
         Text.assemble(*[Text(str(var), style="bold") for var in env.variables]),
     )
-    return Panel(table, title="Debug Information", title_align="left")
+    return section("Debug Information", table, style="bright_blue")
 
 
 def debug_info(console: Console | None = None) -> None:
