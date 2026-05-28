@@ -14,7 +14,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-from repoman.config.paths import get_os_config_path
+from repoman.utils.paths import get_os_config_path
 
 
 class Config(BaseSettings):
