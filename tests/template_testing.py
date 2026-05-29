@@ -15,8 +15,14 @@ from copier import run_copy
 from copier.errors import CopierError
 
 from repoman.utils.logging import get_logger_console
+from repoman.utils.ui.console import refresh_console_file
 
 logger, console = get_logger_console(__name__)
+
+
+def _print_status(message: str) -> None:
+    """Print through a console refreshed against pytest's current capture stream."""
+    refresh_console_file(console).print(message)
 
 
 def _slugify(value: str, separator: str = "-") -> str:
@@ -170,13 +176,13 @@ def instantiate_template(
         logger.info(f"Instantiating template from {template_path} to {project_dir}")
         run_copy(**copier_options)
         logger.info(f"Template instantiated successfully at {project_dir}")
-        console.print(f"[green]✓[/green] Template instantiated at {project_dir}")
+        _print_status(f"[green]✓[/green] Template instantiated at {project_dir}")
         # Format generated Python so instantiated project passes make format-check
         _run_ruff_format(project_dir)
     except CopierError as e:
         error_msg = f"Failed to instantiate template: {e}"
         logger.exception(error_msg)
-        console.print(f"[red]✗[/red] {error_msg}")
+        _print_status(f"[red]✗[/red] {error_msg}")
         raise
     else:
         return project_dir

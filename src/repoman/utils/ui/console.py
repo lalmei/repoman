@@ -30,9 +30,7 @@ def get_console() -> Console:
     console = _console_cache[0]
 
     if console is not None:
-        if _is_running_in_pytest():
-            console.file = sys.stdout
-        return console
+        return refresh_console_file(console)
 
     if _is_running_in_pytest():
         # Use a console that outputs plain text (no colors/formatting)
@@ -47,4 +45,13 @@ def get_console() -> Console:
         console = Console(theme=set_theme("dark"))
 
     _console_cache[0] = console
+    return refresh_console_file(console)
+
+
+def refresh_console_file(console: Console) -> Console:
+    """Keep a cached Rich console bound to a writable output stream."""
+    stream = getattr(console, "file", None)
+    stream_is_closed = bool(getattr(stream, "closed", False))
+    if _is_running_in_pytest() or stream_is_closed:
+        console.file = sys.stdout
     return console

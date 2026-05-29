@@ -1,11 +1,15 @@
 """Unit tests for template_testing utility functions."""
 
+import io
+import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
 from copier.errors import CopierError
+from rich.console import Console
 
+from tests import template_testing
 from tests.template_testing import cleanup_project_artifacts, instantiate_template
 
 
@@ -109,6 +113,28 @@ def test_instantiate_template_custom_data(tmp_path: Path, mock_template_structur
     )
 
     assert result.exists()
+
+
+def test_instantiate_template_refreshes_closed_console(
+    tmp_path: Path,
+    mock_template_structure: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Template instantiation should not fail when pytest closes a cached console stream."""
+    stale_stream = io.StringIO()
+    stale_console = Console(file=stale_stream, force_terminal=False, no_color=True)
+    monkeypatch.setattr(template_testing, "console", stale_console)
+    stale_stream.close()
+
+    result = instantiate_template(
+        output_dir=tmp_path,
+        template_path=mock_template_structure,
+        project_name="test-project",
+        force=True,
+    )
+
+    assert result.exists()
+    assert stale_console.file is sys.stdout
 
 
 def test_instantiate_template_invalid_path(tmp_path: Path) -> None:
