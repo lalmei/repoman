@@ -1,4 +1,4 @@
-"""OS-specific config path resolution for repoman."""
+"""OS-specific path resolution helpers for repoman."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import platform
 from pathlib import Path
 
 
-def get_os_config_path(app_name: str) -> Path:
+def get_os_config_path(app_name: str = "repoman") -> Path:
     """Return the standard OS-specific config file path.
 
     Linux uses $XDG_CONFIG_HOME (default ~/.config). macOS uses
@@ -26,12 +26,11 @@ def get_os_config_path(app_name: str) -> Path:
     match system:
         case "Windows":
             base = Path(os.environ.get("APPDATA", str(home / "AppData" / "Roaming")))
-        case "Darwin":  # macOS
+        case "Darwin":
             base = home / "Library" / "Application Support"
         case "Linux":
             base = Path(os.environ.get("XDG_CONFIG_HOME", str(home / ".config")))
         case _:
-            # Fallback to XDG-like config for unknown OS
             base = Path(os.environ.get("XDG_CONFIG_HOME", str(home / ".config")))
 
     return base / app_name / "config.json"

@@ -106,8 +106,8 @@ def test_get_os_config_path_linux(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     """get_os_config_path returns ~/.config/app/config.json on Linux."""
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
     with (
-        patch("repoman.config.paths.platform.system", return_value="Linux"),
-        patch("repoman.config.paths.Path.home", return_value=tmp_path),
+        patch("repoman.utils.paths.platform.system", return_value="Linux"),
+        patch("repoman.utils.paths.Path.home", return_value=tmp_path),
     ):
         result = get_os_config_path("myapp")
     assert result == tmp_path / ".config" / "myapp" / "config.json"
@@ -116,8 +116,8 @@ def test_get_os_config_path_linux(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 def test_get_os_config_path_darwin(tmp_path: Path) -> None:
     """get_os_config_path returns ~/Library/Application Support/app/config.json on macOS."""
     with (
-        patch("repoman.config.paths.platform.system", return_value="Darwin"),
-        patch("repoman.config.paths.Path.home", return_value=tmp_path),
+        patch("repoman.utils.paths.platform.system", return_value="Darwin"),
+        patch("repoman.utils.paths.Path.home", return_value=tmp_path),
     ):
         result = get_os_config_path("myapp")
     assert result == tmp_path / "Library" / "Application Support" / "myapp" / "config.json"
@@ -127,7 +127,7 @@ def test_get_os_config_path_linux_xdg_config_home(tmp_path: Path, monkeypatch: p
     """get_os_config_path uses XDG_CONFIG_HOME when set on Linux."""
     custom_config = tmp_path / "custom_config"
     monkeypatch.setenv("XDG_CONFIG_HOME", str(custom_config))
-    with patch("repoman.config.paths.platform.system", return_value="Linux"):
+    with patch("repoman.utils.paths.platform.system", return_value="Linux"):
         result = get_os_config_path("myapp")
     assert result == custom_config / "myapp" / "config.json"
 
@@ -136,8 +136,8 @@ def test_get_os_config_path_windows(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     """get_os_config_path returns %APPDATA%/app/config.json on Windows."""
     monkeypatch.delenv("APPDATA", raising=False)
     with (
-        patch("repoman.config.paths.platform.system", return_value="Windows"),
-        patch("repoman.config.paths.Path.home", return_value=tmp_path),
+        patch("repoman.utils.paths.platform.system", return_value="Windows"),
+        patch("repoman.utils.paths.Path.home", return_value=tmp_path),
     ):
         result = get_os_config_path("myapp")
     assert result == tmp_path / "AppData" / "Roaming" / "myapp" / "config.json"
@@ -147,7 +147,7 @@ def test_get_os_config_path_windows_appdata(tmp_path: Path, monkeypatch: pytest.
     """get_os_config_path uses APPDATA when set on Windows."""
     custom_appdata = tmp_path / "CustomAppData"
     monkeypatch.setenv("APPDATA", str(custom_appdata))
-    with patch("repoman.config.paths.platform.system", return_value="Windows"):
+    with patch("repoman.utils.paths.platform.system", return_value="Windows"):
         result = get_os_config_path("myapp")
     assert result == custom_appdata / "myapp" / "config.json"
 

@@ -10,8 +10,8 @@ from repoman.config.models import (
     get_project_config_path,
     load_hierarchical,
 )
-from repoman.config.paths import get_os_config_path
 from repoman.config.validation import validate_answers_file
+from repoman.utils.paths import get_os_config_path
 
 __all__ = [
     "Config",
