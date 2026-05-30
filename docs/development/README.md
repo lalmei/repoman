@@ -57,7 +57,7 @@ Welcome to the repoman development environment! This guide will help you set up 
 - **[Code Quality](code-quality.md)** — Linting (Ruff), type checking (MyPy)
 - **[CLI messages](cli-messages.md)** — Centralized error/warning message text and panels
 - **[Config validation](config-validation.md)** — Pydantic-based answers validation flow
-- **[Documentation](documentation.md)** — MkDocs, Material theme, building docs
+- **[Documentation](documentation.md)** — ProperDocs, Material for MkDocs theme, building docs
 - **[CI](ci.md)** — Continuous integration and local simulation
 - **[Debugging](debugging.md)** — Common issues and debug tools
 - **[Performance Tips](performance-tips.md)** — Fast development workflow

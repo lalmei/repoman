@@ -10,7 +10,7 @@
 - **[uv Documentation](https://docs.astral.sh/uv/)**: uv package manager guide
 - **[Pytest Documentation](https://docs.pytest.org/)**: Testing framework guide
 - **[Ruff Documentation](https://docs.astral.sh/ruff/)**: Linting and formatting guide
-- **[MkDocs Documentation](https://www.mkdocs.org/)**: Static site generator guide
+- **[ProperDocs Documentation](https://properdocs.org/)**: Static site generator guide
 - **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)**: Theme documentation
 - **[mkdocstrings Documentation](https://mkdocstrings.github.io/)**: API documentation generator
 

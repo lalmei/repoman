@@ -13,7 +13,7 @@
 {% if repository_provider == "github" and (not insiders or public_release) -%}
 [![ci](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions/workflows/ci.yml/badge.svg)](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions/workflows/ci.yml)
 {% endif -%}
-[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({{ docs_url }}/)
+[![documentation](https://img.shields.io/badge/docs-properdocs-708FCC.svg?style=flat)]({{ docs_url }}/)
 {% if not insiders or public_release -%}
 [![pypi version](https://img.shields.io/pypi/v/{{ python_package_distribution_name }}.svg)](https://pypi.org/project/{{ python_package_distribution_name }}/)
 {% endif -%}

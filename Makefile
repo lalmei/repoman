@@ -132,17 +132,17 @@ docs-trees: ## Regenerate tree blocks in documentation
 	uv run python scripts/gen_tree_docs.py
 
 docs: ensure-docs-coverage-report ## Build documentation
-	uv run mkdocs build --config-file=config/mkdocs.yml
+	uv run properdocs build --config-file=config/mkdocs.yml
 
 docs-serve: ensure-docs-coverage-report ## Serve documentation locally
-	uv run mkdocs serve --config-file=config/mkdocs.yml
+	uv run properdocs serve --config-file=config/mkdocs.yml
 
 docs-serve-open: ensure-docs-coverage-report ## Serve documentation and open in default browser
 	@(sleep 2 && uv run python -m webbrowser "http://127.0.0.1:8000") &
-	uv run mkdocs serve --config-file=config/mkdocs.yml
+	uv run properdocs serve --config-file=config/mkdocs.yml
 
 docs-check: ensure-docs-coverage-report ## Check documentation for issues
-	uv run mkdocs build --config-file=config/mkdocs.yml --strict
+	uv run properdocs build --config-file=config/mkdocs.yml --strict
 
 check-docs: docs-check ## Alias for docs-check
 
