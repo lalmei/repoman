@@ -67,3 +67,17 @@ make prod
 
 `make prod` uses `docker compose up --build`, exposes the API on `http://localhost:8000`, and passes `OPENAI_API_KEY` into the container. Exporting `OPENAI_API_TOKEN` also works because the Make target normalizes it to `OPENAI_API_KEY` before Compose starts.
 {% endif %}
+{% if latex_paper %}
+
+## Paper
+
+The LaTeX manuscript scaffold lives in `paper/`.
+
+Build it with:
+
+```bash
+make paper
+```
+
+This target requires a TeX distribution with `latexmk`.
+{% endif %}

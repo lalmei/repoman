@@ -1,0 +1,24 @@
+MAIN := main
+BUILD_DIR := build
+PDF := $(MAIN).pdf
+
+.PHONY: all
+all: pdf
+
+.PHONY: pdf
+pdf: ## Build $(PDF) with latexmk.
+	latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=$(BUILD_DIR) $(MAIN).tex
+	cp $(BUILD_DIR)/$(PDF) $(PDF)
+
+.PHONY: watch
+watch: ## Rebuild $(PDF) whenever sources change.
+	latexmk -pdf -pvc -interaction=nonstopmode -halt-on-error -outdir=$(BUILD_DIR) $(MAIN).tex
+
+.PHONY: clean
+clean: ## Remove LaTeX build artifacts.
+	latexmk -C -outdir=$(BUILD_DIR) $(MAIN).tex
+	rm -rf $(BUILD_DIR)
+
+.PHONY: distclean
+distclean: clean ## Remove generated PDF.
+	rm -f $(PDF)

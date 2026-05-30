@@ -18,3 +18,4 @@ Generated projects typically include:
 - **CLI:** If a CLI name is provided, the template generates a Typer-based CLI.
 - **FastAPI:** If FastAPI is enabled, the template generates `src/<package>/app/`.
 - **Datasets:** If dataset support is enabled, the template generates dataset config and the selected loaders under `src/<package>/datasets/`.
+- **Paper:** If LaTeX paper support is enabled, the template generates a `paper/` manuscript scaffold with root `make paper` targets.

@@ -54,3 +54,10 @@ When dataset support is enabled, dataset loaders and types live in
 `src/{{ python_package_import_name }}/datasets/` and use
 `config/dataset_config.json` plus `DatasetConfig` for defaults and overrides.
 {% endif %}
+{% if latex_paper %}
+## Paper
+
+When the LaTeX paper scaffold is enabled, manuscript sources live under
+`paper/`. The root `make paper`, `make paper-watch`, and `make paper-clean`
+targets delegate to `paper/Makefile`.
+{% endif %}

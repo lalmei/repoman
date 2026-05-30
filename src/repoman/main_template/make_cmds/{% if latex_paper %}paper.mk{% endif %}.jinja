@@ -1,0 +1,15 @@
+#######################
+#       Paper         #
+#######################
+
+.PHONY: paper
+paper: ## Build the LaTeX paper PDF.
+	$(MAKE) -C paper pdf
+
+.PHONY: paper-watch
+paper-watch: ## Continuously rebuild the LaTeX paper PDF.
+	$(MAKE) -C paper watch
+
+.PHONY: paper-clean
+paper-clean: ## Remove LaTeX build artifacts.
+	$(MAKE) -C paper clean

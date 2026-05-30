@@ -33,6 +33,12 @@ Repoman prompts for:
 | ------------------ | --------------------------------- | ------- |
 | `python_notebooks` | Include Jupyter notebooks support | `false` |
 
+### Paper
+
+| Prompt        | Description                                  | Default |
+| ------------- | -------------------------------------------- | ------- |
+| `latex_paper` | Include a LaTeX paper scaffold under `paper/` | `false` |
+
 ### Datasets
 
 | Prompt                     | Description                                                | Default |
