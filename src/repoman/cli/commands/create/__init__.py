@@ -8,6 +8,7 @@ from typer import Context, Exit, Option, Typer
 
 from repoman.cli.commands.create._shared import run_create
 from repoman.cli.commands.create.cli_only import app as cli_only_app
+from repoman.cli.commands.create.cpp import app as cpp_app
 from repoman.cli.commands.create.docs_only import app as docs_only_app
 from repoman.cli.commands.create.fastapi_mvc import app as fastapi_mvc_app
 from repoman.cli.commands.create.library import app as library_app
@@ -18,6 +19,7 @@ from repoman.utils.logging import get_logger_console
 app = Typer(add_completion=True)
 
 app.add_typer(cli_only_app, name="cli")
+app.add_typer(cpp_app, name="cpp")
 app.add_typer(docs_only_app, name="docs")
 app.add_typer(library_app, name="library")
 app.add_typer(fastapi_mvc_app, name="fastapi")
@@ -59,7 +61,7 @@ def create(
         Option(
             "--preset",
             "-p",
-            help="Use a preset: cli, docs-only, library, fastapi",
+            help="Use a preset: cli, cpp, docs-only, library, fastapi",
         ),
     ] = None,
     dry_run: Annotated[
@@ -69,12 +71,14 @@ def create(
 ) -> None:
     """Create a new Python project using the repoman template.
 
-    Use a preset, a typed subcommand (cli, docs, library, fastapi), or an answers file.
+    Use a preset, a typed subcommand (cli, cpp, docs, library, fastapi), or an answers file.
 
     Examples:
         repoman create -pn my-app --preset cli
+        repoman create -pn my-lib --preset cpp
         repoman create -pn my-app --preset fastapi -o ~/projects
         repoman create cli cli my-app
+        repoman create cpp cpp my-lib
         repoman create fastapi fastapi my-app --force
         repoman create -pn my-app -a ./my-answers.yml
     """
@@ -93,16 +97,11 @@ def create(
         )
         raise Exit(1) from None
 
-    if template_path is None:
-        current_file = Path(__file__)
-        template_path_obj = current_file.parent.parent.parent.parent
-        logger.info(f"Using main template at {template_path_obj}")
-    else:
-        template_path_obj = Path(template_path)
-
     output_dir_base = Path.cwd() if output_dir is None else Path(output_dir)
 
     if answers_file is not None:
+        template_path_obj = Path(__file__).parent.parent.parent.parent if template_path is None else Path(template_path)
+        logger.info(f"Using main template at {template_path_obj}")
         answers_path = Path(answers_file).resolve()
         if not answers_path.exists():
             console.print(error_panel(answers_file_not_found(answers_path), console=console))
@@ -112,17 +111,27 @@ def create(
             data = yaml.safe_load(f) or {}
     elif preset is not None:
         preset_key = preset.replace("-", "_")  # docs-only -> docs_only
-        valid = ("cli", "docs_only", "library", "fastapi")
+        valid = ("cli", "cpp", "docs_only", "library", "fastapi")
         if preset_key not in valid:
             console.print(
                 error_panel(
-                    f"Invalid preset '{preset}'. Choose from: cli, docs-only, library, fastapi",
+                    f"Invalid preset '{preset}'. Choose from: cli, cpp, docs-only, library, fastapi",
                     console=console,
                 )
             )
             raise Exit(1) from None
+        if template_path is None and preset_key == "cpp":
+            template_path_obj = Path(__file__).parent.parent.parent.parent / "cpp_template"
+            logger.info(f"Using C++ template at {template_path_obj}")
+        else:
+            template_path_obj = (
+                Path(__file__).parent.parent.parent.parent if template_path is None else Path(template_path)
+            )
+            logger.info(f"Using main template at {template_path_obj}")
         data = build_preset_data(preset_key, project_name)
     else:
+        template_path_obj = Path(__file__).parent.parent.parent.parent if template_path is None else Path(template_path)
+        logger.info(f"Using main template at {template_path_obj}")
         data = None
 
     run_create(

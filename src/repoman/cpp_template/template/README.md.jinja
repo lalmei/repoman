@@ -1,0 +1,53 @@
+{% set repo_host_by_provider = {"github": "github.com", "gitlab": "gitlab.com"} -%}
+{% set repo_host = repo_host_by_provider[repository_provider] -%}
+{% set repo_url = "https://" ~ repo_host ~ "/" ~ repository_namespace ~ "/" ~ repository_name -%}
+{% if repository_provider == "github" -%}
+{% set docs_url = "https://" ~ repository_namespace ~ ".github.io/" ~ repository_name -%}
+{% elif repository_provider == "gitlab" -%}
+{% set docs_url = "https://" ~ repository_namespace ~ ".gitlab.io/" ~ repository_name -%}
+{% endif -%}
+# {{ project_name }}
+
+{% if repository_provider == "github" -%}
+[![ci](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions/workflows/ci.yml/badge.svg)](https://github.com/{{ repository_namespace }}/{{ repository_name }}/actions/workflows/ci.yml)
+{% endif -%}
+[![documentation](https://img.shields.io/badge/docs-properdocs-708FCC.svg?style=flat)]({{ docs_url }}/)
+[![license](https://img.shields.io/badge/license-{{ copyright_license }}-blue.svg?style=flat)](LICENSE)
+[![c++](https://img.shields.io/badge/{{ cpp_standard | replace('+', '%2B') }}-library-blue.svg?style=flat)](#building)
+
+{{ project_description }}
+
+## Building
+
+Install the developer tooling and configure the Meson build directory:
+
+```bash
+make setup
+make configure
+make build
+```
+
+Run the test suite:
+
+```bash
+make test
+```
+
+Format and check the project:
+
+```bash
+make format
+make check
+```
+
+## Layout
+
+```text
+include/{{ cpp_namespace }}/  Public headers
+src/                    Library and CLI sources
+tests/                  Meson test executables
+examples/               Small example programs
+docs/                   ProperDocs documentation
+```
+
+The public umbrella header is `include/{{ cpp_namespace }}/{{ cpp_namespace }}.hpp`.

@@ -71,6 +71,23 @@ def test_build_preset_data_fastapi_preset() -> None:
     assert data.get("dataset_enabled") is False
 
 
+def test_build_preset_data_cpp_preset() -> None:
+    """C++ preset adds C++ defaults and disables Python application features."""
+    data = build_preset_data("cpp", "my-cpp-lib")
+    assert data.get("fastapi_enabled") is False
+    assert data.get("dataset_enabled") is False
+    assert data["python_package_command_line_name"] == ""
+    assert data["project_description"] == ""
+    assert data["repository_provider"] == "github"
+    assert data["copyright_license"] == "MIT"
+    assert data["cpp_namespace"] == "my_cpp_lib"
+    assert data["cpp_library_name"] == "my_cpp_lib"
+    assert data["cpp_standard"] == "c++17"
+    assert data["cpp_build_cli"] is True
+    assert data["cpp_build_examples"] is True
+    assert data["cpp_build_tests"] is True
+
+
 def test_build_copier_options_without_data() -> None:
     """build_copier_options without data returns only src_path and dst_path."""
     template_path = Path("/tpl")
@@ -115,4 +132,4 @@ def test_load_prompt_schema_default_returns_dict() -> None:
 
 def test_presets_keys() -> None:
     """PRESETS contains expected preset names."""
-    assert set(PRESETS.keys()) == {"cli", "docs_only", "library", "fastapi"}
+    assert set(PRESETS.keys()) == {"cli", "cpp", "docs_only", "library", "fastapi"}

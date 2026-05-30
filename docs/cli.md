@@ -63,12 +63,12 @@ repoman inspect --path ./my-project --answers ./my-project/custom-answers.yml
 
 ### create
 
-Create a new Python project using the repoman template. For the default (interactive or answers-based) flow, use options; project name is passed with `--project_name` / `-pn`. Alternatively, use a subcommand (e.g. `create cli`) and pass the project name as a positional argument.
+Create a new project using a bundled repoman template. For the default (interactive or answers-based) flow, use options; project name is passed with `--project_name` / `-pn`. Alternatively, use a subcommand (e.g. `create cli`) and pass the project name as a positional argument.
 
 ```bash
 repoman create [OPTIONS]
 # or with a preset subcommand (positional project name):
-repoman create cli PROJECT_NAME [OPTIONS]
+repoman create cli cli PROJECT_NAME [OPTIONS]
 ```
 
 **Options (default create)**
@@ -79,7 +79,7 @@ repoman create cli PROJECT_NAME [OPTIONS]
 | `--template`    | `-t`  | Path to custom template (defaults to bundled main template)                 |
 | `--output`      | `-o`  | Output directory (defaults to current directory)                             |
 | `--answers`     | `-a`  | Path to answers file for non-interactive use                                |
-| `--preset`      | `-p`  | Use a preset: `cli`, `docs-only`, `library`, `fastapi` (non-interactive) |
+| `--preset`      | `-p`  | Use a preset: `cli`, `cpp`, `docs-only`, `library`, `fastapi` (non-interactive) |
 | `--force`       | `-f`  | Force overwrite of existing files                                          |
 | `--dry-run`     |       | Show what would be created without creating                                 |
 
@@ -90,6 +90,7 @@ repoman create --project_name my-new-project
 repoman create -pn my-app --output /path/to/parent --force
 repoman create --project_name my-app --answers .copier-answers.yml --dry-run
 repoman create -pn my-app --preset cli
+repoman create -pn my-lib --preset cpp
 ```
 
 **Create subcommands (preset-based, positional project name)**
@@ -99,6 +100,7 @@ Each subcommand creates a project using a preset and takes the project name as a
 | Subcommand | Preset   | Description                                              |
 | ---------- | -------- | -------------------------------------------------------- |
 | `create cli`     | cli      | Plain CLI project (no FastAPI or dataset)                |
+| `create cpp`     | cpp      | Meson-based C++ library project                          |
 | `create docs`    | docs_only| Documentation-only project                                |
 | `create library` | library  | Library-style project (no CLI entry point)               |
 | `create fastapi` | fastapi  | Project with FastAPI enabled                             |
@@ -106,10 +108,11 @@ Each subcommand creates a project using a preset and takes the project name as a
 **Examples (subcommands)**
 
 ```bash
-repoman create cli my-cli-app
-repoman create library my-lib --dry-run
-repoman create docs docs-project --output /path/to/parent
-repoman create fastapi my-api
+repoman create cli cli my-cli-app
+repoman create cpp cpp my-cpp-lib
+repoman create library library my-lib --dry-run
+repoman create docs docs-only docs-project --output /path/to/parent
+repoman create fastapi fastapi my-api
 ```
 
 ### update

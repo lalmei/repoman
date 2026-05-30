@@ -1,0 +1,3 @@
+option('build_cli', type: 'boolean', value: {{ "true" if cpp_build_cli else "false" }}, description: 'Build the example command-line executable')
+option('build_examples', type: 'boolean', value: {{ "true" if cpp_build_examples else "false" }}, description: 'Build example programs')
+option('build_tests', type: 'boolean', value: {{ "true" if cpp_build_tests else "false" }}, description: 'Build test executables')

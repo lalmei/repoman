@@ -1,0 +1,30 @@
+#include "{{ cpp_namespace }}/{{ cpp_namespace }}.hpp"
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+namespace {
+
+void print_usage(const char *program) {
+  std::cout << "Usage: " << program << " [--version] [lhs rhs]\n";
+}
+
+} // namespace
+
+int main(int argc, char **argv) {
+  if (argc == 2 && std::string{argv[1]} == "--version") {
+    std::cout << {{ cpp_namespace }}::version() << '\n';
+    return 0;
+  }
+
+  if (argc == 3) {
+    const int lhs = std::atoi(argv[1]);
+    const int rhs = std::atoi(argv[2]);
+    std::cout << {{ cpp_namespace }}::add(lhs, rhs) << '\n';
+    return 0;
+  }
+
+  print_usage(argv[0]);
+  return argc == 1 ? 0 : 2;
+}

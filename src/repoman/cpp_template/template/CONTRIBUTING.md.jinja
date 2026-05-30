@@ -1,0 +1,29 @@
+# Contributing
+
+Contributions are welcome.
+
+## Environment setup
+
+Fork and clone the repository, then run:
+
+```bash
+cd {{ repository_name }}
+make setup
+make build
+make test
+```
+
+You need a C++ compiler, `clang-format`, and `uv`. Meson and Ninja are installed
+through `uv` for local development.
+
+## Development
+
+Before committing:
+
+1. Run `make format`.
+1. Run `make check`.
+1. Run `make test`.
+1. Run `make docs-check` if you changed documentation.
+
+Please review [AI Usage Policy](AI_POLICY.md) before submitting external
+contributions that used AI assistance.

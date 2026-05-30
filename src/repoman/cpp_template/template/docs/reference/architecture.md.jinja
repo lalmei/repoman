@@ -1,0 +1,24 @@
+# Architecture
+
+The generated project follows the same C++ shape as `spinach`: public headers
+in `include/`, implementation files in `src/`, tests in `tests/`, examples in
+`examples/`, and documentation under `docs/`.
+
+## Library
+
+The public API lives under `include/{{ cpp_namespace }}/`. The umbrella header is
+`include/{{ cpp_namespace }}/{{ cpp_namespace }}.hpp`; implementation lives in
+`src/{{ cpp_namespace }}.cpp`.
+
+## Build
+
+Meson owns the C++ build graph. The root `meson.build` declares the library
+target, optional CLI executable, optional examples, and optional tests. The
+Makefile preserves the standard repoman workflow names (`make setup`,
+`make build`, `make test`, `make check`, and `make docs-check`).
+
+## Documentation
+
+ProperDocs is the primary documentation site generator. Doxygen is configured in
+`Doxyfile` and can be run with `make docs-api` when you want generated C++ API
+artifacts.
