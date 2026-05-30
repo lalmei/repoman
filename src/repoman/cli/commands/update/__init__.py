@@ -38,7 +38,9 @@ from repoman.copier import ExtensionLifecycleError, sync_extensions
 from repoman.inspection import InspectionError, InspectionReport, inspect_repository
 from repoman.utils.logging import get_logger_console
 
-app = Typer(add_completion=True)
+app = Typer(
+    add_completion=True,
+)
 
 
 @app.callback(invoke_without_command=True)
@@ -330,7 +332,10 @@ def _print_update_plan(
         "Use --dry-run for Copier options preview",
         "Review and test the project after the update",
     ]
-    body: list[RenderableType] = [Text("Plan for repoman update", style="blue"), summary]
+    body: list[RenderableType] = [
+        Text("Plan for repoman update", style="blue"),
+        summary,
+    ]
     if report.update_readiness.blockers:
         body.append(
             Panel(

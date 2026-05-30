@@ -1,7 +1,9 @@
 """Tests for logging utilities."""
 
+import io
 import logging
 import os
+import sys
 import tempfile
 from logging import DEBUG, INFO, Logger
 from pathlib import Path
@@ -10,6 +12,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from rich.console import Console
+from rich.logging import RichHandler
 
 from repoman.utils.logging import (
     _attach_rotating_file_handler,
@@ -127,6 +130,27 @@ class TestSetUpLogger:
         # Check for the presence of a rich handler rather than exact count
         # (pytest adds additional handlers for test capture)
         assert any(h.get_name() == "rich" for h in logger1.handlers)
+
+    def test_set_up_logger_refreshes_closed_rich_console(self) -> None:
+        """Existing Rich handlers should not keep a closed capture stream."""
+        stale_stream = io.StringIO()
+        stale_console = Console(file=stale_stream, force_terminal=False, no_color=True)
+        logger = _set_up_logger("test_logger_closed_console", console=stale_console)
+
+        try:
+            stale_stream.close()
+
+            refreshed_logger = _set_up_logger("test_logger_closed_console")
+            rich_handler = next(handler for handler in refreshed_logger.handlers if handler.get_name() == "rich")
+            assert isinstance(rich_handler, RichHandler)
+            refreshed_console = rich_handler.console
+
+            assert refreshed_console.file is sys.stdout
+            refreshed_console.print("console still writable")
+        finally:
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
 
     def test_set_up_logger_environment_log_level(self) -> None:
         """Test that environment variable affects log level."""
@@ -320,6 +344,38 @@ class TestGetLoggerConsole:
 
         handler = rich_handlers[0]
         assert hasattr(handler, "console")
+
+    def test_get_logger_console_refreshes_closed_handler_console(self) -> None:
+        """Child loggers should receive a writable console from the root handler."""
+        root_logger = logging.getLogger("repoman")
+        original_handlers = root_logger.handlers[:]
+        original_level = root_logger.level
+
+        stale_stream = io.StringIO()
+        stale_console = Console(file=stale_stream, force_terminal=False, no_color=True)
+        stale_handler = RichHandler(rich_tracebacks=True, console=stale_console)
+        stale_handler.set_name("rich")
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+            root_logger.addHandler(stale_handler)
+            root_logger.setLevel(INFO)
+            stale_stream.close()
+
+            logger, console = get_logger_console("test_logger_closed_child")
+
+            assert logger.name == "test_logger_closed_child"
+            assert console.file is sys.stdout
+            console.print("console still writable")
+        finally:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+                if handler not in original_handlers:
+                    handler.close()
+            for handler in original_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(original_level)
 
     def test_get_logger_console_fallback_return(self) -> None:
         """Test that get_logger_console falls back to default return when no rich handler."""

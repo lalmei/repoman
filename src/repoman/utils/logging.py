@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from repoman.config import Config
-from repoman.utils.ui.console import get_console
+from repoman.utils.ui.console import get_console, refresh_console_file
 
 
 def _set_up_logger(
@@ -40,6 +40,8 @@ def _set_up_logger(
     if len(module_logger.handlers) > 0:
         for handler in module_logger.handlers:
             if handler.get_name() == "rich":
+                rich_handler = cast("RichHandler", handler)
+                refresh_console_file(rich_handler.console)
                 # Set the log level even for existing loggers
                 module_logger.setLevel(level=log_level)
                 return module_logger
@@ -134,7 +136,7 @@ def get_logger_console(
             if handler.get_name() == "rich":
                 rich_handler: RichHandler = cast("RichHandler", handler)
                 # use console from handler
-                console = rich_handler.console
+                console = refresh_console_file(rich_handler.console)
                 return logger, console
 
     if console is None:

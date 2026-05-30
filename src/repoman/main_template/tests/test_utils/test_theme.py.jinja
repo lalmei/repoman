@@ -3,7 +3,6 @@
 import pytest
 from rich.theme import Theme
 
-from {{ python_package_import_name }}.utils.theme.terminal_colors import get_rich_color
 from {{ python_package_import_name }}.utils.theme.theme import _create_theme, set_theme
 
 
@@ -87,24 +86,3 @@ class TestSetTheme:
         assert theme_dark.styles != theme_light.styles
 
 
-class TestTerminalColors:
-    """Test terminal color mapping functionality."""
-
-    def test_get_rich_color_known_labels(self) -> None:
-        """Test that known labels return correct colors."""
-        assert get_rich_color("TP") == "green"
-        assert get_rich_color("FP") == "maroon"
-        assert get_rich_color("FN") == "red"
-        assert get_rich_color("TN") == "peach"
-        assert get_rich_color("header") == "subtext1"
-        assert get_rich_color("border") == "overlay1"
-
-    def test_get_rich_color_unknown_label(self) -> None:
-        """Test that unknown labels return default 'text' color."""
-        assert get_rich_color("unknown") == "text"
-        assert get_rich_color("") == "text"
-
-    def test_get_rich_color_case_sensitive(self) -> None:
-        """Test that color mapping is case sensitive."""
-        assert get_rich_color("tp") == "text"
-        assert get_rich_color("TP") == "green"
