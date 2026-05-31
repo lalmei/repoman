@@ -130,3 +130,8 @@ cpp_build_tests:
   type: bool
   help: Build test executables
   default: true
+
+cpp_build_python_bindings:
+  type: bool
+  help: Build Python bindings
+  default: true

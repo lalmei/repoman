@@ -12,6 +12,13 @@ Build the project:
 make build
 ```
 
+The default build includes pybind11 Python bindings. You can disable them in an
+existing build directory with:
+
+```bash
+uv run meson configure build -Dbuild_python_bindings=false
+```
+
 Run tests:
 
 ```bash

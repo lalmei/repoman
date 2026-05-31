@@ -5,3 +5,15 @@ test_{{ cpp_library_name }} = executable(
 )
 
 test('{{ cpp_library_name }}', test_{{ cpp_library_name }})
+
+if get_option('build_python_bindings')
+  python_binding_env = environment()
+  python_binding_env.prepend('PYTHONPATH', meson.project_build_root())
+
+  test(
+    '{{ cpp_library_name }}_python',
+    python,
+    args: files('test_python_bindings.py'),
+    env: python_binding_env,
+  )
+endif

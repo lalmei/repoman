@@ -86,6 +86,7 @@ def test_build_preset_data_cpp_preset() -> None:
     assert data["cpp_build_cli"] is True
     assert data["cpp_build_examples"] is True
     assert data["cpp_build_tests"] is True
+    assert data["cpp_build_python_bindings"] is True
 
 
 def test_build_copier_options_without_data() -> None:

@@ -57,6 +57,7 @@ def build_preset_data(preset_name: str, project_name: str) -> dict:
         overrides.setdefault("cpp_build_cli", True)
         overrides.setdefault("cpp_build_examples", True)
         overrides.setdefault("cpp_build_tests", True)
+        overrides.setdefault("cpp_build_python_bindings", True)
     return {**base, **overrides}
 
 
