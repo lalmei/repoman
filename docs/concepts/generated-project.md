@@ -8,7 +8,7 @@ Generated projects typically include:
 
 - `src/<package>/` for the main Python package
 - `tests/` for pytest-based tests
-- `config/` for Ruff, MyPy, pytest, MkDocs, and related config
+- `config/` for Ruff, MyPy, pytest, ProperDocs, and related config
 - `docs/` for project documentation
 - `make_cmds/` for Makefile fragments
 - `pyproject.toml` for package metadata and dependencies

@@ -1,6 +1,6 @@
 # Documentation
 
-The project uses **MkDocs** with the **Material theme** for documentation. This provides a modern, responsive documentation site with excellent features like search, navigation, and code highlighting.
+The project uses **ProperDocs** with the **Material for MkDocs theme** for documentation. This provides a modern, responsive documentation site with excellent features like search, navigation, and code highlighting.
 
 ## Documentation Structure
 
@@ -59,7 +59,7 @@ docs
 ```
 <!-- TREE_END -->
 
-MkDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
+ProperDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
 
 ## Documentation map
 
@@ -104,7 +104,7 @@ flowchart LR
   update --> troubleshooting
 ```
 
-## MkDocs Configuration
+## ProperDocs Configuration
 
 The documentation is configured in `config/mkdocs.yml` with the following features:
 

@@ -239,7 +239,9 @@ def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
     repo_url = _expected_repo_url("github", "testuser", "test-project")
 
     assert "[![ci](https://github.com/testuser/test-project/actions/workflows/ci.yml/badge.svg)]" in readme
-    assert f"[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    assert (
+        f"[![documentation](https://img.shields.io/badge/docs-properdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    )
     assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
     assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
     assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme
@@ -280,7 +282,9 @@ def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
     repo_url = _expected_repo_url("gitlab", "testuser", "test-project")
 
     assert "[![ci]" not in readme
-    assert f"[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    assert (
+        f"[![documentation](https://img.shields.io/badge/docs-properdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    )
     assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
     assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
     assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme
@@ -323,7 +327,9 @@ def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
     repo_url = _expected_repo_url("azure", "testuser", "test-project")
 
     assert "[![ci]" not in readme
-    assert f"[![documentation](https://img.shields.io/badge/docs-mkdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    assert (
+        f"[![documentation](https://img.shields.io/badge/docs-properdocs-708FCC.svg?style=flat)]({docs_url}/)" in readme
+    )
     assert "[![pypi version](https://img.shields.io/pypi/v/test-project.svg)]" in readme
     assert "[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)" in readme
     assert "[![python](https://img.shields.io/badge/python-%3E%3D3.11-blue.svg?style=flat)](#installation)" in readme

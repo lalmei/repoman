@@ -60,7 +60,7 @@ jobs:
         python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json
 
     - name: Check docs in strict mode
-      run: uv run mkdocs build --config-file=config/mkdocs.yml --strict
+      run: uv run properdocs build --config-file=config/mkdocs.yml --strict
 
     - name: Upload Pages artifact
       if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
