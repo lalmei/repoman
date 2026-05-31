@@ -40,11 +40,18 @@ make format
 make check
 ```
 
+Python bindings are built by default with pybind11 and expose a module named
+`{{ cpp_namespace }}`. Disable them with:
+
+```bash
+uv run meson configure build -Dbuild_python_bindings=false
+```
+
 ## Layout
 
 ```text
 include/{{ cpp_namespace }}/  Public headers
-src/                    Library and CLI sources
+src/                    Library, CLI, and Python binding sources
 tests/                  Meson test executables
 examples/               Small example programs
 docs/                   ProperDocs documentation

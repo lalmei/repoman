@@ -42,6 +42,21 @@ if get_option('build_cli')
   )
 endif
 
+if get_option('build_python_bindings')
+  python = import('python').find_installation()
+  pybind11_dep = dependency('pybind11')
+
+  python.extension_module(
+    '{{ cpp_namespace }}',
+    'src/python_bindings.cpp',
+    dependencies: [
+      {{ cpp_library_name }}_dep,
+      pybind11_dep,
+    ],
+    install: true,
+  )
+endif
+
 install_headers(
   'include/{{ cpp_namespace }}/{{ cpp_namespace }}.hpp',
   subdir: '{{ cpp_namespace }}',
