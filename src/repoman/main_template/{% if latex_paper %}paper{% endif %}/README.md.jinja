@@ -1,0 +1,22 @@
+# Paper
+
+This folder contains the LaTeX manuscript scaffold for `{{ project_name }}`.
+
+## Build
+
+Install a TeX distribution with `latexmk`, then run:
+
+```bash
+make paper
+```
+
+From this folder, you can also run:
+
+```bash
+make pdf
+make watch
+make clean
+```
+
+The root `make paper` target delegates to `paper/Makefile` and writes
+`paper/main.pdf`.

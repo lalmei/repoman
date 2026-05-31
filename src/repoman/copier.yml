@@ -170,6 +170,11 @@ python_notebooks:
   help: Include Jupyter notebooks support (notebooks folder and ipykernel)
   default: false
 
+latex_paper:
+  type: bool
+  help: Include a LaTeX paper scaffold under paper/
+  default: false
+
 # FastAPI application (when fastapi_enabled)
 fastapi_enabled:
   type: bool

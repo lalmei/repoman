@@ -145,6 +145,7 @@ def instantiate_template(
         "insiders": False,
         "public_release": False,
         "python_notebooks": False,
+        "latex_paper": False,
     }
 
     # Merge answers file data first (if provided), then provided copier_data (highest priority)

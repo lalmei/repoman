@@ -37,6 +37,9 @@ container_registry: ""
 # Notebooks
 python_notebooks: false
 
+# Paper
+latex_paper: false
+
 # FastAPI application
 fastapi_enabled: true
 fastapi_docs_url: "/docs"

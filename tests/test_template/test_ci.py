@@ -113,6 +113,49 @@ def test_instantiated_template_notebook_executes(setup_template: Any) -> None:
     )
 
 
+def test_latex_paper_template_renders_paper_folder_only_when_enabled(tmp_path: Path) -> None:
+    """LaTeX paper scaffold files should be controlled by latex_paper."""
+    answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
+
+    disabled_dir = instantiate_template(
+        output_dir=tmp_path / "disabled",
+        project_name="test-project",
+        answers_file=answers_file,
+        copier_data={"latex_paper": False},
+    )
+    assert not (disabled_dir / "paper").exists()
+    assert not (disabled_dir / "make_cmds" / "paper.mk").exists()
+    assert "include make_cmds/paper.mk" not in _read_text(disabled_dir / "Makefile")
+    assert "/paper/build/" not in _read_text(disabled_dir / ".gitignore")
+
+    enabled_dir = instantiate_template(
+        output_dir=tmp_path / "enabled",
+        project_name="paper-project",
+        answers_file=answers_file,
+        copier_data={"latex_paper": True},
+    )
+    paper_dir = enabled_dir / "paper"
+    assert (paper_dir / "main.tex").exists()
+    assert (paper_dir / ".latexmkrc").exists()
+    assert (paper_dir / "references.bib").exists()
+    assert (paper_dir / "sections" / "introduction.tex").exists()
+    assert (paper_dir / "figures" / ".gitkeep").exists()
+
+    makefile = _read_text(enabled_dir / "Makefile")
+    paper_makefile = _read_text(enabled_dir / "make_cmds" / "paper.mk")
+    paper_readme = _read_text(paper_dir / "README.md")
+    main_tex = _read_text(paper_dir / "main.tex")
+    references = _read_text(paper_dir / "references.bib")
+
+    assert "include make_cmds/paper.mk" in makefile
+    assert "paper: ## Build the LaTeX paper PDF." in paper_makefile
+    assert "make paper" in paper_readme
+    assert r"\title{Paper Project}" in main_tex
+    assert r"\input{sections/introduction}" in main_tex
+    assert "title = {Paper Project}" in references
+    assert "/paper/build/" in _read_text(enabled_dir / ".gitignore")
+
+
 def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
     """When fastapi_enabled is false, no app folder is created and CI still passes."""
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"

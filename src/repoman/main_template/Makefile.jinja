@@ -66,6 +66,9 @@ include make_cmds/prod.mk
 {% if python_notebooks %}
 include make_cmds/notebooks.mk
 {% endif %}
+{% if latex_paper %}
+include make_cmds/paper.mk
+{% endif %}
 
 ##############
 # Versioning #
