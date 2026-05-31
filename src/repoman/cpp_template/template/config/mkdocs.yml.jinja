@@ -1,0 +1,114 @@
+{% set repo_host_by_provider = {"github": "github.com", "gitlab": "gitlab.com"} -%}
+{% set repo_host = repo_host_by_provider[repository_provider] -%}
+{% set repo_url = "https://" ~ repo_host ~ "/" ~ repository_namespace ~ "/" ~ repository_name -%}
+{% if repository_provider == "github" -%}
+{% set site_url_value = "https://" ~ repository_namespace ~ ".github.io/" ~ repository_name -%}
+{% elif repository_provider == "gitlab" -%}
+{% set site_url_value = "https://" ~ repository_namespace ~ ".gitlab.io/" ~ repository_name -%}
+{% endif -%}
+site_name: "{{ project_name }}"
+site_description: "{{ project_description }}"
+site_url: "{{ site_url_value }}"
+repo_url: "{{ repo_url }}"
+repo_name: "{{ repository_namespace }}/{{ repository_name }}"
+docs_dir: "../docs"
+site_dir: "{% if repository_provider == 'github' %}../site{% endif %}"
+watch: [../README.md, ../CONTRIBUTING.md, ../CHANGELOG.md, ../AI_POLICY.md, ../include, ../src, ../docs]
+copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
+edit_uri: edit/main/docs/
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+- Home:
+  - Overview: index.md
+  - Changelog: changelog.md
+  - License: license.md
+- Architecture: reference/architecture.md
+- API reference: reference/api.md
+- Development:
+  - Build and Test: development/build-and-test.md
+  - API Documentation: development/api-documentation.md
+  - Contributing: contributing.md
+  - Code of Conduct: code_of_conduct.md
+  - AI Usage Policy: ai_policy.md
+
+theme:
+  name: material
+
+  features:
+  - announce.dismiss
+  - content.action.edit
+  - content.action.view
+  - content.code.copy
+  - content.tooltips
+  - navigation.footer
+  - navigation.path
+  - navigation.sections
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  - search.highlight
+  - search.suggest
+  - toc.follow
+  palette:
+  - media: "(prefers-color-scheme)"
+    toggle:
+      icon: material/brightness-auto
+      name: Switch to light mode
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: teal
+    accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to system preference
+
+extra_css:
+- css/material.css
+- css/mkdocstrings.css
+
+extra_javascript:
+- js/feedback.js
+
+markdown_extensions:
+- attr_list
+- admonition
+- callouts
+- footnotes
+- pymdownx.magiclink
+- pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
+    slugify: !!python/object/apply:pymdownx.slugs.slugify
+      kwds:
+        case: lower
+- pymdownx.tasklist:
+    custom_checkbox: true
+- toc:
+    permalink: "¤"
+
+plugins:
+- search
+- section-index
+- git-revision-date-localized:
+    enabled: !ENV [DEPLOY, false]
+    enable_creation_date: true
+    type: timeago
+- minify:
+    minify_html: !ENV [DEPLOY, false]
+
+extra:
+  social:
+  - icon: fontawesome/brands/{{ repository_provider }}
+    link: https://{{ repo_host }}/{{ author_username }}

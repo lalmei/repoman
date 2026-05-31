@@ -14,6 +14,8 @@ from typer import Typer
 from typer.testing import CliRunner
 
 console = Console()
+cpp_module = importlib.import_module("repoman.cli.commands.create.cpp")
+create_module = importlib.import_module("repoman.cli.commands.create")
 docs_only_module = importlib.import_module("repoman.cli.commands.create.docs_only")
 fastapi_module = importlib.import_module("repoman.cli.commands.create.fastapi_mvc")
 library_module = importlib.import_module("repoman.cli.commands.create.library")
@@ -71,6 +73,43 @@ def test_create_command_with_preset(cli_runner: CliRunner, cli_app: Typer) -> No
         input="",
     )
     assert result.exit_code == 0
+
+
+def test_create_command_with_cpp_preset_uses_cpp_template(cli_runner: CliRunner, cli_app: Typer) -> None:
+    """The cpp preset should route to the bundled C++ template."""
+    with patch("repoman.cli.commands.create.run_create") as mock_run:
+        result = cli_runner.invoke(
+            cli_app,
+            ["create", "--dry-run", "--preset", "cpp", "--project_name", "my-cpp-project"],
+            input="",
+        )
+
+    assert result.exit_code == 0
+    kwargs = mock_run.call_args.kwargs
+    assert kwargs["template_path"] == Path(create_module.__file__).parent.parent.parent.parent / "cpp_template"
+    assert kwargs["data"]["cpp_namespace"] == "my_cpp_project"
+
+
+def test_cpp_subcommand_uses_cpp_preset() -> None:
+    """Build C++ projects with the cpp preset and bundled C++ template path."""
+    template_root = Path(cpp_module.__file__).parent.parent.parent.parent / "cpp_template"
+    preset = {"cpp_namespace": "shared_lib", "cpp_library_name": "shared_lib"}
+
+    with (
+        patch("repoman.cli.commands.create.cpp.build_preset_data", return_value=preset) as mock_build,
+        patch("repoman.cli.commands.create.cpp.run_create") as mock_run,
+    ):
+        cpp_module.cpp("shared-lib", force=False, dry_run=False)
+
+    mock_build.assert_called_once_with("cpp", "shared-lib")
+    mock_run.assert_called_once_with(
+        project_name="shared-lib",
+        output_dir=Path.cwd(),
+        template_path=template_root,
+        data=preset,
+        force=False,
+        dry_run=False,
+    )
 
 
 def test_docs_only_subcommand_uses_docs_preset() -> None:

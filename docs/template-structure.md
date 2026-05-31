@@ -8,6 +8,7 @@
 - **Datasets:** If `dataset_enabled` is true, the template generates `config/dataset_config.json`, `src/{{ python_package_import_name }}/config/dataset_config.py`, and the selected dataset loaders/adapters under `src/{{ python_package_import_name }}/datasets/`.
 - **Docs-only:** If `docs_only` is true, source package and test files are omitted.
 - **Notebooks:** If `python_notebooks` is true, the template generates a `notebooks/` folder.
+- **C++:** The bundled `cpp_template` is a separate Meson-based template with `include/`, `src/`, `tests/`, `examples/`, Doxygen hooks, and the same repoman Make target names used by CI.
 
 ## High-level generated layout
 
@@ -40,3 +41,20 @@ my_project/
 - **`src/<package>/datasets/`** contains the selected dataset loaders and helpers when dataset support is enabled.
 
 For prompt-level details, see [Template prompts](template-prompts.md). For generated behavior, see [Template architecture](concepts/template-architecture.md).
+
+## C++ generated layout
+
+The `cpp` preset and `create cpp cpp` subcommand use `src/repoman/cpp_template/`.
+The generated project looks like:
+
+```text
+my_cpp_library/
+├── config/
+├── docs/
+├── examples/
+├── include/
+│   └── <namespace>/
+├── scripts/
+├── src/
+└── tests/
+```

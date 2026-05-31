@@ -1,0 +1,56 @@
+project(
+  '{{ project_name }}',
+  'cpp',
+  version: '0.1.0',
+  license: '{{ copyright_license }}',
+  default_options: [
+    'cpp_std={{ cpp_standard }}',
+    'warning_level=2',
+    'werror=true',
+  ],
+)
+
+config = configuration_data()
+config.set_quoted('{{ cpp_namespace | upper }}_VERSION', meson.project_version())
+
+subdir('include/{{ cpp_namespace }}')
+
+public_include = include_directories('include')
+
+{{ cpp_library_name }}_sources = files(
+  'src/{{ cpp_namespace }}.cpp',
+)
+
+{{ cpp_library_name }}_lib = library(
+  '{{ cpp_library_name }}',
+  {{ cpp_library_name }}_sources,
+  include_directories: public_include,
+  install: true,
+)
+
+{{ cpp_library_name }}_dep = declare_dependency(
+  include_directories: public_include,
+  link_with: {{ cpp_library_name }}_lib,
+)
+
+if get_option('build_cli')
+  executable(
+    '{{ project_name }}',
+    'src/cli.cpp',
+    dependencies: [{{ cpp_library_name }}_dep],
+    install: true,
+  )
+endif
+
+install_headers(
+  'include/{{ cpp_namespace }}/{{ cpp_namespace }}.hpp',
+  subdir: '{{ cpp_namespace }}',
+)
+
+if get_option('build_tests')
+  subdir('tests')
+endif
+
+if get_option('build_examples')
+  subdir('examples')
+endif

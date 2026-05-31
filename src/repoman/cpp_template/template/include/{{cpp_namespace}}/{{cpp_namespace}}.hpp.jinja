@@ -1,0 +1,13 @@
+#pragma once
+
+#include <string>
+
+namespace {{ cpp_namespace }} {
+
+/// Return the library version from the generated Meson configuration.
+std::string version();
+
+/// Add two integers.
+int add(int lhs, int rhs);
+
+} // namespace {{ cpp_namespace }}

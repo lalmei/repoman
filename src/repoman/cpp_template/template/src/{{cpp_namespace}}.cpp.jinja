@@ -1,0 +1,11 @@
+#include "{{ cpp_namespace }}/{{ cpp_namespace }}.hpp"
+
+#include "{{ cpp_namespace }}/version.hpp"
+
+namespace {{ cpp_namespace }} {
+
+std::string version() { return {{ cpp_namespace | upper }}_VERSION; }
+
+int add(int lhs, int rhs) { return lhs + rhs; }
+
+} // namespace {{ cpp_namespace }}

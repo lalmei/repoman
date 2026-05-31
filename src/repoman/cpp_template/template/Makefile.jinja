@@ -1,0 +1,103 @@
+SHELL := bash
+
+version := 0.1.0
+
+BUILD_DIR ?= build
+IMAGE ?= {{ project_name }}-dev
+DOCS_CONFIG ?= config/mkdocs.yml
+MESON ?= uv run meson
+NINJA ?= uv run ninja
+CLANG_FORMAT ?= clang-format
+DOXYGEN ?= doxygen
+
+cxx.format.files := $(shell find include src tests examples -type f \( -name "*.hpp" -o -name "*.cpp" \) 2>/dev/null || :)
+
+.PHONY: setup configure build test clean distclean format format-check lint check-types type-check check-quality check docs docs-serve docs-check check-docs docs-api docs-check-api docker-build docker-shell help
+
+setup: ## Install Python-hosted developer tooling.
+	@$(call i, Installing developer tooling)
+	uv sync
+
+configure: ## Configure the Meson build directory.
+	@$(call i, Configuring Meson build)
+	@if [ ! -d "$(BUILD_DIR)" ]; then $(MESON) setup "$(BUILD_DIR)"; fi
+
+build: configure ## Build the C++ library and executables.
+	@$(call i, Building project)
+	$(MESON) compile -C "$(BUILD_DIR)"
+
+test: build ## Run all tests.
+	@$(call i, Running tests)
+	$(MESON) test -C "$(BUILD_DIR)"
+
+clean: ## Clean compiled outputs while keeping the Meson build directory.
+	@if [ -d "$(BUILD_DIR)" ]; then $(NINJA) -C "$(BUILD_DIR)" clean; fi
+
+distclean: ## Remove all generated build and docs outputs.
+	rm -rf "$(BUILD_DIR)" site
+
+format: ## Format C++ sources with clang-format.
+	@$(call i, Formatting C++ sources)
+	@if [ -n "$(cxx.format.files)" ]; then $(CLANG_FORMAT) -i $(cxx.format.files); fi
+
+format-check: ## Check C++ formatting with clang-format.
+	@$(call i, Checking C++ formatting)
+	@if [ -n "$(cxx.format.files)" ]; then $(CLANG_FORMAT) --dry-run --Werror $(cxx.format.files); fi
+
+lint: build ## Compile with the template warning policy.
+	@$(call i, Compiler warning checks passed)
+
+check-types: build ## Alias for build-time C++ type checks.
+
+type-check: check-types ## Alias for check-types.
+
+check-quality: format-check lint ## Run formatting and compiler-warning checks.
+
+check: check-quality check-types ## Run all quality checks.
+
+docs-api: ## Generate Doxygen API documentation.
+	@$(call i, Generating Doxygen documentation)
+	$(DOXYGEN) Doxyfile
+
+docs-check-api: docs-api ## Check Doxygen API documentation generation.
+
+docs: ## Build documentation.
+	@$(call i, Building documentation)
+	uv run properdocs build --config-file="$(DOCS_CONFIG)"
+
+docs-serve: ## Serve documentation locally.
+	@$(call i, Serving documentation)
+	uv run properdocs serve --config-file="$(DOCS_CONFIG)"
+
+docs-check: ## Check documentation in strict mode.
+	@$(call i, Checking documentation)
+	uv run properdocs build --config-file="$(DOCS_CONFIG)" --strict
+
+check-docs: docs-check ## Alias for docs-check.
+
+docker-build: ## Build the development container image.
+	docker build -f Dockerfile.dev -t "$(IMAGE)" .
+
+docker-shell: ## Start an interactive shell in the development container.
+	docker run --rm -it -v "$$PWD":/workspaces/{{ project_name }} -w /workspaces/{{ project_name }} "$(IMAGE)" bash
+
+help: ## Print the help screen.
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":|:[[:space:]].*?##"}; {printf "\033[36m%-30s\033[0m %s\n", $$2, $$3}'
+
+define i
+echo
+python3 scripts/colors.py INFO "$1"
+echo
+endef
+
+define w
+echo
+python3 scripts/colors.py WARN "$1"
+echo
+endef
+
+define e
+echo
+python3 scripts/colors.py ERROR "$1"
+echo
+endef

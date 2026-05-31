@@ -1,0 +1,9 @@
+#include "{{ cpp_namespace }}/{{ cpp_namespace }}.hpp"
+
+#include <iostream>
+
+int main() {
+  std::cout << "{{ project_name }} " << {{ cpp_namespace }}::version() << '\n';
+  std::cout << "2 + 3 = " << {{ cpp_namespace }}::add(2, 3) << '\n';
+  return 0;
+}

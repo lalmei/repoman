@@ -48,3 +48,18 @@ When `dataset_enabled` is true, at least one dataset modality must be selected.
 ## Where answers are stored
 
 Generated projects store answers in `.copier-answers.yml`. Repoman uses that file for `repoman update` and for non-interactive workflows.
+
+## C++ template prompts
+
+The bundled C++ template lives in `src/repoman/cpp_template/` and is selected
+with `--preset cpp` or `repoman create cpp cpp`. In addition to project, author,
+repository, and license metadata, it prompts for:
+
+| Prompt               | Description                            | Default                   |
+| -------------------- | -------------------------------------- | ------------------------- |
+| `cpp_namespace`      | C++ namespace and public include dir   | project name with `_`     |
+| `cpp_library_name`   | Meson library target name              | project name with `_`     |
+| `cpp_standard`       | C++ language standard                  | `c++17`                   |
+| `cpp_build_cli`      | Build the example CLI executable       | `true`                    |
+| `cpp_build_examples` | Build example programs                 | `true`                    |
+| `cpp_build_tests`    | Build test executables                 | `true`                    |

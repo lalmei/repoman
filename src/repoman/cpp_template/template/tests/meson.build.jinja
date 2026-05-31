@@ -1,0 +1,7 @@
+test_{{ cpp_library_name }} = executable(
+  'test_{{ cpp_library_name }}',
+  'test_{{ cpp_namespace }}.cpp',
+  dependencies: [{{ cpp_library_name }}_dep],
+)
+
+test('{{ cpp_library_name }}', test_{{ cpp_library_name }})
