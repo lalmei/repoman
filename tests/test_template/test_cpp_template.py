@@ -67,7 +67,11 @@ def test_cpp_template_renders_spinach_style_structure(tmp_path: Path) -> None:
     assert "option('build_python_bindings'" in meson_options
     assert '"pybind11>=2.13.6"' in pyproject
     assert 'module.attr("__version__") = sample_cpp::version();' in python_bindings
+    assert 'module.add(2, 3) == 5' in python_bindings_test
+    assert 'module.version() == "0.1.0"' in python_bindings_test
     assert 'module.__version__ == "0.1.0"' in python_bindings_test
+    assert "assert module.__doc__" in python_bindings_test
+    assert "except TypeError:" in python_bindings_test
     assert "PYTHONPATH=build uv run python" in readme
     assert "make check-docs" in github_ci
     assert "make check" in github_ci
