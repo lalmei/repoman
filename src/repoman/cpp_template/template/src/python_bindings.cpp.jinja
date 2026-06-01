@@ -6,6 +6,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE({{ cpp_namespace }}, module) {
   module.doc() = "Python bindings for this C++ library.";
+  module.attr("__version__") = {{ cpp_namespace }}::version();
 
   module.def("version", &{{ cpp_namespace }}::version, "Return the library version.");
   module.def("add", &{{ cpp_namespace }}::add, py::arg("lhs"), py::arg("rhs"),
