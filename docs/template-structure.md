@@ -9,7 +9,7 @@
 - **Docs-only:** If `docs_only` is true, source package and test files are omitted.
 - **Notebooks:** If `python_notebooks` is true, the template generates a `notebooks/` folder.
 - **Paper:** If `latex_paper` is true, the template generates a `paper/` folder with a LaTeX manuscript scaffold and Make targets.
-- **C++:** The bundled `cpp_template` is a separate Meson-based template with `include/`, `src/`, `tests/`, `examples/`, optional pybind11 Python bindings, Doxygen hooks, and the same repoman Make target names used by CI.
+- **C++:** The bundled `cpp_template` is a separate Meson-based template with `include/`, `src/`, `tests/`, `examples/`, optional pybind11 Python bindings, meson-python wheel packaging, Doxygen hooks, and the same repoman Make target names used by CI.
 
 ## High-level generated layout
 

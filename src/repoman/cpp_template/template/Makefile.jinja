@@ -3,16 +3,18 @@ SHELL := bash
 version := 0.1.0
 
 BUILD_DIR ?= build
+DIST_DIR ?= dist
 IMAGE ?= {{ project_name }}-dev
 DOCS_CONFIG ?= config/mkdocs.yml
 MESON ?= uv run meson
 NINJA ?= uv run ninja
 CLANG_FORMAT ?= clang-format
 DOXYGEN ?= doxygen
+WHEEL_VENV ?= .wheel-venv
 
 cxx.format.files := $(shell find include src tests examples -type f \( -name "*.hpp" -o -name "*.cpp" \) 2>/dev/null || :)
 
-.PHONY: setup configure build test clean distclean format format-check lint check-types type-check check-quality check docs docs-serve docs-check check-docs docs-api docs-check-api docker-build docker-shell help
+.PHONY: setup configure build test clean distclean format format-check lint check-types type-check check-quality check build-wheel check-wheel docs docs-serve docs-check check-docs docs-api docs-check-api docker-build docker-shell help
 
 setup: ## Install Python-hosted developer tooling.
 	@$(call i, Installing developer tooling)
@@ -34,7 +36,7 @@ clean: ## Clean compiled outputs while keeping the Meson build directory.
 	@if [ -d "$(BUILD_DIR)" ]; then $(NINJA) -C "$(BUILD_DIR)" clean; fi
 
 distclean: ## Remove all generated build and docs outputs.
-	rm -rf "$(BUILD_DIR)" site
+	rm -rf "$(BUILD_DIR)" "$(DIST_DIR)" "$(WHEEL_VENV)" site
 
 format: ## Format C++ sources with clang-format.
 	@$(call i, Formatting C++ sources)
@@ -54,6 +56,18 @@ type-check: check-types ## Alias for check-types.
 check-quality: format-check lint ## Run formatting and compiler-warning checks.
 
 check: check-quality check-types ## Run all quality checks.
+
+build-wheel: ## Build a Python wheel for the pybind11 bindings.
+	@$(call i, Building Python wheel)
+	uv build --wheel --out-dir "$(DIST_DIR)"
+
+check-wheel: ## Build, install, and import-check the Python wheel in a clean venv.
+	@$(call i, Checking Python wheel)
+	rm -rf "$(WHEEL_VENV)" "$(DIST_DIR)"
+	python_version="$$(uv run python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"; uv venv --python "$$python_version" "$(WHEEL_VENV)"
+	uv build --wheel --python "$(WHEEL_VENV)/bin/python" --out-dir "$(DIST_DIR)"
+	wheel_path="$$(find "$(DIST_DIR)" -maxdepth 1 -type f -name "*.whl" | sort | tail -n 1)"; uv pip install --python "$(WHEEL_VENV)/bin/python" "$$wheel_path"
+	"$(WHEEL_VENV)/bin/python" -c "import {{ cpp_namespace }}; assert {{ cpp_namespace }}.add(2, 3) == 5; assert {{ cpp_namespace }}.__version__ == '0.1.0'"
 
 docs-api: ## Generate Doxygen API documentation.
 	@$(call i, Generating Doxygen documentation)
