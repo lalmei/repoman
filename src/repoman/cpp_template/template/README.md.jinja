@@ -41,7 +41,13 @@ make check
 ```
 
 Python bindings are built by default with pybind11 and expose a module named
-`{{ cpp_namespace }}`. Disable them with:
+`{{ cpp_namespace }}`. Import the built module from the Meson build directory:
+
+```bash
+PYTHONPATH=build uv run python -c "import {{ cpp_namespace }}; print({{ cpp_namespace }}.add(2, 3))"
+```
+
+Disable them with:
 
 ```bash
 uv run meson configure build -Dbuild_python_bindings=false

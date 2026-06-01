@@ -198,6 +198,7 @@ def test_fastapi_template_renders_local_prod_stack_files(tmp_path: Path) -> None
     compose = _read_text(project_dir / "compose.yml")
     dockerfile = _read_text(project_dir / "Dockerfile.prod")
     env_example = _read_text(project_dir / ".env.prod.example")
+    pyproject = _read_text(project_dir / "pyproject.toml")
     readme = _read_text(project_dir / "README.md")
 
     assert "include make_cmds/prod.mk" in makefile
@@ -207,6 +208,7 @@ def test_fastapi_template_renders_local_prod_stack_files(tmp_path: Path) -> None
     assert 'CMD ["uv", "run", "uvicorn"' in dockerfile
     assert "RUN uv sync --no-dev --no-editable --no-default-groups" in dockerfile
     assert "OPENAI_API_KEY=replace-me" in env_example
+    assert '"httpx2>=2.3.0"' in pyproject
     assert "make prod" in readme
 
 
