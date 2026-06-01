@@ -64,15 +64,26 @@ def test_cpp_template_renders_spinach_style_structure(tmp_path: Path) -> None:
     assert "'cpp_std=c++17'" in meson
     assert "python.extension_module(" in meson
     assert "dependency('pybind11')" in meson
+    assert "install_tag: 'runtime'" in meson
+    assert "install_tag: 'bin'" in meson
+    assert "install_tag: 'python-runtime'" in meson
     assert "option('build_python_bindings'" in meson_options
+    assert 'build-backend = "mesonpy"' in pyproject
+    assert 'name = "sample-cpp"' in pyproject
+    assert 'description = "Sample C++ library"' in pyproject
+    assert '"meson-python>=0.17.0"' in pyproject
     assert '"pybind11>=2.13.6"' in pyproject
+    assert 'install = ["--tags=runtime,python-runtime"]' in pyproject
     assert 'module.attr("__version__") = sample_cpp::version();' in python_bindings
-    assert 'module.add(2, 3) == 5' in python_bindings_test
+    assert "module.add(2, 3) == 5" in python_bindings_test
     assert 'module.version() == "0.1.0"' in python_bindings_test
     assert 'module.__version__ == "0.1.0"' in python_bindings_test
     assert "assert module.__doc__" in python_bindings_test
     assert "except TypeError:" in python_bindings_test
     assert "PYTHONPATH=build uv run python" in readme
+    assert "make check-wheel" in readme
+    assert "uv build --wheel" in makefile
+    assert "uv pip install --python" in makefile
     assert "make check-docs" in github_ci
     assert "make check" in github_ci
     assert "make test" in github_ci

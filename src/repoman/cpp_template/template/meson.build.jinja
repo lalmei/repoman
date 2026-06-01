@@ -26,6 +26,7 @@ public_include = include_directories('include')
   {{ cpp_library_name }}_sources,
   include_directories: public_include,
   install: true,
+  install_tag: 'runtime',
 )
 
 {{ cpp_library_name }}_dep = declare_dependency(
@@ -39,6 +40,7 @@ if get_option('build_cli')
     'src/cli.cpp',
     dependencies: [{{ cpp_library_name }}_dep],
     install: true,
+    install_tag: 'bin',
   )
 endif
 
@@ -54,6 +56,7 @@ if get_option('build_python_bindings')
       pybind11_dep,
     ],
     install: true,
+    install_tag: 'python-runtime',
   )
 endif
 
