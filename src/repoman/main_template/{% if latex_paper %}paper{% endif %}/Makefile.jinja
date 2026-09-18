@@ -1,3 +1,4 @@
+TECTONIC ?= tectonic
 MAIN := main
 BUILD_DIR := build
 PDF := $(MAIN).pdf
@@ -6,17 +7,18 @@ PDF := $(MAIN).pdf
 all: pdf
 
 .PHONY: pdf
-pdf: ## Build $(PDF) with latexmk.
-	latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=$(BUILD_DIR) $(MAIN).tex
+pdf: ## Build $(PDF) with Tectonic.
+	mkdir -p $(BUILD_DIR)
+	$(TECTONIC) --outdir $(BUILD_DIR) $(MAIN).tex
 	cp $(BUILD_DIR)/$(PDF) $(PDF)
 
 .PHONY: watch
-watch: ## Rebuild $(PDF) whenever sources change.
-	latexmk -pdf -pvc -interaction=nonstopmode -halt-on-error -outdir=$(BUILD_DIR) $(MAIN).tex
+watch: pdf ## Rebuild $(PDF) whenever sources change.
+	mkdir -p $(BUILD_DIR)
+	$(TECTONIC) -X watch -x "compile --outdir $(BUILD_DIR) $(MAIN).tex"
 
 .PHONY: clean
 clean: ## Remove LaTeX build artifacts.
-	latexmk -C -outdir=$(BUILD_DIR) $(MAIN).tex
 	rm -rf $(BUILD_DIR)
 
 .PHONY: distclean

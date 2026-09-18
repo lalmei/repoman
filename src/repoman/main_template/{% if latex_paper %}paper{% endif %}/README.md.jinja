@@ -4,7 +4,7 @@ This folder contains the LaTeX manuscript scaffold for `{{ project_name }}`.
 
 ## Build
 
-Install a TeX distribution with `latexmk`, then run:
+Install Tectonic (`brew install tectonic` on macOS), then run:
 
 ```bash
 make paper
@@ -20,3 +20,6 @@ make clean
 
 The root `make paper` target delegates to `paper/Makefile` and writes
 `paper/main.pdf`.
+
+`make watch` updates `build/main.pdf`; view that file while editing.
+Run `make pdf` to refresh the copy at `main.pdf`.
