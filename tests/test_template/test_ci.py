@@ -136,7 +136,9 @@ def test_latex_paper_template_renders_paper_folder_only_when_enabled(tmp_path: P
     )
     paper_dir = enabled_dir / "paper"
     assert (paper_dir / "main.tex").exists()
-    assert (paper_dir / ".latexmkrc").exists()
+    assert not (paper_dir / ".latexmkrc").exists()
+    assert "$(TECTONIC) --outdir" in _read_text(paper_dir / "Makefile")
+    assert "backend=bibtex" in _read_text(paper_dir / "main.tex")
     assert (paper_dir / "references.bib").exists()
     assert (paper_dir / "sections" / "introduction.tex").exists()
     assert (paper_dir / "figures" / ".gitkeep").exists()
