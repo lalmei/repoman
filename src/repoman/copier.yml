@@ -28,9 +28,9 @@ _exclude:
   - "{% if docs_only %}make_cmds/tests.mk{% endif %}"
 _tasks:
   - command: [git, init]
-    when: "{{ not repoman_command_extension }}"
+    when: "{{ not repoman_command_extension and not (repoman_astro | default(false)) }}"
   - command: command -v uv >/dev/null 2>&1 && uv run ruff format src/ tests/ --config=config/ruff.toml || true
-    when: "{{ not docs_only and not repoman_command_extension }}"
+    when: "{{ not docs_only and not repoman_command_extension and not (repoman_astro | default(false)) }}"
 
 
 # PROMPT --------------------------------

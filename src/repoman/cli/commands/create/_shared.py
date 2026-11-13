@@ -90,8 +90,7 @@ def run_create(
             console.print("Creating project...")
             run_copy(**copier_options)
 
-        if bundled:
-            record_release_source(output_dir_obj / ".copier-answers.yml", template_path)
+        record_release_source(output_dir_obj / ".copier-answers.yml", template_path)
 
         copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
         console.print(
