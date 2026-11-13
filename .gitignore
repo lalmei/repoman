@@ -1,6 +1,9 @@
 # editors
 .idea/
 .vscode/
+.agents/
+.claude/
+.codex/
 .cursor/
 
 # python
