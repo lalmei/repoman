@@ -29,7 +29,7 @@ add-dev: ## Add a development dependency (usage: make add-dev PACKAGE=package-na
 		echo "Usage: make add-dev PACKAGE=package-name"; \
 		exit 1; \
 	fi
-	uv add group dev $(PACKAGE)
+	uv add --group dev $(PACKAGE)
 
 .PHONY: tree
 tree: ## Show dependency tree

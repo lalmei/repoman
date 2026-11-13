@@ -31,18 +31,18 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7.0.1
       with:
         fetch-depth: 0
         fetch-tags: true
 
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7.1.0
       with:
         python-version: "3.12"
 
     - name: Setup uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v10.3.3
       with:
         enable-cache: true
         cache-dependency-glob: pyproject.toml
@@ -50,6 +50,7 @@ jobs:
     - name: Install dependencies
       run: make setup
 
+{% if not docs_only %}
     - name: Run tests for coverage artifacts
       run: make test
 
@@ -59,12 +60,13 @@ jobs:
         cp -R htmlcov docs/coverage
         python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json
 
+{% endif %}
     - name: Check docs in strict mode
       run: uv run properdocs build --config-file=config/mkdocs.yml --strict
 
     - name: Upload Pages artifact
       if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5.0.0
       with:
         path: site
 
@@ -86,4 +88,4 @@ jobs:
     steps:
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5.0.1
