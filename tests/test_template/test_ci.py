@@ -274,6 +274,17 @@ def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("docs_only", [False, True])
+def test_github_release_workflow_requires_package(tmp_path: Path, docs_only: bool) -> None:
+    """Only package projects should generate the tag-triggered release workflow."""
+    project_dir = instantiate_template(tmp_path, copier_data={"docs_only": docs_only})
+    workflows = project_dir / ".github" / "workflows"
+
+    assert (workflows / "release.yml").is_file() is (not docs_only)
+    assert (workflows / "docs.yml").is_file()
+    assert "objects.inv" not in _read_text(workflows / "ci.yml")
+
+
+@pytest.mark.parametrize("docs_only", [False, True])
 def test_gitlab_template_renders_native_pipeline(tmp_path: Path, docs_only: bool) -> None:
     """GitLab can discover the pipeline and run only jobs supported by the scaffold."""
     project_dir = instantiate_template(
