@@ -3,6 +3,9 @@
 from pathlib import Path
 from typing import Any
 
+import pytest
+import yaml
+
 from repoman.utils.logging import get_logger_console
 from tests.ci_runner import CommandResult, parse_coverage_percent, run_make_command
 from tests.template_testing import instantiate_template
@@ -265,9 +268,37 @@ def test_github_template_renders_docs_workflow(tmp_path: Path) -> None:
 
     docs_workflow = _read_text(project_dir / ".github" / "workflows" / "docs.yml")
     assert "name: docs" in docs_workflow
-    assert "actions/upload-pages-artifact@v3" in docs_workflow
-    assert "actions/deploy-pages@v4" in docs_workflow
+    assert "actions/upload-pages-artifact@v5." in docs_workflow
+    assert "actions/deploy-pages@v5." in docs_workflow
     assert "python scripts/generate_coverage_badge.py coverage.xml docs/coverage-badge.json" in docs_workflow
+
+
+@pytest.mark.parametrize("docs_only", [False, True])
+def test_gitlab_template_renders_native_pipeline(tmp_path: Path, docs_only: bool) -> None:
+    """GitLab can discover the pipeline and run only jobs supported by the scaffold."""
+    project_dir = instantiate_template(
+        output_dir=tmp_path,
+        copier_data={"repository_provider": "gitlab", "ci": "gitlab.com", "docs_only": docs_only},
+    )
+    pipeline = yaml.safe_load(_read_text(project_dir / ".gitlab-ci.yml"))
+
+    assert not (project_dir / ".github" / "workflows").exists()
+    assert not (project_dir / ".gitlab" / "workflows").exists()
+    assert "make check-docs" in pipeline["quality"]["script"]
+    if docs_only:
+        assert pipeline["stages"] == ["quality"]
+        assert "make check" not in pipeline["quality"]["script"]
+        assert "tests" not in pipeline
+        assert "distributions" not in pipeline
+    else:
+        assert "make check" in pipeline["quality"]["script"]
+        assert pipeline["quality"]["script"].index("make test-coverage-report") < pipeline["quality"]["script"].index(
+            "make check-docs"
+        )
+        matrix = pipeline["tests"]["parallel"]["matrix"][0]
+        assert matrix["PYTHON_VERSION"] == ["3.11", "3.12", "3.13", "3.14"]
+        assert matrix["UV_RESOLUTION"] == ["highest", "lowest-direct"]
+        assert pipeline["distributions"]["rules"] == [{"if": "$CI_COMMIT_TAG"}]
 
 
 def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
