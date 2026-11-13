@@ -3,18 +3,6 @@ SHELL := bash
 
 version := 0.8.1
 
-# ----------------
-# Image Tagging
-# ----------------
-# Prefer an explicit repo tag (e.g. vX.Y.Z). If none exists for HEAD, fall back to <version>-<short-sha>.
-# Works both locally and in CI (e.g. GitLab provides CI_COMMIT_TAG / CI_COMMIT_SHA).
-
-git.tag := $(strip $(or $(CI_COMMIT_TAG),$(shell git describe --tags --exact-match 2>/dev/null)))
-git.sha := $(strip $(or $(CI_COMMIT_SHORT_SHA),$(shell git rev-parse --short=8 HEAD 2>/dev/null)))
-
-# Final docker image tag
-image.tag := $(if $(git.tag),$(git.tag),$(version)-$(git.sha))
-
 {% if not docs_only %}
 src.python := $(shell find ./src -type f -name "*.py" || :)
 test.unit.python := $(shell find ./tests -type f -name "*.py" || :)
@@ -34,16 +22,6 @@ uv.project.enviroment := .venv
 dist.dir := dist
 
 build.wheel := $(dist.dir)/{{python_package_distribution_name}}-$(version).tar.gz
-
-docker.image := {{python_package_distribution_name}}_base
-docker.image.deploy := {{python_package_distribution_name}}
-
-docker.image.registry := {{container_registry}}
-
-# deployments.instances := $(shell find $(deployments.dir) -type d -mindepth 1 -maxdepth 2)
-# Containerization: build each deployment subfolder via Make
-# subdirs := $(patsubst $(deployments.dir)/%,%,$(deployments.instances))
-
 
 build.wheel := $(dist.dir)/{{python_package_distribution_name}}-$(version).tar.gz
 
@@ -106,36 +84,6 @@ bump-build: ## Bump the build number (_._._-____XX) everywhere.
 
 
 
-
-#####################
-# Docker Unit Tests #
-#####################
-
-.PHONY: docker-build
-docker-build: clean ## Build docker image (tag = vX.Y.Z if repo is tagged, else <version>-<sha>).
-	docker build -t ${docker.image}:${image.tag} \
-		--label org.label-schema.vcs-ref=${CI_COMMIT_SHA} \
-		--label org.label-schema.vcs-url=${CI_PROJECT_URL} \
-		--label com.climate.ci.job-url=${CI_JOB_URL} -f Dockerfile.dev .
-
-.PHONY: docker-test
-docker-test: clean ## Test in a clean container in your local machine.
-	$(call i, Running tests in container)
-	docker run --rm  \
-		--mount type=bind,source=${PWD}/,target=/root/project,bind-propagation=private \
-		--mount type=bind,source=${HOME}/.ssh,target=/root/.ssh,bind-propagation=private \
-		--mount type=bind,source=${HOME}/.aws,target=/root/.aws,bind-propagation=private \
-		${docker.image}:${image.tag} make release
-
-
-.PHONY: docker-env
-docker-env: clean ## Run an interactive container in your local machine.
-	$(call i, Jumping in base docker env)
-	docker run --rm  -it  \
-		--mount type=bind,source=${PWD}/,target=/root/project,bind-propagation=private \
-		--mount type=bind,source=${HOME}/.ssh,target=/root/.ssh,bind-propagation=private \
-		--mount type=bind,source=${HOME}/.aws,target=/root/.aws,bind-propagation=private \
-		${docker.image}:${image.tag} bash
 
 .PHONY: help
 help: ## Print the help screen.

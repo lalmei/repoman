@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +14,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.text import Text
-from typer import Argument, Context, Exit, Option
+from typer import Argument, Context, Exit, Option, echo
 
 from repoman.cli.messages import (
     answers_file_must_live_in_project,
@@ -25,8 +26,6 @@ from repoman.cli.messages import (
     invalid_conflict_mode,
     invalid_yaml,
     is_cannot_obtain_old_template_references_message,
-    project_dir_not_found,
-    project_path_not_directory,
     project_updated,
     repair_requires_commit,
     repair_requires_template_source,
@@ -66,6 +65,7 @@ def update(
         False, "--force", "-f", help="Compatibility flag; update already uses saved answers and defaults"
     ),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be updated without making changes"),
+    output_format: str = Option("table", "--format", help="Update plan format: table or json"),
     plan: bool = Option(False, "--plan", help="Show an update plan without writing files"),
     repair: bool = Option(False, "--repair", help="Repair Copier metadata in the answers file"),
     commit: str | None = Option(None, "--commit", help="Copier commit to write when using --repair"),
@@ -85,20 +85,30 @@ def update(
         repoman update ./my-app --vcs-ref v1.2.0 --force
         repoman update ./my-app --skip-extensions
     """
-    logger, console = get_logger_console()
+    _logger, console = get_logger_console()
 
     _ = force  # Compatibility with earlier invocations.
     effective_dry_run = dry_run or (ctx.obj or {}).get("dry_run", False)
-    if conflict not in ["inline", "rej"]:
-        console.print(error_panel(invalid_conflict_mode(conflict), console=console))
-        raise Exit(1) from None
-    if len([mode for mode in (plan, effective_dry_run, repair) if mode]) > 1:
-        console.print(error_panel(update_modes_mutually_exclusive(), console=console))
-        raise Exit(1) from None
+    json_plan = plan and output_format == "json"
+    if output_format != "table" and not json_plan:
+        echo("Use --format json with --plan.", err=True)
+        raise Exit(1)
 
-    project_dir_obj = _resolve_project_dir(Path(project_dir).resolve(), console)
+    invalid_options = None
+    if conflict not in ["inline", "rej"]:
+        invalid_options = invalid_conflict_mode(conflict)
+    elif sum((plan, effective_dry_run, repair)) > 1:
+        invalid_options = update_modes_mutually_exclusive()
+    if invalid_options:
+        if json_plan:
+            echo(json.dumps({"schema_version": 1, "error": {"code": "invalid_options", "message": invalid_options}}))
+        else:
+            console.print(error_panel(invalid_options, console=console))
+        raise Exit(1)
+
+    project_dir_obj = Path(project_dir).resolve()
     answers_file_path = _resolve_answers_path(project_dir_obj, answers_file)
-    template_path_obj = _resolve_template_path(template_path, logger, console)
+    template_path_obj = Path(template_path).resolve() if template_path else None
 
     try:
         report = inspect_repository(
@@ -107,8 +117,29 @@ def update(
             skip_extensions=True,
         )
     except InspectionError as exc:
-        console.print(error_panel(str(exc), console=console))
+        if json_plan:
+            echo(json.dumps({"schema_version": 1, "error": {"code": "invalid_repository", "message": str(exc)}}))
+        else:
+            console.print(error_panel(str(exc), console=console))
         raise Exit(1) from exc
+
+    if template_path_obj is not None and not template_path_obj.is_dir():
+        report.update_readiness.ready = False
+        report.update_readiness.blocker_codes.append("invalid_template_path")
+        report.update_readiness.blockers.append(template_path_does_not_exist(template_path_obj))
+        report.status = "warning"
+
+    if json_plan:
+        payload = report.to_dict()
+        payload["target"] = {
+            "source": str(template_path_obj) if template_path_obj else report.template.src_path,
+            "requested_ref": vcs_ref,
+            "trust_enabled": trust or (report.template.src_path == UPSTREAM_TEMPLATE and template_path_obj is None),
+        }
+        echo(json.dumps(payload, indent=2))
+        if not report.update_readiness.ready:
+            raise Exit(1)
+        return
 
     if plan:
         _print_update_plan(
@@ -234,32 +265,10 @@ def update(
         raise Exit(1) from exc
 
 
-def _resolve_project_dir(project_dir: Path, console: Any) -> Path:
-    if not project_dir.exists():
-        console.print(error_panel(project_dir_not_found(project_dir), console=console))
-        raise Exit(1) from None
-    if not project_dir.is_dir():
-        console.print(error_panel(project_path_not_directory(project_dir), console=console))
-        raise Exit(1) from None
-    return project_dir
-
-
 def _resolve_answers_path(project_dir: Path, answers_file: str | None) -> Path:
     if answers_file is None:
         return project_dir / ".copier-answers.yml"
     return Path(answers_file).resolve()
-
-
-def _resolve_template_path(template_path: str | None, logger: Any, console: Any) -> Path | None:
-    if template_path is None:
-        logger.info("Template path will be read from .copier-answers.yml")
-        return None
-    template_path_obj = Path(template_path).resolve()
-    if not template_path_obj.exists():
-        console.print(error_panel(template_path_does_not_exist(template_path_obj), console=console))
-        raise Exit(1) from None
-    logger.info(f"Using custom template at {template_path_obj}")
-    return template_path_obj
 
 
 def _build_copier_options(

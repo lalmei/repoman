@@ -26,4 +26,9 @@ def load_answers(path: Path | None = None) -> dict[str, Any]:
     if path is None or not path.exists():
         raise FileNotFoundError(f"Answers file not found: {path}")
     with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        data = yaml.safe_load(f)
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise yaml.YAMLError("Expected a YAML mapping.")
+    return data

@@ -27,6 +27,8 @@ Dependencies:
 """
 
 import logging
+import sys
+from contextlib import redirect_stdout
 from json import JSONDecodeError
 from pathlib import Path
 
@@ -135,21 +137,22 @@ def main(
         console.file.write("\033[2J\033[H")
         console.file.flush()
 
-    config: Config | None = None
-    try:
-        config = Config.load(custom_path=Path(config_path) if config_path else None)
-        if verbose:
-            logger.setLevel(logging.DEBUG)
-            logger.info(Text("Setting verbose mode ON", style="orange"))
-        else:
-            logger.setLevel(logging.INFO)
+    with redirect_stdout(sys.stderr):
+        config: Config | None = None
+        try:
+            config = Config.load(custom_path=Path(config_path) if config_path else None)
+            if verbose:
+                logger.setLevel(logging.DEBUG)
+                logger.info(Text("Setting verbose mode ON", style="orange"))
+            else:
+                logger.setLevel(logging.INFO)
 
-        logger.debug(config.model_dump())
-        logger.debug(Text("Configuration set", style="yellow"))
-    except (JSONDecodeError, ValidationError):
-        logger.exception("Unable to load configuration: ")
-        logger.exception("Obtained the following validating Errors loading configuration")
-        config = None
+            logger.debug(config.model_dump())
+            logger.debug(Text("Configuration set", style="yellow"))
+        except (JSONDecodeError, ValidationError):
+            logger.exception("Unable to load configuration: ")
+            logger.exception("Obtained the following validating Errors loading configuration")
+            config = None
 
     ctx.obj = {
         "verbose": verbose,

@@ -24,7 +24,12 @@ Before updating, you can inspect the repository or preview the update plan:
 ```bash
 repoman inspect --path ./my-project
 repoman update ./my-project --plan
+repoman update ./my-project --plan --format json
 ```
+
+JSON plans use schema version 1. They return exit code 0 when local preflight passes and 1 when it finds a blocker or cannot inspect the repository. Read `update_readiness.blocker_codes` for stable identifiers and `git_dirty` for the worktree state. The plan shows the recorded source and revision and the requested target. Remote ref resolution and template compatibility are checked during apply. Preview reads local state without rendering templates or running tasks.
+
+`inspect --format json` uses the same report fields. It retains exit code 0 for warning-only reports and returns 1 for fatal errors.
 
 ## How answers are reused
 

@@ -35,6 +35,12 @@ def _all_output(result: object) -> str:
     return (stdout or output) + stderr
 
 
+@pytest.fixture(autouse=True)
+def mock_git_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit fixtures use placeholder Git directories."""
+    monkeypatch.setattr("repoman.inspection.analysis.git_worktree_dirty", lambda _: False)
+
+
 def _make_project_dir(tmp_path: Path) -> Path:
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()

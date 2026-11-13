@@ -13,9 +13,6 @@ from typer import Exit, Option, Typer, echo
 
 from repoman.cli.messages import (
     error_panel,
-    not_a_git_repository,
-    project_dir_not_found,
-    project_path_not_directory,
     unknown_format,
 )
 from repoman.inspection import InspectionError, InspectionReport, inspect_repository
@@ -28,9 +25,9 @@ app = Typer(
 Examples:
 
     repoman inspect
-    repoman inspect ./my-project
-    repoman inspect ./my-project --format json
-    repoman inspect ./my-project --answers ./my-project/custom-answers.yml
+    repoman inspect --path ./my-project
+    repoman inspect --path ./my-project --format json
+    repoman inspect --path ./my-project --answers ./my-project/custom-answers.yml
 """,
 )
 
@@ -58,20 +55,13 @@ def inspect_(
     _logger, console = get_logger_console()
     repo_path = path.resolve()
 
-    if not repo_path.exists():
-        console.print(error_panel(project_dir_not_found(repo_path), console=console))
-        raise Exit(1) from None
-    if not repo_path.is_dir():
-        console.print(error_panel(project_path_not_directory(repo_path), console=console))
-        raise Exit(1) from None
-    if not (repo_path / ".git").exists():
-        console.print(error_panel(not_a_git_repository(repo_path), console=console))
-        raise Exit(1) from None
-
     try:
         report = inspect_repository(repo_path, answers_file=answers_file)
     except InspectionError as exc:
-        console.print(error_panel(str(exc), console=console))
+        if output_format == "json":
+            echo(json.dumps({"schema_version": 1, "error": {"code": "invalid_repository", "message": str(exc)}}))
+        else:
+            console.print(error_panel(str(exc), console=console))
         raise Exit(1) from exc
 
     if output_format == "json":

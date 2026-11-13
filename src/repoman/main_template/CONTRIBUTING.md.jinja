@@ -62,54 +62,6 @@ If you are unsure about how to fix or ignore a warning, just let the continuous 
 
 Don't bother updating the changelog, we will take care of this.
 
-## Docker images
-
-This project uses a consistent Docker image tagging and naming scheme.
-
-### Image tag resolution
-
-When building images, the tag is resolved as:
-
-- If the current commit (`HEAD`) is *exactly* tagged in git with a semantic version tag (for example `v1.2.3`), that tag is used.
-- Otherwise, the tag falls back to `<version>-<short-sha>`.
-
-The fallback prefix comes from the Makefile `version` variable.
-
-In CI, the build can also pick up `CI_COMMIT_TAG` / `CI_COMMIT_SHORT_SHA` if your provider exposes them.
-
-### Image naming variables
-
-The Makefile keeps the image naming deliberately simple:
-
-- `docker.image` is the basename: `{{ python_package_distribution_name }}`
-- `docker.image.base` is the base/testing image name: `{{ python_package_distribution_name }}_base`
-- `docker.image.deploy` is the workflow-specific deployment image name: `{{ python_package_distribution_name }}_<workflow>`
-
-To build or reference a workflow-specific deployment image, pass `workflow=<name>` (for example `workflow=sealant`).
-
-### Common commands
-
-Build the base image (using the resolved image tag):
-
-```bash
-make docker-build
-```
-
-Run the release task inside the base image:
-
-```bash
-make docker-test
-```
-
-Open an interactive shell in the base image:
-
-```bash
-make docker-env
-```
-
-If you add deployment-specific build targets, prefer using `${docker.image.deploy}:${image.tag}` and pass `workflow=<name>` so the image name encodes which workflow it belongs to.
-
-
 ## Commit message convention
 
 Commit messages must follow our convention based on the [Angular style](https://gist.github.com/stephenparish/9941e89d80e2bc58a153#format-of-the-commit-message) or the [Karma convention](https://karma-runner.github.io/4.0/dev/git-commit-msg.html):

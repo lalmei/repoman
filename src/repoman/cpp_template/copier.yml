@@ -13,6 +13,8 @@ _jinja_extensions:
 - extensions.py:CurrentYearExtension
 - extensions.py:GitExtension
 - extensions.py:SlugifyExtension
+_skip_if_exists:
+- AGENTS.md
 _tasks:
   - git init
 
