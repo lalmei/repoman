@@ -2,7 +2,7 @@
 
 ## Conditional structure
 
-- **CI:** GitHub projects get workflows under `.github/workflows/`. GitLab projects get a root `.gitlab-ci.yml` that checks docs, runs the Python test matrix on Linux, and builds distribution artifacts on tags. Docs-only GitLab projects run the docs check. Azure projects get pipeline files under `.azuredevops/`.
+- **CI:** GitHub projects get CI and docs workflows under `.github/workflows/`. Package projects also get a tag-triggered release workflow. GitLab projects get a root `.gitlab-ci.yml` that checks docs, runs the Python test matrix on Linux, and builds distribution artifacts on tags. Docs-only GitLab projects run the docs check. Azure projects get pipeline files under `.azuredevops/`.
 - **CLI:** If `python_package_command_line_name` is set, the template generates `src/{{ python_package_import_name }}/cli/`, `__main__.py`, and a `[project.scripts]` entry in `pyproject.toml`.
 - **FastAPI:** If `fastapi_enabled` is true, the template generates `src/{{ python_package_import_name }}/app/` with the ASGI entry point, router, controllers, views, state, exceptions, and utilities.
 - **Datasets:** If `dataset_enabled` is true, the template generates `config/dataset_config.json`, `src/{{ python_package_import_name }}/config/dataset_config.py`, and the selected dataset loaders/adapters under `src/{{ python_package_import_name }}/datasets/`.
