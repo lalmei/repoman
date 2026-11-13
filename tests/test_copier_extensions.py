@@ -175,6 +175,11 @@ def test_sync_extensions_runs_worker_update(tmp_path: Path) -> None:
             dry_run=False,
         )
 
+        extension_answers = tmp_path / ".repoman/extensions/command/foo.answers.yml"
+        metadata = yaml.safe_load(extension_answers.read_text())
+        metadata["_commit"] = "v1.0.0"
+        extension_answers.write_text(yaml.safe_dump(metadata))
+
         result = sync_extensions(
             project_dir=tmp_path,
             force=False,
@@ -448,7 +453,7 @@ def test_sync_extensions_rejects_missing_template_answers_and_worker_failures(tm
             extension_name=None,
         )
 
-    answers_path.write_text("_src_path: test\n", encoding="utf-8")
+    answers_path.write_text("_src_path: test\n_commit: v1.0.0\n", encoding="utf-8")
     with (
         patch("repoman.copier.extension_lifecycle.Worker", side_effect=CopierError("boom")),
         pytest.raises(ExtensionLifecycleError, match="boom"),

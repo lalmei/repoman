@@ -20,6 +20,10 @@ jobs:
         python-version: "3.12"
     - name: Setup uv
       uses: astral-sh/setup-uv@v5
+    - name: Build release wheel
+      run: |
+        git rev-parse HEAD > src/repoman/resources/template_revision.txt
+        uv build --wheel
     - name: Prepare release notes
 
       run: uv tool run git-changelog --release-notes > release-notes.md
@@ -27,3 +31,4 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         body_path: release-notes.md
+        files: dist/*.whl

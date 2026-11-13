@@ -16,6 +16,7 @@ from repoman.cli.messages import (
     warning_panel,
 )
 from repoman.copier import build_copier_options, validate_project_name
+from repoman.copier.sources import is_bundled_template, record_release_source
 from repoman.utils.logging import get_logger_console
 
 
@@ -26,6 +27,9 @@ def run_create(
     data: dict | None,
     force: bool,
     dry_run: bool,
+    *,
+    trust: bool = False,
+    vcs_ref: str | None = None,
 ) -> None:
     """Run the create flow: validate, build copier options, run copy or dry-run."""
     _logger, console = get_logger_console()
@@ -42,7 +46,13 @@ def run_create(
         console.print(warning_panel(output_dir_exists_use_force(output_dir_obj), console=console))
         raise Exit(1) from None
 
-    copier_options = build_copier_options(project_name, output_dir, template_path, data)
+    bundled = is_bundled_template(template_path)
+    copier_options = build_copier_options(
+        project_name, output_dir, template_path.resolve(), data, trusted=trust or bundled
+    )
+    copier_options["data"]["repoman_command_extension"] = False
+    if vcs_ref is not None:
+        copier_options["vcs_ref"] = vcs_ref
 
     next_steps = [
         f"cd {output_dir_obj}",
@@ -67,7 +77,7 @@ def run_create(
         return
 
     try:
-        if copier_options.get("data") is not None:
+        if data is not None:
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
@@ -79,6 +89,9 @@ def run_create(
         else:
             console.print("Creating project...")
             run_copy(**copier_options)
+
+        if bundled:
+            record_release_source(output_dir_obj / ".copier-answers.yml", template_path)
 
         copier_options_serializable = {k: str(v) if isinstance(v, Path) else v for k, v in copier_options.items()}
         console.print(

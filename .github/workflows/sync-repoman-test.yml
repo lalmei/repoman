@@ -6,6 +6,7 @@ on:
       - mainline
     paths:
       - ".github/workflows/sync-repoman-test.yml"
+      - "copier.yml"
       - "src/repoman/main_template/**"
       - "src/repoman/extentions/**"
       - "src/repoman/copier.yml"
@@ -63,6 +64,11 @@ jobs:
           fetch-depth: 0
 
       - name: Sync generated smoke repo
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         shell: bash
         run: |
           set -euo pipefail

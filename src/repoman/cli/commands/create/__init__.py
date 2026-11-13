@@ -64,6 +64,8 @@ def create(
             help="Use a preset: cli, cpp, docs-only, library, fastapi",
         ),
     ] = None,
+    trust: Annotated[bool, Option("--trust", help="Allow custom template code and tasks")] = False,
+    vcs_ref: Annotated[str | None, Option("--vcs-ref", help="Git ref for a local versioned template")] = None,
     dry_run: Annotated[
         bool,
         Option("--dry-run", help="Show what would be created without actually creating"),
@@ -141,4 +143,6 @@ def create(
         data=data,
         force=force,
         dry_run=dry_run or ctx.obj.get("dry_run", True),
+        trust=trust,
+        vcs_ref=vcs_ref,
     )

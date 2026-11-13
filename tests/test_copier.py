@@ -90,13 +90,14 @@ def test_build_preset_data_cpp_preset() -> None:
 
 
 def test_build_copier_options_without_data() -> None:
-    """build_copier_options without data returns only src_path and dst_path."""
+    """Interactive creation supplies the requested project name and leaves defaults disabled."""
     template_path = Path("/tpl")
     output_dir = Path("/out")
     opts = build_copier_options("p1", output_dir, template_path, None)
     assert opts["src_path"] == str(template_path)
     assert opts["dst_path"] == str(output_dir / "p1")
-    assert "data" not in opts
+    assert opts["data"]["project_name"] == "p1"
+    assert "defaults" not in opts
 
 
 def test_build_copier_options_with_data() -> None:
@@ -111,7 +112,7 @@ def test_build_copier_options_with_data() -> None:
     assert opts["data"]["foo"] == "bar"
     assert opts["answers_file"] == ".copier-answers.yml"
     assert opts["overwrite"] is True
-    assert opts["unsafe"] is True
+    assert opts["unsafe"] is False
 
 
 def test_build_copier_options_does_not_mutate_input_data() -> None:

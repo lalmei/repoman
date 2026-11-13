@@ -337,7 +337,7 @@ See the [Testing Guide](testing.md) for comprehensive documentation on test cate
 - normalizes volatile Copier metadata before validating the staged repo with `uv sync` and `make test`
 - force-updates the automation branch `sync/from-repoman-mainline` and opens or refreshes a PR in `lalmei/repoman_test`
 
-The canonical bootstrap answers live in [config/repoman_test_answers.yml](/Users/lalmei/projects/repoman/config/repoman_test_answers.yml). If you need to run a manual update in `repoman_test`, pass `--template` explicitly so the repo does not depend on CI-specific Copier metadata.
+The canonical bootstrap answers live in [config/repoman_test_answers.yml](/Users/lalmei/projects/repoman/config/repoman_test_answers.yml). The canary keeps its upstream source and template revision in the answers file. If an older canary snapshot lacks those fields, recover the original source and commit before running the sync.
 The workflow expects `REPOMAN_TEST_SYNC_TOKEN` to be configured in the `lalmei/repoman` repository with write access to `lalmei/repoman_test` and permission to create or update pull requests.
 
 ## 🤝 Contributing
@@ -351,3 +351,5 @@ See [Contributing](contributing.md) for setup, workflow, commit conventions, and
 ## 📖 Additional Resources
 
 See [Additional Resources](additional-resources.md) for links to CLI reference, Make commands, testing guide, and external documentation.
+
+Run `bash scripts/smoke_wheel.sh` to build and install a wheel in isolation, verify generated CLI and docs-only projects, and exercise a tagged template upgrade.

@@ -82,10 +82,10 @@ def inspect_repository(
                 blockers.append(
                     f"Answers file must be inside the project directory for Copier update (got {answers_path})."
                 )
-            if template.src_path and not template.commit:
-                blockers.append("`_src_path` is set but `_commit` is missing.")
-            if template.commit and not template.src_path:
-                warnings.append("`_commit` is set but `_src_path` is missing.")
+            if not template.commit:
+                blockers.append("Copier template revision (`_commit`) is missing.")
+            if not template.src_path:
+                blockers.append("Copier template source (`_src_path`) is missing.")
 
     extensions, extension_fatal = _inspect_extensions(repo_path, skip_extensions=skip_extensions)
     fatal = fatal or extension_fatal

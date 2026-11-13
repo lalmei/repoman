@@ -13,15 +13,19 @@ site_description: "{{ project_description }}"
 site_url: "{{ site_url_value }}"
 repo_url: "{{ repo_url }}"
 repo_name: "{{ repository_namespace }}/{{ repository_name }}"
-site_dir: "{% if repository_provider == 'github' %}site{% endif %}"
-watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, AI_POLICY.md{% if not docs_only %}, src/{{ python_package_import_name }}{% endif %}]
+docs_dir: ../docs
+site_dir: ../site
+watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../CHANGELOG.md, ../AI_POLICY.md{% if not docs_only %}, ../src/{{ python_package_import_name }}{% endif %}]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
 edit_uri: edit/main/docs/
 
 validation:
   omitted_files: warn
   absolute_links: warn
-  unrecognized_links: warn
+  links:
+    # README snippets link to files at the repository root.
+    not_found: info
+    unrecognized_links: info
 
 nav:
 - Home:
@@ -50,7 +54,7 @@ nav:
 
 theme:
   name: material
-  custom_dir: docs/.overrides
+  custom_dir: ../docs/.overrides
   
   features:
   - announce.dismiss
@@ -109,7 +113,7 @@ markdown_extensions:
     emoji_generator: !!python/name:material.extensions.emoji.to_svg
 - pymdownx.magiclink
 - pymdownx.snippets:
-    base_path: [!relative $config_dir]
+    base_path: [!relative $config_dir/..]
     check_paths: true
 - pymdownx.superfences
 - pymdownx.tabbed:
@@ -126,7 +130,6 @@ plugins:
 - search
 - autorefs
 - markdown-exec
-- section-index
 {% if not docs_only %}
 - coverage
 - mkdocstrings:
@@ -134,7 +137,7 @@ plugins:
       python:
         inventories:
         - https://docs.python.org/3/objects.inv
-        paths: [src]
+        paths: [../src]
         options:
           backlinks: tree
           docstring_options:

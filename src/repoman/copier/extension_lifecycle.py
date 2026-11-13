@@ -11,6 +11,7 @@ from copier import Worker
 from copier.errors import CopierError
 
 from repoman._version import get_version
+from repoman.copier.sources import UPSTREAM_TEMPLATE
 
 MANIFEST_VERSION = 1
 MANIFEST_RELATIVE_PATH = Path(".repoman/extensions.yml")
@@ -205,7 +206,7 @@ def _run_copy_or_raise(copier_options: dict[str, Any]) -> None:
     try:
         with Worker(**copier_options) as worker:
             worker.run_copy()
-    except CopierError as e:
+    except (CopierError, OSError, ValueError) as e:
         raise ExtensionLifecycleError(str(e)) from e
 
 
@@ -221,6 +222,7 @@ def _create_extension_instance(
     force: bool,
     dry_run: bool,
     expected_files: tuple[Path, Path],
+    trust: bool = False,
 ) -> tuple[ExtensionInstance, dict[str, Any], Path, Path]:
     if not template_dir.exists():
         raise ExtensionLifecycleError(f"Extension template not found: {template_dir}")
@@ -235,16 +237,31 @@ def _create_extension_instance(
     )
 
     extension_answers_file = _answers_path_for(project_dir, extension_type, name)
+    base_metadata = _load_yaml(base_answers_file)
+    source = base_metadata.get("_src_path")
+    revision = base_metadata.get("_commit")
+    versioned = bool(source and revision and (trust or source == UPSTREAM_TEMPLATE))
 
     copier_options: dict[str, Any] = {
-        "src_path": str(template_dir),
+        "src_path": source if versioned else str(template_dir),
         "dst_path": str(project_dir),
-        "answers_file": str(extension_answers_file),
+        "answers_file": str(extension_answers_file.relative_to(project_dir)),
         "data": extension_data,
         "overwrite": force,
         "quiet": True,
         "unsafe": True,
     }
+
+    if versioned:
+        copier_options.update(
+            vcs_ref=revision,
+            defaults=True,
+            data={
+                **extension_data,
+                "project_name": base_metadata.get("project_name") or "extension",
+                "repoman_command_extension": True,
+            },
+        )
 
     instance = ExtensionInstance(
         id=f"{extension_type}:{name}",
@@ -274,6 +291,7 @@ def create_command_extension(
     command_name: str,
     force: bool,
     dry_run: bool,
+    trust: bool = False,
 ) -> tuple[ExtensionInstance, dict[str, Any], Path, Path]:
     """Create a command extension instance and persist lifecycle metadata."""
     python_package_import_name = str(answers.get("python_package_import_name", "")).strip()
@@ -306,6 +324,7 @@ def create_command_extension(
         force=force,
         dry_run=dry_run,
         expected_files=(command_output_file, test_output_file),
+        trust=trust,
     )
 
 
@@ -323,23 +342,26 @@ def sync_extensions(
     dry_run: bool,
     extension_type: str | None = None,
     extension_name: str | None = None,
+    vcs_ref: str | None = None,
+    trust: bool = False,
 ) -> ExtensionSyncResult:
-    """Sync active extension instances to current bundled templates."""
+    """Merge active extensions using their recorded versioned sources."""
+    _ = force  # Compatibility with earlier callers.
     manifest = load_manifest(project_dir)
-    if not manifest.extensions:
-        return ExtensionSyncResult(synced=[], dry_run_options=[])
+    selected = [
+        instance
+        for instance in manifest.extensions
+        if instance.status == "active"
+        and (extension_type is None or instance.type == extension_type)
+        and (extension_name is None or instance.name == extension_name)
+    ]
+    if not dry_run and len(selected) > 1:
+        raise ExtensionLifecycleError("Select one extension with --name, then review and commit each sync.")
 
     synced: list[ExtensionInstance] = []
     dry_run_options: list[dict[str, Any]] = []
 
-    for instance in manifest.extensions:
-        if instance.status != "active":
-            continue
-        if extension_type is not None and instance.type != extension_type:
-            continue
-        if extension_name is not None and instance.name != extension_name:
-            continue
-
+    for instance in selected:
         template_dir = _template_dir_for_type(instance.type)
         if not template_dir.exists():
             raise ExtensionLifecycleError(f"Extension template not found: {template_dir}")
@@ -348,14 +370,26 @@ def sync_extensions(
         if not answers_file.exists():
             raise ExtensionLifecycleError(f"Extension answers file is missing for {instance.id}: {answers_file}")
 
+        if not answers_file.resolve().is_relative_to(project_dir.resolve()):
+            raise ExtensionLifecycleError(f"Answers file must be inside the project: {answers_file}")
+        metadata = _load_yaml(answers_file)
+        source = metadata.get("_src_path")
+        if not dry_run and not (source and metadata.get("_commit")):
+            raise ExtensionLifecycleError(
+                f"Extension {instance.id} has no versioned baseline. "
+                "Restore its original template source and revision in its answers file before syncing."
+            )
         copier_options: dict[str, Any] = {
-            "src_path": str(template_dir),
+            "src_path": source,
             "dst_path": str(project_dir),
-            "answers_file": str(answers_file),
-            "overwrite": force,
+            "answers_file": str(answers_file.relative_to(project_dir)),
+            "overwrite": True,
+            "defaults": True,
+            "skip_answered": True,
             "quiet": True,
             "conflict": conflict,
-            "unsafe": True,
+            "unsafe": trust or source == UPSTREAM_TEMPLATE,
+            "vcs_ref": vcs_ref,
         }
 
         if dry_run:
