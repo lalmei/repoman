@@ -76,11 +76,11 @@ def test_inspect_repository_missing_commit_blocks_update(tmp_path: Path) -> None
 
     assert report.status == "warning"
     assert report.update_readiness.ready is False
-    assert "`_src_path` is set but `_commit` is missing." in report.update_readiness.blockers
+    assert "Copier template revision (`_commit`) is missing." in report.update_readiness.blockers
 
 
-def test_inspect_repository_blank_src_path_warns(tmp_path: Path) -> None:
-    """A blank template source should warn when a commit is still present."""
+def test_inspect_repository_blank_src_path_blocks_update(tmp_path: Path) -> None:
+    """A blank template source prevents update even if a commit is present."""
     repo = _make_repo(tmp_path)
     _write_answers(
         repo,
@@ -93,8 +93,8 @@ def test_inspect_repository_blank_src_path_warns(tmp_path: Path) -> None:
     report = inspect_repository(repo)
 
     assert report.status == "warning"
-    assert report.update_readiness.ready is True
-    assert "`_commit` is set but `_src_path` is missing." in report.update_readiness.warnings
+    assert report.update_readiness.ready is False
+    assert "Copier template source (`_src_path`) is missing." in report.update_readiness.blockers
 
 
 def test_inspect_repository_invalid_yaml_is_fatal(tmp_path: Path) -> None:

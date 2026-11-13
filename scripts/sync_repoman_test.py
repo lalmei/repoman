@@ -11,11 +11,7 @@ from pathlib import Path
 
 import yaml
 
-VOLATILE_COPIER_KEYS = {
-    "_commit",
-    "_src_path",
-    "_vcs_ref",
-}
+UPSTREAM_TEMPLATE = "https://github.com/lalmei/repoman.git"
 STAGED_REPO_DIRNAME = "repoman_test"
 
 
@@ -69,16 +65,18 @@ def replace_repo_contents(staged_repo: Path, target_repo: Path) -> None:
         copy_entry(child, target_repo / child.name)
 
 
-def normalize_copier_answers(path: Path) -> None:
-    """Drop volatile Copier metadata that would otherwise create noisy CI diffs."""
+def record_portable_source(path: Path) -> None:
+    """Replace a CI-local source path while keeping the exact rendered revision."""
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    if not isinstance(data, dict):
-        raise ValueError(f"Expected mapping in answers file, found: {type(data).__name__}")
-
-    for key in VOLATILE_COPIER_KEYS:
-        data.pop(key, None)
-
+    if not isinstance(data, dict) or not data.get("_commit"):
+        raise ValueError(f"Copier did not record a template revision in {path}")
+    data["_src_path"] = UPSTREAM_TEMPLATE
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+
+def template_revision(repo: Path) -> str:
+    """Resolve HEAD without including changes in the template working tree."""
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
 
 
 def bootstrap_repo(repoman_repo: Path, answers_file: Path, project_name: str, temp_root: Path) -> Path:
@@ -99,6 +97,9 @@ def bootstrap_repo(repoman_repo: Path, answers_file: Path, project_name: str, te
             str(temp_root),
             "--template",
             str(repoman_repo),
+            "--vcs-ref",
+            template_revision(repoman_repo),
+            "--trust",
             "--force",
         ],
         cwd=repoman_repo,
@@ -110,13 +111,12 @@ def bootstrap_repo(repoman_repo: Path, answers_file: Path, project_name: str, te
 
 
 def update_repo(repoman_repo: Path, target_repo: Path, temp_root: Path) -> Path:
-    """Copy the current smoke repo into staging and apply `repoman update` there."""
+    """Clone the committed smoke repo and apply the update in isolation."""
     staged_repo = temp_root / STAGED_REPO_DIRNAME
-    shutil.copytree(
-        target_repo,
-        staged_repo,
-        ignore=shutil.ignore_patterns(".git"),
-    )
+    run_command(["git", "clone", "--local", "--", str(target_repo), str(staged_repo)], cwd=temp_root)
+    answers = yaml.safe_load((staged_repo / ".copier-answers.yml").read_text(encoding="utf-8"))
+    if not isinstance(answers, dict) or not answers.get("_commit") or not answers.get("_src_path"):
+        raise ValueError("Smoke repository has no Copier baseline. Repair its source and revision before syncing.")
     run_command(
         [
             "uv",
@@ -128,8 +128,8 @@ def update_repo(repoman_repo: Path, target_repo: Path, temp_root: Path) -> Path:
             str(staged_repo),
             "--answers",
             str(staged_repo / ".copier-answers.yml"),
-            "--template",
-            str(repoman_repo),
+            "--vcs-ref",
+            template_revision(repoman_repo),
         ],
         cwd=repoman_repo,
     )
@@ -165,7 +165,7 @@ def main() -> int:
         else:
             staged_repo = bootstrap_repo(repoman_repo, answers_file, args.project_name, temp_root)
 
-        normalize_copier_answers(staged_repo / ".copier-answers.yml")
+            record_portable_source(staged_repo / ".copier-answers.yml")
         validate_staged_repo(staged_repo)
         replace_repo_contents(staged_repo, target_repo)
 
@@ -178,3 +178,6 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError as exc:
         print(f"Command failed with exit code {exc.returncode}: {exc.cmd}", file=sys.stderr)
         raise SystemExit(exc.returncode) from exc
+    except (OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(1) from exc

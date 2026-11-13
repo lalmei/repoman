@@ -9,13 +9,13 @@ _subdirectory: main_template/
 _templates_suffix: .jinja
 _preserve_symlinks: true
 _jinja_extensions:
-- copier_template_extensions.TemplateExtensionLoader
-- extensions.py:CurrentYearExtension
-- extensions.py:GitExtension
-- extensions.py:SlugifyExtension
+- repoman.extensions.CurrentYearExtension
+- repoman.extensions.GitExtension
+- repoman.extensions.SlugifyExtension
 _skip_if_exists:
 - CHANGELOG.md
 _exclude:
+  - "{% if docs_only %}docs/reference/architecture.md{% endif %}"
   - "{% if docs_only %}src/{% endif %}"
   - "{% if docs_only %}tests/{% endif %}"
   - "{% if docs_only %}config/coverage.ini{% endif %}"
@@ -26,21 +26,13 @@ _exclude:
   - "{% if docs_only %}make_cmds/quality.mk{% endif %}"
   - "{% if docs_only %}make_cmds/tests.mk{% endif %}"
 _tasks:
-  - git init
+  - command: [git, init]
+    when: "{{ not repoman_command_extension }}"
   - command: command -v uv >/dev/null 2>&1 && uv run ruff format src/ tests/ --config=config/ruff.toml || true
-    when: "{{ not docs_only }}"
+    when: "{{ not docs_only and not repoman_command_extension }}"
 
 
 # PROMPT --------------------------------
-
-ci:
-  type: str
-  help: Your repository URL (hostname; derived from repository provider)
-  default: "{{ repository_provider }}.com"
-  choices:
-  - github.com
-  - gitlab.com
-  - azure.com
 
 project_name:
   type: str
@@ -51,6 +43,7 @@ project_name:
 project_description:
   type: str
   help: Your project description
+  default: ""
 
 author_fullname:
   type: str
@@ -75,6 +68,15 @@ repository_provider:
   - github
   - gitlab
   - azure
+
+ci:
+  type: str
+  help: Your repository URL (hostname; derived from repository provider)
+  default: "{{ repository_provider }}.com"
+  choices:
+  - github.com
+  - gitlab.com
+  - azure.com
 
 repository_namespace:
   type: str

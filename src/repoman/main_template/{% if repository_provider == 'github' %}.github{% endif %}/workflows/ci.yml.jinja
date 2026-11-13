@@ -46,6 +46,7 @@ jobs:
     - name: Check if the documentation builds correctly
       run: make check-docs
 
+{% if not docs_only %}
     - name: Check the project quality
       run: make check
 
@@ -116,3 +117,4 @@ jobs:
 
     - name: Run the test suite
       run: make test
+{% endif %}

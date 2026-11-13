@@ -13,7 +13,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.text import Text
-from typer import Argument, Context, Exit, Option, Typer
+from typer import Argument, Context, Exit, Option
 
 from repoman.cli.messages import (
     answers_file_must_live_in_project,
@@ -34,18 +34,15 @@ from repoman.cli.messages import (
     update_modes_mutually_exclusive,
 )
 from repoman.config import load_answers
-from repoman.copier import ExtensionLifecycleError, sync_extensions
+from repoman.copier.extension_lifecycle import MIRROR_KEY
+from repoman.copier.sources import UPSTREAM_TEMPLATE
 from repoman.inspection import InspectionError, InspectionReport, inspect_repository
 from repoman.utils.logging import get_logger_console
 
-app = Typer(
-    add_completion=True,
-)
 
-
-@app.callback(invoke_without_command=True)
 def update(
     ctx: Context,
+    *,
     project_dir: str = Argument(..., help="Path to the project directory to update"),
     template_path: str | None = Option(
         None,
@@ -65,13 +62,16 @@ def update(
         "-a",
         help="Path to .copier-answers.yml file (defaults to .copier-answers.yml in project_dir)",
     ),
-    force: bool = Option(False, "--force", "-f", help="Force overwrite without asking"),
+    force: bool = Option(
+        False, "--force", "-f", help="Compatibility flag; update already uses saved answers and defaults"
+    ),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be updated without making changes"),
     plan: bool = Option(False, "--plan", help="Show an update plan without writing files"),
     repair: bool = Option(False, "--repair", help="Repair Copier metadata in the answers file"),
     commit: str | None = Option(None, "--commit", help="Copier commit to write when using --repair"),
     conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
-    skip_extensions: bool = Option(False, "--skip-extensions", help="Skip syncing Copier-managed extensions"),
+    skip_extensions: bool = Option(False, "--skip-extensions", help="Hide extension follow-up in the update plan"),
+    trust: bool = Option(False, "--trust", help="Allow custom template code and migrations"),
 ) -> None:
     """Update an existing Python project using the repoman template.
 
@@ -87,6 +87,7 @@ def update(
     """
     logger, console = get_logger_console()
 
+    _ = force  # Compatibility with earlier invocations.
     effective_dry_run = dry_run or (ctx.obj or {}).get("dry_run", False)
     if conflict not in ["inline", "rej"]:
         console.print(error_panel(invalid_conflict_mode(conflict), console=console))
@@ -103,7 +104,7 @@ def update(
         report = inspect_repository(
             project_dir_obj,
             answers_file=answers_file_path,
-            skip_extensions=skip_extensions,
+            skip_extensions=True,
         )
     except InspectionError as exc:
         console.print(error_panel(str(exc), console=console))
@@ -146,9 +147,6 @@ def update(
             )
         )
         raise Exit(1) from None
-    if report.fatal:
-        console.print(error_panel("\n".join(report.update_readiness.blockers), console=console))
-        raise Exit(1) from None
     if report.update_readiness.blockers:
         console.print(error_panel("\n".join(report.update_readiness.blockers), console=console))
         raise Exit(1) from None
@@ -159,7 +157,7 @@ def update(
         answers_file_for_worker=answers_file_for_worker,
         template_path=template_path_obj,
         vcs_ref=vcs_ref,
-        force=force,
+        trusted=trust or (report.template.src_path == UPSTREAM_TEMPLATE and template_path_obj is None),
         conflict=conflict,
     )
 
@@ -169,28 +167,14 @@ def update(
         "Test your project to ensure everything works",
         "Commit the changes",
     ]
+    if report.extensions.active and not skip_extensions:
+        next_steps.append("Run repoman extensions sync after committing the base update")
     steps_text = format_next_steps(next_steps, console=console)
 
     if effective_dry_run:
-        extension_dry_run_options: dict[str, str | bool | None | int] | None = None
-        if not skip_extensions:
-            try:
-                extension_result = sync_extensions(
-                    project_dir=project_dir_obj,
-                    force=force,
-                    conflict=conflict,
-                    dry_run=True,
-                )
-                extension_dry_run_options = {
-                    "extension_count": len(extension_result.synced),
-                }
-            except ExtensionLifecycleError as exc:
-                console.print(error_panel(str(exc), console=console))
-                raise Exit(1) from exc
-
         copier_options_serializable: dict[str, object] = {k: v for k, v in copier_options.items() if v is not None}
-        if extension_dry_run_options is not None:
-            copier_options_serializable["extensions"] = extension_dry_run_options
+        if not skip_extensions:
+            copier_options_serializable["extensions"] = {"extension_count": len(report.extensions.active)}
         console.print(
             dry_run_update(
                 project_dir_obj,
@@ -205,6 +189,7 @@ def update(
         return
 
     try:
+        mirror = load_answers(answers_file_path).get(MIRROR_KEY)
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -214,12 +199,12 @@ def update(
             with Worker(**copier_options) as worker:  # type: ignore[arg-type]
                 worker.run_update()
 
-            if not skip_extensions:
-                sync_extensions(
-                    project_dir=project_dir_obj,
-                    force=force,
-                    conflict=conflict,
-                    dry_run=False,
+            if mirror is not None:
+                updated_answers = load_answers(answers_file_path)
+                updated_answers[MIRROR_KEY] = mirror
+                serialized = yaml.safe_dump(updated_answers, sort_keys=False)
+                answers_file_path.write_text(
+                    "# Changes here will be overwritten by Copier.\n" + serialized, encoding="utf-8"
                 )
 
             progress.update(task, description="Project updated successfully!")
@@ -243,9 +228,6 @@ def update(
         else:
             body = message
         console.print(error_panel(body, console=console))
-        raise Exit(1) from exc
-    except ExtensionLifecycleError as exc:
-        console.print(error_panel(str(exc), console=console))
         raise Exit(1) from exc
     except (OSError, ValueError, RuntimeError) as exc:
         console.print(error_panel(str(exc), console=console))
@@ -286,16 +268,18 @@ def _build_copier_options(
     answers_file_for_worker: str,
     template_path: Path | None,
     vcs_ref: str | None,
-    force: bool,
+    trusted: bool,
     conflict: str,
 ) -> dict[str, str | bool | None]:
     options: dict[str, str | bool | None] = {
         "dst_path": str(project_dir),
         "answers_file": answers_file_for_worker,
-        "overwrite": force,
+        "overwrite": True,
+        "defaults": True,
         "quiet": True,
+        "skip_tasks": True,
         "conflict": conflict,
-        "unsafe": True,
+        "unsafe": trusted,
         "src_path": str(template_path) if template_path is not None else None,
     }
     if vcs_ref is not None:
@@ -411,8 +395,8 @@ def _run_repair(
         answers["_vcs_ref"] = vcs_ref
         changes.append(f"_vcs_ref: {vcs_ref}")
 
-    with open(answers_file_path, "w", encoding="utf-8") as handle:
-        yaml.safe_dump(answers, handle, sort_keys=False)
+    if changes:
+        answers_file_path.write_text(yaml.safe_dump(answers, sort_keys=False), encoding="utf-8")
 
     if not changes:
         changes_text = "No Copier metadata changes were necessary."

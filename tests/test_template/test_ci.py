@@ -305,7 +305,7 @@ def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
 
     assert f'site_url: "{docs_url}"' in mkdocs
     assert f'repo_url: "{repo_url}"' in mkdocs
-    assert 'site_dir: "site"' in mkdocs
+    assert "site_dir: ../site" in mkdocs
     assert "icon: fontawesome/brands/github" in mkdocs
     assert "link: https://github.com/testuser" in mkdocs
 
@@ -345,7 +345,7 @@ def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
 
     assert f'site_url: "{docs_url}"' in mkdocs
     assert f'repo_url: "{repo_url}"' in mkdocs
-    assert 'site_dir: ""' in mkdocs
+    assert "site_dir: ../site" in mkdocs
     assert "icon: fontawesome/brands/gitlab" in mkdocs
     assert "link: https://gitlab.com/testuser" in mkdocs
 
@@ -390,7 +390,7 @@ def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
 
     assert f'site_url: "{docs_url}"' in mkdocs
     assert f'repo_url: "{repo_url}"' in mkdocs
-    assert 'site_dir: ""' in mkdocs
+    assert "site_dir: ../site" in mkdocs
     assert "icon: fontawesome/brands/azure" in mkdocs
     assert "link: https://azure.com/testuser" in mkdocs
 

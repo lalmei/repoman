@@ -16,13 +16,13 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(
     add_completion=True,
-    help="""Sync extension instances to latest bundled templates.
+    help="""Sync extension instances to their recorded versioned templates.
 
 Examples:
 
     repoman extensions sync ./my-project
-    repoman extensions sync ./my-project --dry-run
-    repoman extensions sync ./my-project --type command --name my_cmd
+    repoman extensions sync --dry-run ./my-project
+    repoman extensions sync --type command --name my_cmd ./my-project
 """,
 )
 
@@ -32,8 +32,12 @@ def sync(
     project_dir: str = Argument(..., help="Path to the project directory"),
     extension_type: str | None = Option(None, "--type", help="Only sync this extension type"),
     name: str | None = Option(None, "--name", help="Only sync this extension name"),
-    force: bool = Option(False, "--force", "-f", help="Force overwrite without asking"),
+    force: bool = Option(
+        False, "--force", "-f", help="Compatibility flag; sync already uses saved answers and defaults"
+    ),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be synced without making changes"),
+    vcs_ref: str | None = Option(None, "--vcs-ref", help="Git ref or tag to sync to"),
+    trust: bool = Option(False, "--trust", help="Allow custom template code and migrations"),
     conflict: str = Option("inline", "--conflict", help="Conflict resolution mode: 'inline' or 'rej'"),
 ) -> None:
     """Sync extensions in the given project (see command help for examples)."""
@@ -56,6 +60,8 @@ def sync(
             dry_run=dry_run,
             extension_type=extension_type,
             extension_name=name,
+            vcs_ref=vcs_ref,
+            trust=trust,
         )
     except ExtensionLifecycleError as e:
         console.print(error_panel(str(e), console=console))

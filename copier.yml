@@ -1,0 +1,18 @@
+# Git entry point for the Repoman templates.
+!include src/repoman/copier.yml
+---
+_subdirectory: "{% if repoman_command_extension %}src/repoman/extentions/command_template/{{ '{{command_name}}' }}{% else %}src/repoman/main_template{% endif %}"
+
+repoman_command_extension:
+  type: bool
+  default: false
+
+command_name:
+  type: str
+  default: ""
+  when: "{{ repoman_command_extension }}"
+
+command_description:
+  type: str
+  default: "{{ command_name }} command"
+  when: "{{ repoman_command_extension }}"

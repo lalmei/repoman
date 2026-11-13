@@ -92,6 +92,7 @@ def add(
     ),
     answers_file: str | None = Option(None, "--answers", "-a", help="Path to .copier-answers.yml file"),
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
+    trust: bool = Option(False, "--trust", help="Use the recorded custom template for the command extension"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
     """Add a new CLI command (see command help for examples)."""
@@ -154,6 +155,7 @@ def add(
             command_name=command_name,
             force=force,
             dry_run=dry_run,
+            trust=trust,
         )
     except ExtensionLifecycleError as e:
         console.print(error_panel(str(e), console=console))

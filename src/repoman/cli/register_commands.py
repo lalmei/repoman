@@ -12,7 +12,8 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
     """Dynamically discover and register CLI commands from submodules in the commands directory.
 
     Scans all subdirectories in the commands directory and registers any that have an 'app'
-    attribute defined in their __init__.py file.
+    attribute defined in their __init__.py file. Update is registered directly
+    as a leaf command so its options can follow the project path.
     """
     logger, _console = get_logger_console()
 
@@ -35,6 +36,10 @@ def _register_commands(app: Typer, path: Path | None = None) -> None:
             module = importlib.import_module(f"repoman.cli.commands.{module_name}")
 
             # Check if the module has an 'app' attribute
+            if module_name == "update":
+                app.command(name=module_name)(module.update)
+                registered_commands.add(module_name)
+                continue
             if not hasattr(module, "app"):
                 logger.debug(f"Submodule '{module_name}' does not have an 'app' attribute. Skipping.")
 

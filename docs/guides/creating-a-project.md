@@ -22,6 +22,8 @@ You will be prompted for project name, description, author, repository and copyr
 | `--dry-run`        | Show what would be created without writing files.                                                        |
 | `--template`, `-t` | Path to a custom template (default: repoman’s bundled main template).                                    |
 
+Use `--vcs-ref` with a Git checkout passed to `--template` to create from a specific revision. Custom templates that use Copier extensions or tasks require `--trust`.
+
 ## Non-interactive use
 
 To create a project without prompts (e.g. in CI or scripts):

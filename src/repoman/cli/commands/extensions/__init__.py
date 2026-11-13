@@ -12,8 +12,8 @@ app = Typer(
 Examples:
 
     repoman extensions sync ./my-project
-    repoman extensions sync ./my-project --dry-run
-    repoman extensions sync ./my-project --type command --name my_cmd
+    repoman extensions sync --dry-run ./my-project
+    repoman extensions sync --type command --name my_cmd ./my-project
 """,
 )
 

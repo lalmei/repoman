@@ -19,8 +19,8 @@ def _load_module() -> Any:
     return module
 
 
-def test_normalize_copier_answers_removes_only_volatile_keys(tmp_path: Path) -> None:
-    """Normalization drops volatile Copier metadata but preserves managed extension data."""
+def test_record_portable_source_retains_revision(tmp_path: Path) -> None:
+    """Canary output records the upstream alongside the exact template revision."""
     module = _load_module()
     answers_path = tmp_path / ".copier-answers.yml"
     answers_path.write_text(
@@ -37,10 +37,13 @@ def test_normalize_copier_answers_removes_only_volatile_keys(tmp_path: Path) -> 
         encoding="utf-8",
     )
 
-    module.normalize_copier_answers(answers_path)
+    module.record_portable_source(answers_path)
 
     result = yaml.safe_load(answers_path.read_text(encoding="utf-8"))
     assert result == {
+        "_commit": "abc123",
+        "_src_path": module.UPSTREAM_TEMPLATE,
+        "_vcs_ref": "mainline",
         "_repoman_extensions": {"instances": []},
         "project_name": "repoman-test",
     }
@@ -78,6 +81,7 @@ def test_bootstrap_repo_renames_generated_project_into_staging_location(tmp_path
         calls.append((args, cwd))
 
     module.run_command = fake_run_command
+    module.template_revision = lambda _: "abc123"
 
     staged_repo = module.bootstrap_repo(
         repoman_repo=tmp_path,

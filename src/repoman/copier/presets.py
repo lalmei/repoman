@@ -43,6 +43,7 @@ PRESETS: dict[str, dict] = {
 def build_preset_data(preset_name: str, project_name: str) -> dict:
     """Build copier data from preset overrides and base defaults."""
     base = {} if preset_name == "cpp" else yaml.safe_load(get_copier_answers_template()) or {}
+    base = {key: value for key, value in base.items() if value != ""}
     overrides = PRESETS.get(preset_name, {}).copy()
     if "python_package_command_line_name" not in overrides:
         overrides["python_package_command_line_name"] = slugify(project_name)
@@ -66,6 +67,8 @@ def build_copier_options(
     output_dir: Path,
     template_path: Path,
     data: dict | None,
+    *,
+    trusted: bool = False,
 ) -> dict[str, Any]:
     """Build the options dict passed to copier.run_copy.
 
@@ -73,26 +76,18 @@ def build_copier_options(
         project_name: Name of the project (used for dst_path and for data['project_name'] if data).
         output_dir: Base output directory; destination will be output_dir / project_name.
         template_path: Source template path.
-        data: Optional pre-filled answers; if provided, project_name is set and copier runs with data.
+        data: Optional pre-filled answers to use in non-interactive mode.
+        trusted: Allow template extensions and tasks.
 
     Returns:
         Dict suitable for copier.run_copy (src_path, dst_path, and optionally data, answers_file, etc.).
     """
-    output_dir_obj = output_dir / project_name
-    if data is not None:
-        data = dict(data)
-        data["project_name"] = project_name
-        return {
-            "src_path": str(template_path),
-            "dst_path": str(output_dir_obj),
-            "data": data,
-            "answers_file": ".copier-answers.yml",
-            "overwrite": True,
-            "defaults": True,
-            "quiet": False,
-            "unsafe": True,
-        }
-    return {
+    options: dict[str, Any] = {
         "src_path": str(template_path),
-        "dst_path": str(output_dir_obj),
+        "dst_path": str(output_dir / project_name),
+        "data": {**(data or {}), "project_name": project_name},
+        "unsafe": trusted,
     }
+    if data is not None:
+        options.update(answers_file=".copier-answers.yml", overwrite=True, defaults=True)
+    return options

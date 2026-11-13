@@ -77,6 +77,8 @@ repoman create cli cli PROJECT_NAME [OPTIONS]
 | --------------- | ----- | --------------------------------------------------------------------------- |
 | `--project_name` | `-pn` | **Required** for default create. Name of the project to create.             |
 | `--template`    | `-t`  | Path to custom template (defaults to bundled main template)                 |
+| `--vcs-ref`     |       | Git ref for a local versioned template |
+| `--trust`       |       | Allow custom template code and tasks |
 | `--output`      | `-o`  | Output directory (defaults to current directory)                             |
 | `--answers`     | `-a`  | Path to answers file for non-interactive use                                |
 | `--preset`      | `-p`  | Use a preset: `cli`, `cpp`, `docs-only`, `library`, `fastapi` (non-interactive) |
@@ -136,13 +138,14 @@ repoman update PROJECT_DIR [OPTIONS]
 | `--template` | `-t`  | Override template path (normally read from `.copier-answers.yml`)           |
 | `--vcs-ref`  | `-r`  | Git ref/tag to update to (defaults to latest)                               |
 | `--answers`  | `-a`  | Path to `.copier-answers.yml` (defaults to project_dir/.copier-answers.yml) |
-| `--force`    | `-f`  | Force overwrite without asking                                              |
+| `--force`    | `-f`  | Compatibility flag. Update already uses saved answers and defaults.       |
 | `--plan`     |       | Show an update plan and blockers without writing files                      |
 | `--dry-run`  |       | Show what would be updated without making changes                           |
 | `--repair`   |       | Repair Copier metadata in the answers file instead of running update        |
 | `--commit`   |       | Commit value to write when using `--repair`                                 |
 | `--conflict` |       | Conflict resolution: `inline` or `rej` (default: inline)                    |
-| `--skip-extensions` | | Skip syncing Copier-managed extensions after the base update               |
+| `--skip-extensions` | | Omit extension follow-up from the base update plan                        |
+| `--trust`           | | Allow custom template extensions and migrations                          |
 
 **Examples**
 
@@ -443,15 +446,17 @@ repoman extensions sync PROJECT_DIR [OPTIONS]
 | ------------ | ----- | ----------------------------------------- |
 | `--type`     |       | Sync only a specific extension type       |
 | `--name`     |       | Sync only a specific extension name       |
-| `--force`    | `-f`  | Force overwrite without asking            |
+| `--force`    | `-f`  | Compatibility flag. Sync already uses saved answers and defaults. |
 | `--dry-run`  |       | Show what would be synced                 |
 | `--conflict` |       | Conflict resolution: `inline` or `rej`    |
+| `--vcs-ref`  |       | Git ref or tag to sync to |
+| `--trust`    |       | Allow custom template extensions and migrations |
 
 **Examples**
 
 ```bash
 repoman extensions sync ./my-project
-repoman extensions sync ./my-project --type command --name report --dry-run
+repoman extensions sync --type command --name report --dry-run ./my-project
 ```
 
 ## Getting help
