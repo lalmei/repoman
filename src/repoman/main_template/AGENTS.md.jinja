@@ -1,0 +1,16 @@
+# Working on {{ project_name }}
+
+Run `make setup` to install dependencies.
+{% if docs_only %}
+Edit content under `docs/` and navigation in `config/mkdocs.yml`. Run `make check-docs` before handing off changes.
+{% else %}
+Application code lives in `src/{{ python_package_import_name }}/` and tests live in `tests/`. Run a focused check with `uv run pytest tests/path/to/test_file.py`, then run `make check` and `make test` before handing off code changes.
+{% if python_package_command_line_name %}
+Keep Typer commands under `src/{{ python_package_import_name }}/cli/` and reusable logic outside the CLI.
+{% endif %}
+{% if fastapi_enabled %}
+Keep FastAPI routing and application startup in `src/{{ python_package_import_name }}/app/`.
+{% endif %}
+{% endif %}
+
+Keep this file current as the project changes. See [AI_POLICY.md](AI_POLICY.md) for contribution rules.

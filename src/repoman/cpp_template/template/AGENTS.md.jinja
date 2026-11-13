@@ -1,0 +1,12 @@
+# Working on {{ project_name }}
+
+Run `make setup`, `make configure`, and `make build` to prepare a local build. Keep public headers in `include/` and implementations in `src/`.
+{% if cpp_build_tests %}
+Run `make test` after changing code.
+{% endif %}
+Run `make check` before handing off changes.
+{% if cpp_build_python_bindings %}
+Run `make check-wheel` after changing the Python bindings or packaging.
+{% endif %}
+
+Keep this file current as the project changes. See [AI_POLICY.md](AI_POLICY.md) for contribution rules.

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 import yaml
 from _pytest.capture import CaptureFixture
 from rich.console import Console
@@ -21,6 +22,12 @@ from repoman.inspection.models import (
     UpdateReadiness,
 )
 from tests.conftest import strip_ansi_codes
+
+
+@pytest.fixture(autouse=True)
+def mock_git_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit fixtures use placeholder Git directories."""
+    monkeypatch.setattr("repoman.inspection.analysis.git_worktree_dirty", lambda _: False)
 
 
 def _make_repo(tmp_path: Path) -> Path:
@@ -105,6 +112,8 @@ def test_inspect_command_json_contract(
     payload = json.loads(_captured_text(result, capsys))
     assert set(payload) == {
         "path",
+        "schema_version",
+        "git_dirty",
         "managed",
         "status",
         "answers_file",

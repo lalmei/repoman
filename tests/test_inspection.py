@@ -2,9 +2,16 @@
 
 from pathlib import Path
 
+import pytest
 import yaml
 
 from repoman.inspection import inspect_repository
+
+
+@pytest.fixture(autouse=True)
+def mock_git_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit fixtures use placeholder Git directories."""
+    monkeypatch.setattr("repoman.inspection.analysis.git_worktree_dirty", lambda _: False)
 
 
 def _make_repo(tmp_path: Path) -> Path:

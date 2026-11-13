@@ -18,6 +18,8 @@ repoman="$smoke_dir/venv/bin/repoman"
     uv sync
     uv run wheel-cli --help
     make lint
+    grep -F "make test" AGENTS.md
+    ! grep -Eq "docker-test|docker-env" Makefile
 )
 
 "$repoman" create -pn wheel-docs --preset docs-only
@@ -25,6 +27,7 @@ repoman="$smoke_dir/venv/bin/repoman"
     cd wheel-docs
     make setup check-docs
     test -f site/index.html
+    grep -F "make check-docs" AGENTS.md
 )
 
 bash "$repo_dir/scripts/smoke_upgrade.sh" "$repoman"

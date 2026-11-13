@@ -114,12 +114,14 @@ class UpdateReadiness:
     ready: bool
     blockers: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    blocker_codes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, object]:
         """Return update readiness details as plain serializable data."""
         return {
             "ready": self.ready,
             "blockers": self.blockers,
+            "blocker_codes": self.blocker_codes,
             "warnings": self.warnings,
         }
 
@@ -137,11 +139,14 @@ class InspectionReport:
     extensions: ExtensionSummary
     update_readiness: UpdateReadiness
     fatal: bool = False
+    git_dirty: bool | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return the stable v1 inspect JSON contract."""
         return {
             "path": self.path,
+            "schema_version": 1,
+            "git_dirty": self.git_dirty,
             "managed": self.managed,
             "status": self.status,
             "answers_file": self.answers_file.to_dict(),

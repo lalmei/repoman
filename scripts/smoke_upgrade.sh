@@ -30,6 +30,9 @@ extension_answers=.repoman/extensions/command/sample.answers.yml
 grep -Fx '_commit: v1.0.0' "$extension_answers"
 git add .
 git -c commit.gpgsign=false commit -qm 'Generated project'
+printf '\nProject-owned instructions.\n' >> AGENTS.md
+git add AGENTS.md
+git -c commit.gpgsign=false commit -qm 'Customize agent instructions'
 printf '\ndownstream customization\n' >> README.md
 git add README.md
 git -c commit.gpgsign=false commit -qm 'Customize generated README'
@@ -51,9 +54,25 @@ git -C "$template" -c tag.gpgsign=false tag v1.1.0
 
 "$repoman" update . --plan --vcs-ref v1.1.0
 test -z "$(git status --porcelain)"
+"$repoman" --verbose update . --plan --format json --vcs-ref v1.1.0 > "$smoke_dir/plan.json"
+python3 -c 'import json, sys; assert json.load(open(sys.argv[1]))["git_dirty"] is False' "$smoke_dir/plan.json"
+touch pending.txt
+if "$repoman" update . --plan --format json > "$smoke_dir/plan.json"; then
+    exit 1
+fi
+python3 -c 'import json, sys; assert "dirty_worktree" in json.load(open(sys.argv[1]))["update_readiness"]["blocker_codes"]' "$smoke_dir/plan.json"
+rm pending.txt
+cp .copier-answers.yml "$smoke_dir/answers.yml"
+printf '%s\n' '- invalid answers' > .copier-answers.yml
+if "$repoman" inspect --format json > "$smoke_dir/plan.json"; then
+    exit 1
+fi
+python3 -c 'import json, sys; assert "invalid_answers" in json.load(open(sys.argv[1]))["update_readiness"]["blocker_codes"]' "$smoke_dir/plan.json"
+mv "$smoke_dir/answers.yml" .copier-answers.yml
 "$repoman" update . --vcs-ref v1.1.0 --trust
 grep -Fx 'version two' template-release.txt
 grep -F 'downstream customization' README.md
+grep -Fx 'Project-owned instructions.' AGENTS.md
 grep -Fx '_commit: v1.1.0' .copier-answers.yml
 git add .
 git -c commit.gpgsign=false commit -qm 'Review and accept template upgrade'

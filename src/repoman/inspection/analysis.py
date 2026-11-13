@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from typing import TYPE_CHECKING, Any
 
 import yaml
@@ -51,20 +53,32 @@ def inspect_repository(
     )
 
     blockers: list[str] = []
+    codes: list[str] = []
+
+    def block(code: str, message: str) -> None:
+        codes.append(code)
+        blockers.append(message)
+
     warnings: list[str] = []
     fatal = False
     managed = answers_state.exists
+    dirty = git_worktree_dirty(repo_path)
+    if dirty is None:
+        block("git_status_unavailable", "Could not read Git worktree status.")
+    elif dirty:
+        block("dirty_worktree", "Commit or stash working tree changes before updating.")
+
     template = TemplateMetadata()
     features = FeatureFlags()
 
     if not answers_state.exists:
-        blockers.append(f"Copier answers file not found: {answers_path}")
+        block("missing_answers", f"Copier answers file not found: {answers_path}")
     else:
         try:
             answers = load_answers(answers_path)
-        except yaml.YAMLError as exc:
+        except (OSError, ValueError, yaml.YAMLError) as exc:
             fatal = True
-            blockers.append(f"Invalid YAML in answers file {answers_path}: {exc}")
+            block("invalid_answers", f"Invalid YAML in answers file {answers_path}: {exc}")
         else:
             template = TemplateMetadata(
                 src_path=_clean_optional_str(answers.get("_src_path")),
@@ -79,28 +93,34 @@ def inspect_repository(
                 cli_enabled=bool(_clean_optional_str(answers.get("python_package_command_line_name"))),
             )
             if answers_state.within_project is False:
-                blockers.append(
-                    f"Answers file must be inside the project directory for Copier update (got {answers_path})."
+                block(
+                    "answers_outside_project",
+                    f"Answers file must be inside the project directory for Copier update (got {answers_path}).",
                 )
             if not template.commit:
-                blockers.append("Copier template revision (`_commit`) is missing.")
+                block("missing_revision", "Copier template revision (`_commit`) is missing.")
             if not template.src_path:
-                blockers.append("Copier template source (`_src_path`) is missing.")
+                block("missing_source", "Copier template source (`_src_path`) is missing.")
 
     extensions, extension_fatal = _inspect_extensions(repo_path, skip_extensions=skip_extensions)
     fatal = fatal or extension_fatal
     warnings.extend(extensions.warnings)
     if extension_fatal:
-        blockers.extend(extensions.warnings)
+        for warning in extensions.warnings:
+            block("invalid_extension_manifest", warning)
     if not skip_extensions:
         for extension in extensions.active:
             expected_answers = repo_path / extension.answers_file
             if not expected_answers.exists():
-                blockers.append(f"Missing extension answers file for {extension.id}: {expected_answers}")
+                block(
+                    "missing_extension_answers",
+                    f"Missing extension answers file for {extension.id}: {expected_answers}",
+                )
 
     readiness = UpdateReadiness(
         ready=not blockers,
         blockers=blockers,
+        blocker_codes=codes,
         warnings=warnings,
     )
 
@@ -114,6 +134,7 @@ def inspect_repository(
         extensions=extensions,
         update_readiness=readiness,
         fatal=fatal,
+        git_dirty=dirty,
     )
 
 
@@ -132,7 +153,7 @@ def _inspect_extensions(repo_path: Path, *, skip_extensions: bool) -> tuple[Exte
 
     try:
         manifest = load_manifest(repo_path)
-    except ExtensionLifecycleError as exc:
+    except (ExtensionLifecycleError, OSError, TypeError, ValueError, AttributeError, yaml.YAMLError) as exc:
         summary.warnings.append(f"Extension manifest is invalid: {exc}")
         return summary, not skip_extensions
 
@@ -177,3 +198,21 @@ def _status_for(readiness: UpdateReadiness, *, fatal: bool) -> InspectionStatus:
     if readiness.blockers or readiness.warnings:
         return "warning"
     return "ok"
+
+
+def git_worktree_dirty(repo_path: Path) -> bool | None:
+    """Read Git status without refreshing the index on disk."""
+    git = shutil.which("git")
+    if git is None:
+        return None
+    try:
+        result = subprocess.run(  # noqa: S603 - resolved Git executable with fixed arguments
+            [git, "--no-optional-locks", "status", "--porcelain"],
+            cwd=repo_path,
+            capture_output=True,
+            timeout=15,
+            check=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return bool(result.stdout)
