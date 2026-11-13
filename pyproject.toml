@@ -51,7 +51,7 @@ ci = [
     "pytest-cov>=7.0.0",
     "pytest-randomly>=4.0.0",
     "pytest-xdist>=3.8.0",
-    "ruff>=0.15.11",
+    "ruff==0.15.11",
     "types-markdown>=3.6",
     "types-pyyaml>=6.0",
 ]
