@@ -536,3 +536,25 @@ def test_update_command_runtime_error(tmp_path: Path, cli_runner: CliRunner, cli
         # Rich Panel output may not be captured
         if result.output:
             assert "error" in result.output.lower() or "unexpected" in result.output.lower()
+
+
+@pytest.mark.parametrize(
+    ("mode", "path"), [("inline", "src/layouts/Site.astro"), ("rej", "src/layouts/Site.astro.rej")]
+)
+def test_update_reports_conflicts(
+    tmp_path: Path, cli_runner: CliRunner, cli_app: Typer, mode: str, path: str, capsys: CaptureFixture[str]
+) -> None:
+    """Surface unresolved paths and return an unsuccessful update result."""
+    project_dir = _make_project_dir(tmp_path)
+    (project_dir / ".copier-answers.yml").write_text(yaml.dump(_answers_with_copier_metadata()))
+    with (
+        patch("repoman.cli.commands.update.Worker"),
+        patch("repoman.cli.commands.update.update_conflict_files", return_value=[path]) as conflicts,
+    ):
+        result = cli_runner.invoke(cli_app, ["update", str(project_dir), "--conflict", mode])
+
+    assert result.exit_code == 1
+    output = strip_ansi_codes(_captured_text(result, capsys))
+    assert "Resolve template update conflicts" in output
+    assert path in output
+    conflicts.assert_called_once_with(project_dir.resolve(), mode=mode)

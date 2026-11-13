@@ -1,0 +1,2 @@
+# Changes here will be overwritten by Copier.
+{{ dict(_copier_answers.items() | selectattr('0', 'in', ['_commit', '_src_path', 'project_name', 'repoman_astro'])) | to_nice_yaml }}
