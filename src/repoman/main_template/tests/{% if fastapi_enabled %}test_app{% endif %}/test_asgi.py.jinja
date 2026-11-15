@@ -1,12 +1,11 @@
 """Tests for ASGI application and lifespan."""
 
-from unittest.mock import AsyncMock, patch
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from {{ python_package_import_name }}.app.asgi import get_application
-from {{ python_package_import_name }}.config import Config
+from {{ python_package_import_name }}.app.utils import AiohttpClient
+from {{ python_package_import_name }}.config import Config, FastAPIConfig
 
 
 def test_get_application_returns_fastapi_app() -> None:
@@ -18,30 +17,28 @@ def test_get_application_returns_fastapi_app() -> None:
     assert app.description is not None
 
 
-def test_get_application_with_custom_config() -> None:
-    """Test that get_application accepts optional config parameter."""
-    config = Config()
+def test_application_startup_and_shutdown() -> None:
+    """Start the app with custom settings and verify routes and client cleanup."""
+    settings = FastAPIConfig(api_prefix="/custom", docs_url="/custom-docs", aiohttp_timeout=17)
+    config = Config(app_name="Custom API", fastapi_config=settings)
     app = get_application(config=config)
-    assert isinstance(app, FastAPI)
-    assert app.title == config.app_name
 
+    with TestClient(app) as client:
+        assert app.state.config is config
+        assert client.get("/custom-docs").status_code == 200
+        schema = client.get("/openapi.json").json()
+        assert schema["info"]["title"] == "Custom API"
+{% if include_health_endpoints %}
+        assert set(schema["paths"]) == {"/custom/healthcheck", "/custom/ready"}
+        assert client.get("/custom/healthcheck").status_code == 200
+        assert client.get("/custom/ready").status_code == 200
+{% else %}
+        assert not schema["paths"]
+        assert client.get("/custom/healthcheck").status_code == 404
+        assert client.get("/custom/ready").status_code == 404
+{% endif %}
+        session = AiohttpClient.aiohttp_client
+        assert session is not None
+        assert session.timeout.total == 17
 
-def test_lifespan_startup_stores_config(client: TestClient) -> None:
-    """Test that lifespan startup stores config in app.state."""
-    # Make a request to trigger lifespan startup
-    response = client.get("/api/healthcheck")
-    assert response.status_code == 200
-    assert hasattr(client.app.state, "config")
-    assert client.app.state.config is not None
-
-
-def test_lifespan_shutdown_closes_aiohttp_client() -> None:
-    """Test that lifespan shutdown closes the AiohttpClient."""
-    with patch(
-        "{{ python_package_import_name }}.app.asgi.AiohttpClient.close_aiohttp_client",
-        new_callable=AsyncMock,
-    ) as mock_close:
-        app = get_application()
-        with TestClient(app):
-            pass  # Exit triggers shutdown
-        mock_close.assert_called_once()
+    assert session.closed

@@ -21,8 +21,8 @@ logger, _ = get_logger_console(__name__)
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Lifespan context manager for FastAPI application.
 
-    Handles startup and shutdown events. On startup, stores config in app.state
-    and initializes the AiohttpClient. On shutdown, gracefully closes the AiohttpClient.
+    Uses the application configuration to initialize the AiohttpClient on
+    startup and closes the client on shutdown.
 
     Args:
         app: The FastAPI application instance.
@@ -31,13 +31,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         None
     """
     logger.debug("Execute FastAPI startup event handler.")
-    config = Config()
-    app.state.config = config
-    AiohttpClient.get_aiohttp_client(config.fastapi_config)
-    yield
-
-    logger.debug("Execute FastAPI shutdown event handler.")
-    await AiohttpClient.close_aiohttp_client()
+    AiohttpClient.get_aiohttp_client(app.state.config.fastapi_config)
+    try:
+        yield
+    finally:
+        logger.debug("Execute FastAPI shutdown event handler.")
+        await AiohttpClient.close_aiohttp_client()
 
 
 def get_application(config: Config | None = None) -> FastAPI:
@@ -64,8 +63,9 @@ def get_application(config: Config | None = None) -> FastAPI:
         docs_url=fc.docs_url,
         lifespan=lifespan,
     )
+    app.state.config = config
     logger.debug("Add application routes.")
-    app.include_router(root_api_router)
+    app.include_router(root_api_router, prefix=fc.api_prefix)
     logger.debug("Register global exception handler for custom HTTPException.")
     app.add_exception_handler(HTTPException, http_exception_handler)
 
