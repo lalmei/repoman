@@ -5,16 +5,16 @@ from fastapi.testclient import TestClient
 
 
 def test_healthcheck_returns_ok(client: TestClient) -> None:
-    """Test that GET /api/healthcheck returns 200 with healthcheck message."""
-    response = client.get("/api/healthcheck")
+    """Test that the health endpoint returns 200 with a healthcheck message."""
+    response = client.get({{ fastapi_api_prefix | tojson }} + "/healthcheck")
     assert response.status_code == 200
     data = response.json()
     assert data["healthcheck"] == "Everything OK!"
 
 
 def test_ready_returns_ok(client: TestClient) -> None:
-    """Test that GET /api/ready returns 200 with status ok."""
-    response = client.get("/api/ready")
+    """Test that the ready endpoint returns 200 with status ok."""
+    response = client.get({{ fastapi_api_prefix | tojson }} + "/ready")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"

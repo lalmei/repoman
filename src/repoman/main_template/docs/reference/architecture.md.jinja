@@ -36,14 +36,11 @@ Shared configuration is loaded through `Config()` in
 {% if fastapi_enabled %}
 ## FastAPI app
 
-When FastAPI is enabled, the app is created by `get_application()` in `app/asgi.py`. A lifespan context manager runs on startup and shutdown.
+When FastAPI is enabled, `get_application(config=None)` in `app/asgi.py` uses the supplied configuration or creates `Config()`. The factory stores the instance on `app.state.config` and mounts the root router at the configured API prefix.
 
-- **Startup:** The app loads `Config()` and stores it on `app.state.config`, then initializes the shared `AiohttpClient` from FastAPI config.
-- **Shutdown:** The AiohttpClient is closed.
+The lifespan initializes the shared `AiohttpClient` using `app.state.config` at startup and closes it at shutdown.
 
-The root API router applies the configured API prefix and mounts:
-
-- **Health and ready:** When `include_health_endpoints` is true, ready and health_check controllers are mounted (tags: ready, health check).
+The root router includes the health and ready endpoints when `include_health_endpoints` is true.
 
 Controllers and route handlers use `app.state.config`. Custom HTTP exceptions and error views are registered at the app level.
 {% endif %}

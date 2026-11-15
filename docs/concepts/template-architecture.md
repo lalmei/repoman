@@ -6,9 +6,9 @@ This page describes the main optional parts of the repoman template. Template so
 
 When `fastapi_enabled` is true, the template generates an `app/` package with a conventional FastAPI setup:
 
-- **Entry point:** `app/asgi.py` exposes `get_application()`.
-- **Lifespan:** Startup loads `Config()`, stores it on `app.state.config`, and initializes the shared `AiohttpClient`. Shutdown closes the client.
-- **Router:** `app/router.py` applies the configured API prefix and mounts health/ready endpoints when `include_health_endpoints` is true.
+- `get_application(config=None)` in `app/asgi.py` uses the supplied configuration or creates `Config()`. It stores that instance on `app.state.config` and mounts the root router at the configured API prefix.
+- The lifespan initializes the shared `AiohttpClient` using `app.state.config` at startup and closes it at shutdown.
+- `app/router.py` includes the health and ready endpoints when `include_health_endpoints` is true.
 - **Supporting modules:** Controllers, views, exceptions, state helpers, and the aiohttp client live under `app/`.
 
 ## Configuration

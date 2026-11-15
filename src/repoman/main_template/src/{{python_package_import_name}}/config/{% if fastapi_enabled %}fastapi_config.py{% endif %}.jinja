@@ -27,9 +27,9 @@ class FastAPIConfig(BaseSettings):
         extra="ignore",
     )
 
-    docs_url: str = "{{ fastapi_docs_url }}"
+    docs_url: str = {{ fastapi_docs_url | tojson }}
     debug: bool = {{ fastapi_debug }}
-    api_prefix: str = "{{ fastapi_api_prefix }}"
+    api_prefix: str = {{ fastapi_api_prefix | tojson }}
     aiohttp_timeout: int = {{ aiohttp_timeout }}
     aiohttp_pool_size: int = {{ aiohttp_pool_size }}
 
