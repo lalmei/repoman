@@ -75,9 +75,9 @@ class TestDataClasses:
 
     def test_variable_dataclass(self) -> None:
         """Test Variable dataclass."""
-        var = Variable("TEST_VAR", "test_value")
+        var = Variable("TEST_VAR", "set")
         assert var.name == "TEST_VAR"
-        assert var.value == "test_value"
+        assert var.status == "set"
 
     def test_package_dataclass(self) -> None:
         """Test Package dataclass."""
@@ -88,18 +88,16 @@ class TestDataClasses:
     def test_environment_dataclass(self) -> None:
         """Test Environment dataclass."""
         packages = [Package("test", "1.0.0")]
-        variables = [Variable("TEST", "value")]
+        variables = [Variable("TEST", "set")]
         env = Environment(
             interpreter_name="python",
             interpreter_version="3.12.0",
-            interpreter_path="/usr/bin/python",
             platform="Linux",
             packages=packages,
             variables=variables,
         )
         assert env.interpreter_name == "python"
         assert env.interpreter_version == "3.12.0"
-        assert env.interpreter_path == "/usr/bin/python"
         assert env.platform == "Linux"
         assert env.packages == packages
         assert env.variables == variables
@@ -114,7 +112,6 @@ class TestGetDebugInfo:
         assert isinstance(result, Environment)
         assert result.interpreter_name
         assert result.interpreter_version
-        assert result.interpreter_path
         assert result.platform
         assert isinstance(result.packages, list)
         assert isinstance(result.variables, list)
@@ -130,23 +127,25 @@ class TestGetDebugInfo:
     def test_get_debug_info_with_environment_variables(self) -> None:
         """Test get_debug_info with environment variables."""
         result = get_debug_info()
-        variable_names = {var.name.upper() for var in result.variables}
-        assert "PYTHONPATH" in variable_names
-        assert "{{ python_package_import_name }}_DEBUG".upper() in variable_names
+        statuses = {var.name.upper(): var.status for var in result.variables}
+        assert statuses["PYTHONPATH"] == "set"
+        assert statuses["{{ python_package_import_name | upper }}_DEBUG"] == "set"
+        assert "/test/path" not in repr(result)
 
     @patch.dict(os.environ, {}, clear=True)
     def test_get_debug_info_without_environment_variables(self) -> None:
         """Test get_debug_info without environment variables."""
         result = get_debug_info()
         assert isinstance(result, Environment)
-        assert isinstance(result.variables, list)
+        assert result.variables == [Variable("PYTHONPATH", "unset")]
 
     @patch.dict(os.environ, {"PYTHONPATH": "", "{{ python_package_import_name }}_TEST": ""})
     def test_get_debug_info_with_empty_variables(self) -> None:
-        """Test get_debug_info filters out empty environment variables."""
+        """An empty value is still set."""
         result = get_debug_info()
-        for var in result.variables:
-            assert var.value != ""
+        statuses = {var.name.upper(): var.status for var in result.variables}
+        assert statuses["PYTHONPATH"] == "set"
+        assert statuses["{{ python_package_import_name | upper }}_TEST"] == "set"
 
     def test_get_debug_info_package_version_error(self) -> None:
         """Test get_debug_info returns valid Environment with packages list."""

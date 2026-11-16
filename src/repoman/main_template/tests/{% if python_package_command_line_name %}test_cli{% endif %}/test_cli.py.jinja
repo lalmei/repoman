@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+import pytest
 import typer
 from pydantic import BaseModel
 from typer.testing import CliRunner
@@ -37,41 +38,48 @@ def test_show_version() -> None:
     assert "{{ python_package_import_name }}" in result.output.lower()
 
 
-def test_show_debug_info() -> None:
-    """Show debug information."""
+@pytest.mark.parametrize("columns", ["80", "150"])
+def test_show_debug_info(monkeypatch: pytest.MonkeyPatch, columns: str) -> None:
+    """Show safe diagnostics in narrow and wide terminals."""
+    monkeypatch.setattr("sys.executable", "/private-executable-location/python")
+    monkeypatch.setenv("{{ python_package_import_name | upper }}_API_TOKEN", "synthetic-token-value")
     runner = CliRunner()
-    result = runner.invoke(cli, ["--debug-info"])
+    result = runner.invoke(cli, ["--debug-info"], env={"COLUMNS": columns, "LINES": "30"})
     assert result.exit_code == 0
-    captured = result.output.lower()
-    # Debug info should contain interpreter and version information
-    assert "python" in captured or "interpreter" in captured
-    assert "version" in captured or "cpython" in captured
+    assert "PYTHONPATH" in result.output
+    assert "synthetic-token-value" not in result.output
+    assert "private-executable-location" not in result.output
 
 
-def test_main_with_verbose(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
-    """Test that --verbose runs successfully (main callback runs with --help)."""
-    result = cli_runner.invoke(cli_app, ["--verbose", "--help"])
+def test_main_with_verbose(cli_runner: CliRunner, cli_app: typer.Typer, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verbose logging confirms settings loaded without dumping their values."""
+    monkeypatch.setenv("APP_DESCRIPTION", "synthetic-config-value")
+    result = cli_runner.invoke(cli_app, ["--verbose", "test-noop"])
     assert result.exit_code == 0
+    assert "Configuration set" in result.output
+    assert "synthetic-config-value" not in result.output
 
 
 def test_main_with_validation_error(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
     """Test that ValidationError on config load sets config=None in ctx."""
 
     class _RequiredModel(BaseModel):
-        required_field: str
+        count: int
 
     def _raise_validation_error(*_args: object, **_kwargs: object) -> None:
-        _RequiredModel()
+        _RequiredModel.model_validate({"count": "synthetic-invalid-value"})
 
     with patch(
         "{{ python_package_import_name }}.cli.main_cli.Config",
         side_effect=_raise_validation_error,
     ):
-        result = cli_runner.invoke(cli_app, ["noop"])
+        result = cli_runner.invoke(cli_app, ["--verbose", "test-noop"])
         assert result.exit_code == 0
+        assert "Unable to load configuration" in result.output
+        assert "synthetic-invalid-value" not in result.output
 
 
 def test_main_sets_ctx_obj(cli_runner: CliRunner, cli_app: typer.Typer) -> None:
     """Test that main callback runs and ctx.obj is set for subcommands."""
-    result = cli_runner.invoke(cli_app, ["noop"])
+    result = cli_runner.invoke(cli_app, ["test-noop"])
     assert result.exit_code == 0

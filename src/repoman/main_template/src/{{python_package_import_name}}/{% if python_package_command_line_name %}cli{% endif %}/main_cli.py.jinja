@@ -69,7 +69,7 @@ def main(
     debug_info: bool | None = Option(  # noqa: ARG001 - Handled by callback
         None,
         "--debug-info",
-        help="Print debug information",
+        help="Print diagnostics without environment values or executable paths",
         callback=_debug_info_callback,
         is_eager=True,
     ),
@@ -102,12 +102,9 @@ def main(
         else:
             logger.setLevel(logging.INFO)
 
-        logger.debug(config.model_dump())
         logger.debug(Text("Configuration set", style="yellow"))
     except ValidationError:
-        logger.exception("Unable to load configuration: ")
-        logger.exception("Obtained the following validating Errors loading configuration")
-        config = None
+        logger.warning("Unable to load configuration")
 
     ctx.obj = {
         "verbose": verbose,

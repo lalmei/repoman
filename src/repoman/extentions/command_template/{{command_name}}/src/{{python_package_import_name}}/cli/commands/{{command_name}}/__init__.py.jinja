@@ -1,28 +1,20 @@
-from typer import Context, Option, Typer
+"""Starter Typer command."""
 
-from {{python_package_import_name}}.utils.logging import get_logger_console
+from typing import Annotated
 
-logger, console = get_logger_console()
+from typer import Option, Typer, echo
 
-app = Typer(add_completion=True, no_args_is_help=True)
+app = Typer(invoke_without_command=True)
 
 
-@app.callback(invoke_without_command=True, no_args_is_help=True)
-def {{command_name}}(
-    ctx: Context,
-    project_id: str | None = Option(
-        None,
-        "-p",
-        "--project_id",
-        help="project id",
-    ),
+@app.callback(help={{ command_description | pprint }})
+def run(
+    project_id: Annotated[
+        str | None,
+        Option("--project-id", "-p", "--project_id", help="Project ID to display."),
+    ] = None,
 ) -> None:
-    """{{command_description}}"""
-    logger, console = get_logger_console()
-
-    dry_run = ctx.obj.get("dry_run", True)
-
-    console.print("test")
-
-
-## <-------- import subcommands -------->
+    """Run the starter command."""
+    echo("Running {{ command_name }}.")
+    if project_id is not None:
+        echo(f"Project ID: {project_id}")
