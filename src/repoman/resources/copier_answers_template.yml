@@ -59,3 +59,5 @@ dataset_modality_mesh: true
 
 # Documentation-only project (no src package, no tests)
 docs_only: false
+
+document_review: false

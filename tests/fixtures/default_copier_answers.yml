@@ -62,3 +62,5 @@ docs_only: false
 # Insiders Program (not applicable for tests)
 insiders: false
 public_release: false
+
+document_review: false

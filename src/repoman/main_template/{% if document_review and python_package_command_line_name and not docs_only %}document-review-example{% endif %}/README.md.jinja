@@ -1,0 +1,40 @@
+# Document review pilot
+
+From the generated repository, run:
+
+```sh
+uv run {{python_package_command_line_name}} document_review summarize-document document-review-example/cohort.md \
+  --mode compare --fixture document-review-example/fixture.json
+```
+
+Both modes receive the same source and use the same drafting prompt.
+The baseline drafts and self-revises. Reviewed mode independently checks
+the draft and, when needed, revises once and reviews again. Each response
+must match the requested JSON schema and cite valid source line ranges.
+A second review that still finds defects produces `unresolved` with the
+findings. Treat line validation as a structural check. Read the cited text
+to verify that it supports the claim.
+
+The fixture deliberately leaves an error in the baseline and fixes it in
+reviewed mode.
+
+| Mode | Keeps “opt-in cohort only” | Incorrectly says “all users” | Calls |
+| --- | --- | --- | --- |
+| Baseline | No | Yes | 2 |
+| Reviewed | Yes | No | 4 |
+
+This scripted comparison checks the execution and scoring paths. To measure
+model quality, run the comparison on held-out documents with the same model
+for both modes. Score the final outputs against a human-written list of
+required facts, qualifiers, and known errors. Record correct claims lost
+during revision, reviewer false positives, calls, and elapsed time. The
+adapter can record provider token usage separately.
+
+## Model adapter
+
+Replace `--fixture` with `--model-command ./path-to-executable`. The CLI
+starts the executable once per step, with a 30-second timeout. It writes one
+JSON object to stdin with `operation`, `prompt`, and `schema`. The adapter
+should return only the JSON response on stdout and exit successfully. Use
+the same model settings for both modes. The adapter receives the document
+text, so choose an adapter appropriate for the document's sensitivity.
