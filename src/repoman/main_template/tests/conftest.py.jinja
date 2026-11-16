@@ -18,7 +18,7 @@ def _noop_callback() -> None:
     """No-op subcommand for testing main callback and ctx.obj."""
 
 
-cli.add_typer(_noop_app, name="noop")
+cli.add_typer(_noop_app, name="test-noop")
 
 
 @pytest.fixture(autouse=True)

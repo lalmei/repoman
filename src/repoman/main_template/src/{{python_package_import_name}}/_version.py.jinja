@@ -24,8 +24,8 @@ class Variable:
 
     name: str
     """Variable name."""
-    value: str
-    """Variable value."""
+    status: str
+    """Whether the variable is set."""
 
 
 @dataclass
@@ -46,8 +46,6 @@ class Environment:
     """Python interpreter name."""
     interpreter_version: str
     """Python interpreter version."""
-    interpreter_path: str
-    """Path to Python executable."""
     platform: str
     """Operating System."""
     packages: list[Package]
@@ -95,7 +93,7 @@ def version_info() -> Text:
 
 
 def get_debug_info() -> Environment:
-    """Get debug/environment information.
+    """Collect diagnostics without environment values or executable paths.
 
     Returns:
         Environment information.
@@ -105,14 +103,13 @@ def get_debug_info() -> Environment:
     package_prefix = "{{python_package_import_name}}".upper()
     variables = [
         "PYTHONPATH",
-        *[var for var in os.environ if var.upper().startswith(package_prefix)],
+        *sorted(var for var in os.environ if var.upper().startswith(f"{package_prefix}_")),
     ]
     return Environment(
         interpreter_name=py_name,
         interpreter_version=py_version,
-        interpreter_path=sys.executable,
         platform=platform.platform(),
-        variables=[Variable(var, val) for var in variables if (val := os.getenv(var))],
+        variables=[Variable(var, "set" if var in os.environ else "unset") for var in variables],
         packages=[Package(pkg, get_version(pkg)) for pkg in packages],
     )
 {% if python_package_command_line_name %}
@@ -121,7 +118,7 @@ def get_debug_info() -> Environment:
 def _make_debug_layout(env: Environment) -> Layout:
     """Build a Layout for debug info: header + packages | env vars."""
     header_text = Text(
-        f"{env.interpreter_name} {env.interpreter_version}  |  {env.interpreter_path}  |  {env.platform}",
+        f"{env.interpreter_name} {env.interpreter_version}  |  {env.platform}",
         style="bold",
     )
     header = Panel(header_text, title="Debug Info", title_align="left", border_style="bright_blue")
@@ -134,9 +131,9 @@ def _make_debug_layout(env: Environment) -> Layout:
 
     env_table = Table(highlight=True, box=None, show_header=True, title="Environment Variables")
     env_table.add_column("Variable", style="rosewater")
-    env_table.add_column("Value", style="bold")
+    env_table.add_column("Status", style="bold")
     for var in env.variables:
-        env_table.add_row(var.name, var.value)
+        env_table.add_row(Text(var.name), var.status)
 
     layout = Layout()
     layout.split_column(
@@ -161,10 +158,6 @@ def _make_debug_panel(env: Environment) -> Panel:
         Text("Interpreter Version", style="rosewater"),
         Text(env.interpreter_version, style="bold"),
     )
-    table.add_row(
-        Text("Interpreter Path", style="rosewater"),
-        Text(env.interpreter_path, style="bold"),
-    )
     table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold"))
     table.add_row(
         Text(f"Packages ({len(env.packages)})", style="rosewater"),
@@ -172,7 +165,7 @@ def _make_debug_panel(env: Environment) -> Panel:
     )
     table.add_row(
         Text("Environment Variables", style="rosewater"),
-        Text.assemble(*[Text(str(var), style="bold") for var in env.variables]),
+        Text("\n".join(f"{var.name} ({var.status})" for var in env.variables), style="bold"),
     )
     return Panel(table, title="Debug Information", title_align="left")
 {% endif %}
@@ -201,10 +194,6 @@ def debug_info(console: Console | None = None) -> None:
     table.add_row(
         Text("Interpreter Version", style="rosewater"),
         Text(env.interpreter_version, style="bold"),
-    )
-    table.add_row(
-        Text("Interpreter Path", style="rosewater"),
-        Text(env.interpreter_path, style="bold"),
     )
     table.add_row(Text("Platform", style="rosewater"), Text(env.platform, style="bold"))
 

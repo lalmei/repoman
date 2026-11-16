@@ -18,7 +18,10 @@ Generated projects that have a CLI can add new subcommands without editing repom
 
 - **Command:** `repoman generator add <command_name>`
 - **What it does:** Uses a **Copier-backed command extension template** under `src/repoman/extentions/command_template/` (the directory is named `extentions` in the repo—historical spelling). It creates a new command module under `src/{{ package }}/cli/commands/<command_name>/` and a test file under `tests/test_cli/test_<command_name>.py`, and records extension lifecycle metadata in `.repoman/extensions.yml`.
-So the generated project's CLI stays extensible by adding commands that follow the same pattern (e.g. user-added subcommands).
+
+From a generated project, `repoman generator add sample_command` creates a starter you can run with `uv run <cli-name> sample_command`. Add `--project-id example-project` to display a project ID. The generated tests call the command through the root CLI and check its output.
+
+The generated CLI's `--debug-info` reports interpreter and platform versions, package information, and which relevant environment variables are set. It omits environment values and the Python executable path. Verbose logging reports whether configuration loaded and omits settings values.
 
 ## Custom Jinja extensions
 
