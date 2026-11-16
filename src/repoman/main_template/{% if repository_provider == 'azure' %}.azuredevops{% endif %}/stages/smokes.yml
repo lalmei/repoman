@@ -9,7 +9,7 @@ stages:
     
     variables:
       group : '{{ python_package_import_name }}-CI'
-      python.version: '3.12'
+      python.version: '3.15'
       DEPENDENCIES_VERSION: "latest"  # |"pre-release" | "minimum-version"
       UV_CACHE_DIR: $(Agent.TempDirectory)/cache/uv
       connection_string: ''

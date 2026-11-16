@@ -354,6 +354,7 @@ def _create_template_instance(tmp_path_base: Path, project_name: str, *, run_set
         # Instantiate template
         instantiated_path = instantiate_template(
             output_dir=tmp_path_base,
+            template_path=Path(__file__).resolve().parents[1] / "src" / "repoman",
             project_name=project_name,
             answers_file=default_answers,
             force=True,

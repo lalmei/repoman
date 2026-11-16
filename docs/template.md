@@ -33,6 +33,12 @@ During Copier render, repoman uses custom Jinja extensions (defined in `src/repo
 
 These are used in `copier.yml` defaults and in template files; you do not need to configure them when running `repoman create` or `repoman update`.
 
+## Python and FastAPI versions
+
+Generated Python projects default to Python 3.15 for local development via `.python-version`. Package metadata still supports Python 3.11 and later, and the GitHub and GitLab test matrices cover Python 3.11 through 3.15. To use an older supported interpreter locally, run `uv sync --python 3.11` and use the same `--python` option with `uv run`.
+
+The FastAPI preset uses FastAPI 0.163.1 or later and runs its production container on Python 3.15.
+
 ## See also
 
 - [Template prompts](template-prompts.md)

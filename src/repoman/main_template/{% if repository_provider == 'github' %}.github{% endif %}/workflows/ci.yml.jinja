@@ -32,7 +32,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v7.1.0
       with:
-        python-version: "3.12"
+        python-version-file: .python-version
 
     - name: Setup uv
       uses: astral-sh/setup-uv@v10.3.3
@@ -71,6 +71,7 @@ jobs:
         - "3.12"
         - "3.13"
         - "3.14"
+        - "3.15"
         resolution:
         - highest
         - lowest-direct
@@ -81,7 +82,8 @@ jobs:
         - os: windows-latest
           resolution: lowest-direct
     runs-on: {% raw %}${{ matrix.os }}{% endraw %}
-    continue-on-error: {% raw %}${{ matrix.python-version == '3.14' }}{% endraw %}
+    env:
+      UV_PYTHON: {% raw %}${{ matrix.python-version }}{% endraw %}
 
     steps:
     - name: Checkout
@@ -94,7 +96,6 @@ jobs:
       uses: actions/setup-python@v7.1.0
       with:
         python-version: {% raw %}${{ matrix.python-version }}{% endraw %}
-        allow-prereleases: true
 
     - name: Setup uv
       uses: astral-sh/setup-uv@v10.3.3

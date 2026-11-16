@@ -17,8 +17,8 @@ jobs:
     vmImage: ubuntu-latest
   strategy:
     matrix:
-      Python3.12:
-        python.version: '3.12'
+      Python3.15:
+        python.version: '3.15'
 
   variables:
   - group: Azure-Static-Web-Apps-{{ python_package_import_name }}-variable-group

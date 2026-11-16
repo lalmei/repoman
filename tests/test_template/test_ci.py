@@ -210,7 +210,9 @@ def test_fastapi_template_renders_local_prod_stack_files(tmp_path: Path) -> None
     assert "docker compose --env-file" in _read_text(project_dir / "make_cmds" / "prod.mk")
     assert "OPENAI_API_KEY: ${OPENAI_API_KEY:-}" in compose
     assert "dockerfile: Dockerfile.prod" in compose
-    assert 'CMD ["uv", "run", "uvicorn"' in dockerfile
+    assert dockerfile.startswith("FROM ghcr.io/astral-sh/uv:python3.15-trixie-slim\n")
+    assert "COPY pyproject.toml README.md LICENSE ./" in dockerfile
+    assert 'CMD ["uv", "run", "--no-sync", "uvicorn"' in dockerfile
     assert "RUN uv sync --no-dev --no-editable --no-default-groups" in dockerfile
     assert "OPENAI_API_KEY=replace-me" in env_example
     assert '"httpx2>=2.3.0"' in pyproject
@@ -295,6 +297,7 @@ def test_gitlab_template_renders_native_pipeline(tmp_path: Path, docs_only: bool
 
     assert not (project_dir / ".github" / "workflows").exists()
     assert not (project_dir / ".gitlab" / "workflows").exists()
+    assert pipeline["variables"]["PYTHON_VERSION"] == "3.15"
     assert "make check-docs" in pipeline["quality"]["script"]
     if docs_only:
         assert pipeline["stages"] == ["quality"]
@@ -307,8 +310,9 @@ def test_gitlab_template_renders_native_pipeline(tmp_path: Path, docs_only: bool
             "make check-docs"
         )
         matrix = pipeline["tests"]["parallel"]["matrix"][0]
-        assert matrix["PYTHON_VERSION"] == ["3.11", "3.12", "3.13", "3.14"]
+        assert matrix["PYTHON_VERSION"] == ["3.11", "3.12", "3.13", "3.14", "3.15"]
         assert matrix["UV_RESOLUTION"] == ["highest", "lowest-direct"]
+        assert "rules" not in pipeline["tests"]
         assert pipeline["distributions"]["rules"] == [{"if": "$CI_COMMIT_TAG"}]
 
 
@@ -478,8 +482,8 @@ def test_private_template_omits_public_endpoint_badges(tmp_path: Path) -> None:
     assert f"See Insiders [explanation]({docs_url}/insiders/)" in readme
 
 
-def test_template_drops_python_310_from_ci_and_metadata(tmp_path: Path) -> None:
-    """Generated projects should target Python 3.11+ in CI and packaging metadata."""
+def test_template_defaults_to_python_315_and_keeps_311_compatibility(tmp_path: Path) -> None:
+    """Generated projects should default to Python 3.15 and test every supported minor."""
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
     project_dir = instantiate_template(
         output_dir=tmp_path,
@@ -487,11 +491,15 @@ def test_template_drops_python_310_from_ci_and_metadata(tmp_path: Path) -> None:
         answers_file=answers_file,
     )
 
-    github_ci = _read_text(project_dir / ".github" / "workflows" / "ci.yml")
+    github_ci = yaml.safe_load(_read_text(project_dir / ".github" / "workflows" / "ci.yml"))["jobs"]
     pyproject = _read_text(project_dir / "pyproject.toml")
 
-    assert '"3.10"' not in github_ci
+    assert _read_text(project_dir / ".python-version").strip() == "3.15"
+    assert github_ci["tests"]["strategy"]["matrix"]["python-version"] == ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    assert github_ci["tests"]["env"]["UV_PYTHON"] == "${{ matrix.python-version }}"
+    assert "continue-on-error" not in github_ci["tests"]
     assert 'requires-python = ">=3.11"' in pyproject
+    assert "Programming Language :: Python :: 3.15" in pyproject
     assert "Programming Language :: Python :: 3.10" not in pyproject
 
 

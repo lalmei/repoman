@@ -1,15 +1,20 @@
-{% if dataset_enabled %}# ruff: noqa: I001
+{% if dataset_enabled %}
 """DataLoader factory using DatasetConfig."""
 
+{% if dataset_modality_image %}
 import random
+{% endif %}
 from pathlib import Path
+{% if dataset_modality_image %}
 from typing import Any
 
 from torch.utils.data import DataLoader, Subset
-{% if dataset_modality_image %}
 from torchvision.transforms import Compose
+{% else %}
 
+from torch.utils.data import DataLoader
 {% endif %}
+
 from {{python_package_import_name}}.config.dataset_config import DatasetConfig
 {% if dataset_modality_image %}
 from {{python_package_import_name}}.datasets.base import ImageFolderDataset
@@ -82,22 +87,22 @@ def get_train_val_loaders(
 {% endif %}
 ) -> tuple[DataLoader, DataLoader]:
     """Create train and validation DataLoaders for the configured modality."""
-{%- if dataset_modality_image %}
+{% if dataset_modality_image %}
     if config.modality == "image":
         return _get_image_loaders(config, data_root, batch_size, transform)
-{%- endif %}
-{%- if dataset_modality_text %}
+{% endif %}
+{% if dataset_modality_text %}
     if config.modality == "text":
         return _get_text_loaders(config, data_root, batch_size)
-{%- endif %}
-{%- if dataset_modality_tabular %}
+{% endif %}
+{% if dataset_modality_tabular %}
     if config.modality == "tabular":
         return _get_tabular_loaders(config, data_root, batch_size)
-{%- endif %}
-{%- if dataset_modality_mesh %}
+{% endif %}
+{% if dataset_modality_mesh %}
     if config.modality == "mesh":
         return _get_mesh_loaders(config, data_root, batch_size)
-{%- endif %}
+{% endif %}
     msg = f"modality '{config.modality}' has no train/val loaders in this project"
     raise ValueError(msg)
 {% else %}

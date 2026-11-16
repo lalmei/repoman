@@ -17,8 +17,8 @@ stages:
           
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: '3.12'
-            displayName: 'Use Python 3.12'
+              versionSpec: '3.15'
+            displayName: 'Use Python 3.15'
           
           - script: |
               echo "Pipeline triggered after successful merge to $(Build.SourceBranchName)!"
