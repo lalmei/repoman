@@ -256,3 +256,9 @@ docs_only:
   type: bool
   help: Documentation-only project (no src package, no tests)
   default: false
+
+document_review:
+  type: bool
+  help: Include the document review pilot
+  default: false
+  when: "{{ not docs_only and python_package_command_line_name }}"

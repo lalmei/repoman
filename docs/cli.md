@@ -71,6 +71,21 @@ repoman create [OPTIONS]
 repoman create cli cli PROJECT_NAME [OPTIONS]
 ```
 
+**Document review pilot**
+
+Add `--document-review` to the Python CLI scaffold to include a bounded
+draft and review workflow and a credential-free comparison fixture.
+
+```sh
+repoman create cli cli review-demo --document-review
+cd review-demo
+uv run review-demo document_review summarize-document document-review-example/cohort.md \
+  --mode compare --fixture document-review-example/fixture.json
+```
+
+The generated `document-review-example/README.md` explains the results and
+the executable adapter interface for comparing both modes with a real model.
+
 **Options (default create)**
 
 | Option          | Short | Description                                                                 |

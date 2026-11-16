@@ -1,0 +1,20 @@
+{
+  "draft": [
+    {"claims": [{"text": "Processing time fell 20% for all users.", "citation": {"start": 2, "end": 3}}]}
+  ],
+  "self_revise": [
+    {"claims": [{"text": "Processing time fell 20% for all users.", "citation": {"start": 2, "end": 3}}]}
+  ],
+  "review": [
+    {
+      "verdict": "needs_revision",
+      "findings": [
+        {"kind": "contradiction", "claim_index": 1, "explanation": "Only the opt-in cohort was measured.", "citation": {"start": 2, "end": 3}}
+      ]
+    },
+    {"verdict": "pass", "findings": []}
+  ],
+  "revise": [
+    {"claims": [{"text": "Processing time fell 20% for the opt-in cohort only.", "citation": {"start": 2, "end": 3}}]}
+  ]
+}

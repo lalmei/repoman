@@ -1,0 +1,94 @@
+"""Summarize a local document and optionally review its claims."""
+
+import json
+import shutil
+import subprocess
+from functools import partial
+from pathlib import Path
+from time import perf_counter
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, TypeAdapter
+from typer import Argument, BadParameter, Context, Exit, Option, Typer, echo
+
+from {{python_package_import_name}}.cli.commands.document_review.workflow import (
+    MAX_SOURCE_BYTES,
+    Backend,
+    Operation,
+    summarize,
+)
+
+app = Typer(help="Run the document summary and review pilot.")
+
+
+def _fixture_backend(path: Path) -> Backend:
+    responses = TypeAdapter(dict[str, list[Any]]).validate_json(path.read_text(encoding="utf-8"))
+
+    def respond(operation: Operation, _prompt: str, _schema: type[BaseModel]) -> str:
+        queue = responses.get(operation, [])
+        if not queue:
+            raise ValueError(f"Fixture has no remaining response for {operation}")
+        return json.dumps(queue.pop(0))
+
+    return respond
+
+
+def _command_backend(command: Path) -> Backend:
+    executable = shutil.which(str(command.resolve()))
+    if executable is None:
+        raise ValueError("Model adapter must be an executable local file")
+
+    def respond(operation: Operation, prompt: str, schema: type[BaseModel]) -> str:
+        result = subprocess.run(  # noqa: S603 - explicitly selected executable, without a shell
+            [executable],
+            input=json.dumps({"operation": operation, "prompt": prompt, "schema": schema.model_json_schema()}),
+            capture_output=True,
+            encoding="utf-8",
+            timeout=30,
+            check=True,
+        )
+        return result.stdout
+
+    return respond
+
+
+@app.command()
+def summarize_document(
+    ctx: Context,
+    source: Annotated[Path, Argument(help="UTF-8 Markdown or text file")],
+    mode: Annotated[Literal["reviewed", "baseline", "compare"], Option()] = "reviewed",
+    fixture: Annotated[Path | None, Option(help="Replay scripted model responses")] = None,
+    model_command: Annotated[Path | None, Option(help="Executable local model adapter")] = None,
+) -> None:
+    """Write a typed JSON summary or run both workflows on the same document."""
+    if fixture is not None and model_command is None:
+        make_backend = partial(_fixture_backend, fixture)
+    elif fixture is None and model_command is not None:
+        make_backend = partial(_command_backend, model_command)
+    else:
+        raise BadParameter("Specify exactly one of --fixture and --model-command.")
+    if (ctx.find_root().obj or {}).get("dry_run"):
+        echo("Would summarize the document")
+        return
+
+    try:
+        with source.open("rb") as stream:
+            document = stream.read(MAX_SOURCE_BYTES + 1).decode("utf-8")
+
+        def run(*, reviewed: bool) -> dict[str, Any]:
+            backend = make_backend()
+            started = perf_counter()
+            result = summarize(document, backend, reviewed=reviewed)
+            return {
+                **result.model_dump(mode="json"),
+                "elapsed_ms": round((perf_counter() - started) * 1000, 2),
+            }
+
+        if mode == "compare":
+            payload = {"baseline": run(reviewed=False), "reviewed": run(reviewed=True)}
+        else:
+            payload = run(reviewed=mode == "reviewed")
+    except (OSError, ValueError, subprocess.SubprocessError):
+        echo("Document review failed. Check the source, adapter, and response schemas.", err=True)
+        raise Exit(1) from None
+    echo(json.dumps(payload, indent=2))
