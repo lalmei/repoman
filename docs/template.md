@@ -10,6 +10,8 @@ Repoman uses a single **Copier** template to generate Python projects. This page
 
 For the full list of prompts and defaults, see [Template prompts](template-prompts.md). For conditional structure and generated layout, see [Template structure](template-structure.md).
 
+The installed CLI's `--version` reads the version from the wheel's distribution metadata. The distribution name can differ from the Python import name.
+
 ## Adding commands and feature overlays (generator add)
 
 Generated projects that have a CLI can add new subcommands without editing repoman's core template:

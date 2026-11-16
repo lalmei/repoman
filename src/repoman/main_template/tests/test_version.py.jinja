@@ -26,11 +26,11 @@ from {{ python_package_import_name }}._version import (
 class TestVersionFunctions:
     """Test version-related functions."""
 
-    def test_get_version_success(self) -> None:
-        """Test get_version with valid distribution."""
-        result = get_version("{{ python_package_import_name }}")
-        assert isinstance(result, str)
-        assert result != "0.0.0" or result == "0.0.0"  # May be dev/installed
+    @patch("{{ python_package_import_name }}._version.metadata.version", return_value="1.2.3")
+    def test_get_version_success(self, mock_version: Any) -> None:
+        """Look up the version under the configured distribution name."""
+        assert get_version() == "1.2.3"
+        mock_version.assert_called_once_with("{{ python_package_distribution_name }}")
 
     @patch("{{ python_package_import_name }}._version.metadata.version")
     def test_get_version_package_not_found(self, mock_version: Any) -> None:
@@ -120,9 +120,9 @@ class TestGetDebugInfo:
         assert isinstance(result.variables, list)
 
     def test_get_debug_info_packages(self) -> None:
-        """Test get_debug_info includes {{ python_package_import_name }} package."""
+        """Test get_debug_info includes the configured distribution."""
         result = get_debug_info()
-        pkg_list = [pkg for pkg in result.packages if pkg.name == "{{ python_package_import_name }}"]
+        pkg_list = [pkg for pkg in result.packages if pkg.name == "{{ python_package_distribution_name }}"]
         assert len(pkg_list) >= 1
         assert pkg_list[0].version
 
