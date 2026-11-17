@@ -206,15 +206,28 @@ def git_worktree_dirty(repo_path: Path) -> bool | None:
     return None if status is None else bool(status)
 
 
-def update_conflict_files(repo_path: Path, *, mode: str) -> list[str]:
-    """List unmerged paths or untracked patch rejects produced by Copier."""
-    args = (
-        ("ls-files", "--others", "--exclude-standard", "-z", "--", "*.rej")
-        if mode == "rej"
-        else ("diff", "--name-only", "--diff-filter=U", "-z")
-    )
-    output = _git_output(repo_path, *args)
-    return output.decode(errors="replace").rstrip("\0").split("\0") if output else []
+def snapshot_patch_rejects(repo_path: Path) -> dict[str, tuple[int, int, int, int]]:
+    """Record untracked rejects, including ignored files, before or after Copier runs."""
+    output = _git_output(repo_path, "ls-files", "--others", "-z", "--", "*.rej")
+    rejects = {}
+    for path in _git_paths(output):
+        try:
+            stat = (repo_path / path).lstat()
+        except FileNotFoundError:
+            continue
+        rejects[path] = (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+    return rejects
+
+
+def update_conflict_files(repo_path: Path, *, previous_rejects: dict[str, tuple[int, int, int, int]]) -> list[str]:
+    """List unmerged files and rejects created or changed during the update."""
+    unmerged = _git_paths(_git_output(repo_path, "diff", "--name-only", "--diff-filter=U", "-z"))
+    rejects = snapshot_patch_rejects(repo_path)
+    return sorted(set(unmerged) | {path for path, state in rejects.items() if previous_rejects.get(path) != state})
+
+
+def _git_paths(output: bytes | None) -> list[str]:
+    return output.decode(errors="surrogateescape").rstrip("\0").split("\0") if output else []
 
 
 def _git_output(repo_path: Path, *args: str) -> bytes | None:
