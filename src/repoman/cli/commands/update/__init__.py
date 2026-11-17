@@ -37,7 +37,7 @@ from repoman.config import load_answers
 from repoman.copier.extension_lifecycle import MIRROR_KEY
 from repoman.copier.sources import UPSTREAM_TEMPLATE
 from repoman.inspection import InspectionError, InspectionReport, inspect_repository
-from repoman.inspection.analysis import update_conflict_files
+from repoman.inspection.analysis import snapshot_patch_rejects, update_conflict_files
 from repoman.utils.logging import get_logger_console
 
 
@@ -229,6 +229,7 @@ def update(
             console=console,
         ) as progress:
             task = progress.add_task("Updating project...", total=None)
+            previous_rejects = snapshot_patch_rejects(project_dir_obj)
             with Worker(**copier_options) as worker:  # type: ignore[arg-type]
                 worker.run_update()
 
@@ -240,7 +241,7 @@ def update(
                     "# Changes here will be overwritten by Copier.\n" + serialized, encoding="utf-8"
                 )
 
-            conflicts = update_conflict_files(project_dir_obj, mode=conflict)
+            conflicts = update_conflict_files(project_dir_obj, previous_rejects=previous_rejects)
             description = "Project updated with conflicts." if conflicts else "Project updated successfully!"
             progress.update(task, description=description)
 

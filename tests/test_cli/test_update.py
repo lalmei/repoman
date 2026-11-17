@@ -1,5 +1,6 @@
 """Tests for the update command."""
 
+import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -557,4 +558,28 @@ def test_update_reports_conflicts(
     output = strip_ansi_codes(_captured_text(result, capsys))
     assert "Resolve template update conflicts" in output
     assert path in output
-    conflicts.assert_called_once_with(project_dir.resolve(), mode=mode)
+    conflicts.assert_called_once_with(project_dir.resolve(), previous_rejects={})
+
+
+@pytest.mark.parametrize("mode", ["inline", "rej"])
+def test_update_reports_new_ignored_rejects(
+    tmp_path: Path, cli_runner: CliRunner, cli_app: Typer, mode: str, capsys: CaptureFixture[str]
+) -> None:
+    """Preserve failure status when Copier leaves an ignored reject in either mode."""
+    project_dir = _make_project_dir(tmp_path)
+    subprocess.run(["git", "init", "--quiet", str(project_dir)], check=True)  # noqa: S603, S607
+    (project_dir / ".copier-answers.yml").write_text(yaml.dump(_answers_with_copier_metadata()))
+    (project_dir / ".gitignore").write_text("*.rej\n")
+    (project_dir / "old.rej").write_text("pre-existing reject\n")
+
+    def write_reject() -> None:
+        (project_dir / "changed.txt.rej").write_text("Copier reject\n")
+
+    with patch("repoman.cli.commands.update.Worker") as worker:
+        worker.return_value.__enter__.return_value.run_update.side_effect = write_reject
+        result = cli_runner.invoke(cli_app, ["update", str(project_dir), "--conflict", mode])
+
+    assert result.exit_code == 1
+    output = strip_ansi_codes(_captured_text(result, capsys))
+    assert "changed.txt.rej" in output
+    assert "old.rej" not in output
