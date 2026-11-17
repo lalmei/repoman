@@ -8,11 +8,9 @@ Resources:
 """
 
 from fastapi import APIRouter
-
-{% if include_health_endpoints %}
+{% if include_health_endpoints +%}
 from {{python_package_import_name}}.app.controllers import health_check, ready
-
-{% endif %}
+{% endif +%}
 root_api_router = APIRouter()
 {% if include_health_endpoints %}
 root_api_router.include_router(ready.router, tags=["ready"])
