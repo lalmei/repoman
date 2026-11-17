@@ -1,0 +1,10 @@
+{% set repo_host_by_provider = {"github": "github.com", "gitlab": "gitlab.com", "azure": "azure.com"} -%}
+# Installation
+
+Clone the repository using an account with access, then install its dependencies:
+
+```bash
+git clone https://{{ repo_host_by_provider[repository_provider] }}/{{ repository_namespace }}/{{ repository_name }}.git
+cd {{ repository_name }}
+uv sync
+```

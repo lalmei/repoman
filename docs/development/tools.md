@@ -112,10 +112,10 @@ format:
 	uv run ruff format src/ tests/
 
 docs:
-	uv run properdocs build --config-file=config/mkdocs.yml
+	uv run properdocs build --config-file=config/properdocs.yml
 
 docs-serve:
-	uv run properdocs serve --config-file=config/mkdocs.yml
+	uv run properdocs serve --config-file=config/properdocs.yml
 
 clean:
 	rm -rf build/ dist/ *.egg-info/ .pytest_cache/ htmlcov/ site/
@@ -130,11 +130,11 @@ To add documentation commands to your Makefile, add these lines:
 #   Documentation     #
 #######################
 docs: ## Build documentation
-	uv run properdocs build --config-file=config/mkdocs.yml
+	uv run properdocs build --config-file=config/properdocs.yml
 
 docs-serve: ## Serve documentation locally
-	uv run properdocs serve --config-file=config/mkdocs.yml
+	uv run properdocs serve --config-file=config/properdocs.yml
 
 docs-check: ## Check documentation for issues
-	uv run properdocs build --config-file=config/mkdocs.yml --strict
+	uv run properdocs build --config-file=config/properdocs.yml --strict
 ```

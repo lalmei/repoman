@@ -53,7 +53,7 @@ def test_cpp_template_renders_spinach_style_structure(tmp_path: Path) -> None:
     meson = _read_text(project_dir / "meson.build")
     meson_options = _read_text(project_dir / "meson_options.txt")
     makefile = _read_text(project_dir / "Makefile")
-    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    properdocs = _read_text(project_dir / "config" / "properdocs.yml")
     pyproject = _read_text(project_dir / "pyproject.toml")
     python_bindings = _read_text(project_dir / "src" / "python_bindings.cpp")
     python_bindings_test = _read_text(project_dir / "tests" / "test_python_bindings.py")
@@ -87,5 +87,5 @@ def test_cpp_template_renders_spinach_style_structure(tmp_path: Path) -> None:
     assert "make check-docs" in github_ci
     assert "make check" in github_ci
     assert "make test" in github_ci
-    assert 'site_url: "https://testuser.github.io/sample-cpp"' in mkdocs
+    assert 'site_url: "https://testuser.github.io/sample-cpp"' in properdocs
     assert "MESON ?= uv run meson" in makefile

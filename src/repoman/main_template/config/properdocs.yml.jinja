@@ -15,7 +15,7 @@ repo_url: "{{ repo_url }}"
 repo_name: "{{ repository_namespace }}/{{ repository_name }}"
 docs_dir: ../docs
 site_dir: ../site
-watch: [mkdocs.yml, ../README.md, ../CONTRIBUTING.md, ../CHANGELOG.md, ../AI_POLICY.md{% if not docs_only %}, ../src/{{ python_package_import_name }}{% endif %}]
+watch: [properdocs.yml, ../README.md, ../CONTRIBUTING.md, ../CHANGELOG.md, ../AI_POLICY.md{% if not docs_only %}, ../src/{{ python_package_import_name }}{% endif %}]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
 edit_uri: edit/main/docs/
 
@@ -177,7 +177,7 @@ plugins:
 
 extra:
   social:
-  - icon: fontawesome/brands/{{ repository_provider }}
+  - icon: fontawesome/brands/{{ 'microsoft' if repository_provider == 'azure' else repository_provider }}
     link: https://{{ repo_host }}/{{ author_username }}
   - icon: fontawesome/brands/mastodon
     link: https://fosstodon.org/@{{ author_username }}

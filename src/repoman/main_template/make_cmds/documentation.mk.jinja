@@ -1,0 +1,43 @@
+#######################
+#   Documentation     #
+#######################
+
+{% if not docs_only %}
+docs.coverage.dir := htmlcov
+docs.coverage.index := $(docs.coverage.dir)/index.html
+
+.PHONY: ensure-docs-coverage-report
+ensure-docs-coverage-report:
+	@mkdir -p $(docs.coverage.dir)
+	@if [ ! -f "$(docs.coverage.index)" ]; then \
+		printf '%s\n' \
+			'<!doctype html>' \
+			'<html lang="en">' \
+			'<head><meta charset="utf-8"><title>Coverage report unavailable</title></head>' \
+			'<body>' \
+			'  <h1>Coverage report unavailable</h1>' \
+			'  <p>Run <code>make test-coverage-report</code> to generate the coverage report.</p>' \
+			'</body></html>' \
+			> "$(docs.coverage.index)"; \
+	fi
+
+docs docs-serve docs-check: ensure-docs-coverage-report
+{% endif %}
+
+.PHONY: docs
+docs: ## Build documentation
+	@$(call i, Building documentation)
+	uv run properdocs build --config-file=config/properdocs.yml
+
+.PHONY: docs-serve
+docs-serve: ## Serve documentation locally
+	@$(call i, Serving documentation)
+	uv run properdocs serve --config-file=config/properdocs.yml
+
+.PHONY: docs-check
+docs-check: ## Check documentation for issues
+	@$(call i, Checking documentation)
+	uv run properdocs build --config-file=config/properdocs.yml --strict
+
+.PHONY: check-docs
+check-docs: docs-check ## Alias for docs-check
