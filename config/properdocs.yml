@@ -62,7 +62,7 @@ nav:
   - Coverage report: coverage.md
 
 theme:
-  name: material
+  name: materialx
   custom_dir: ../docs/.overrides
   features:
   - announce.dismiss
