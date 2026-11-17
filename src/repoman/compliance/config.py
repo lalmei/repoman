@@ -12,12 +12,22 @@ from repoman.compliance.models import (
     ComplianceConfigError,
     ControlOverride,
     ProfileSettings,
+    ReportMetadata,
 )
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-VALID_STATUSES = {"met", "unmet", "unknown", "waived"}
+VALID_STATUSES = {"met", "unmet", "unknown", "waived", "not_applicable"}
+REPORT_FIELDS = {
+    "organization",
+    "system_name",
+    "audit_period_start",
+    "audit_period_end",
+    "prepared_by",
+    "repository_url",
+    "scope_summary",
+}
 
 
 def load_compliance_config(path: Path | None) -> ComplianceConfig:
@@ -39,6 +49,7 @@ def load_compliance_config(path: Path | None) -> ComplianceConfig:
 
     profiles = _parse_profiles(raw.get("profiles", {}))
     controls = _parse_controls(raw.get("controls", {}))
+    report = _parse_report(raw.get("report", {}))
     defaults = raw.get("defaults", {})
     if defaults is None:
         defaults = {}
@@ -50,6 +61,7 @@ def load_compliance_config(path: Path | None) -> ComplianceConfig:
         profiles=profiles,
         controls=controls,
         defaults=defaults,
+        report=report,
     )
 
 
@@ -89,8 +101,8 @@ def _parse_controls(raw: Any) -> dict[str, ControlOverride]:
         if status is not None and status not in VALID_STATUSES:
             raise ComplianceConfigError(f"control '{control_id}' has invalid status '{status}'")
         justification = value.get("justification")
-        if status == "waived" and not justification:
-            raise ComplianceConfigError(f"control '{control_id}' waivers require a justification")
+        if status in {"waived", "not_applicable"} and not justification:
+            raise ComplianceConfigError(f"control '{control_id}' {status} status requires a justification")
         controls[str(control_id)] = ControlOverride(
             status=status,
             justification=justification,
@@ -100,6 +112,25 @@ def _parse_controls(raw: Any) -> dict[str, ControlOverride]:
             notes=value.get("notes"),
         )
     return controls
+
+
+def _parse_report(raw: Any) -> ReportMetadata:
+    if raw is None:
+        return ReportMetadata()
+    if not isinstance(raw, dict):
+        raise ComplianceConfigError("compliance.yml field 'report' must be a mapping")
+
+    unknown_fields = sorted(set(raw) - REPORT_FIELDS)
+    if unknown_fields:
+        raise ComplianceConfigError("compliance.yml field 'report' has unknown fields: " + ", ".join(unknown_fields))
+
+    values: dict[str, str | None] = {}
+    for field in REPORT_FIELDS:
+        value = raw.get(field)
+        if value is not None and not isinstance(value, str):
+            raise ComplianceConfigError(f"compliance.yml report field '{field}' must be a string or null")
+        values[field] = value
+    return ReportMetadata(**values)
 
 
 def _ensure_str_list(value: Any, field_name: str) -> list[str]:

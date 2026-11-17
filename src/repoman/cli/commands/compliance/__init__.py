@@ -18,9 +18,11 @@ from repoman.compliance import (
     ComplianceReport,
     analyze_compliance,
     build_starter_config,
-    manual_controls_for_profiles,
+    controls_for_profiles,
+    reports_to_evidence_markdown,
     reports_to_json,
     reports_to_markdown,
+    write_evidence_reports,
     write_reports,
 )
 from repoman.utils.logging import get_logger_console
@@ -83,6 +85,17 @@ def check(
         bool,
         Option("--strict", help="Treat unknown controls as gate failures"),
     ] = False,
+    provider_evidence: Annotated[
+        bool,
+        Option(
+            "--provider-evidence/--no-provider-evidence",
+            help="Collect read-only GitHub/GitLab provider evidence when available",
+        ),
+    ] = True,
+    provider_timeout: Annotated[
+        int,
+        Option("--provider-timeout", help="Timeout in seconds for provider CLI calls"),
+    ] = 10,
     no_header: Annotated[
         bool,
         Option("--no-header", help="Hide table headers for terminal output"),
@@ -101,6 +114,8 @@ def check(
             requested_tier=tier_target,  # type: ignore[arg-type]
             fail_on=fail_on,  # type: ignore[arg-type]
             strict=strict,
+            collect_provider_evidence=provider_evidence,
+            provider_timeout_seconds=provider_timeout,
         )
     except ComplianceConfigError as e:
         console.print(error_panel(str(e), console=console))
@@ -136,6 +151,92 @@ def check(
         raise Exit(1) from None
 
 
+@app.command("report")
+def report_(
+    path: Annotated[
+        Path,
+        Option("--path", "-p", path_type=Path, help="Path to the git repository"),
+    ] = Path("."),
+    profile: Annotated[
+        list[str] | None,
+        Option("--profile", help="Profile id to include. Repeat for multiple profiles."),
+    ] = None,
+    output_format: Annotated[
+        str,
+        Option("--format", "-f", help="Output format: json, markdown, or html"),
+    ] = "markdown",
+    output: Annotated[
+        Path | None,
+        Option(
+            "--output",
+            "-o",
+            path_type=Path,
+            help="Output file or directory for the evidence report",
+        ),
+    ] = None,
+    compliance_file: Annotated[
+        Path | None,
+        Option("--compliance-file", path_type=Path, help="Override path to compliance.yml"),
+    ] = None,
+    tier_target: Annotated[
+        str | None,
+        Option("--tier-target", help="Optional target tier: bronze, silver, or gold"),
+    ] = None,
+    provider_evidence: Annotated[
+        bool,
+        Option(
+            "--provider-evidence/--no-provider-evidence",
+            help="Collect read-only GitHub/GitLab provider evidence when available",
+        ),
+    ] = True,
+    provider_timeout: Annotated[
+        int,
+        Option("--provider-timeout", help="Timeout in seconds for provider CLI calls"),
+    ] = 10,
+) -> None:
+    """Generate a SOC 2 repository audit evidence report."""
+    logger, console = get_logger_console()
+    repo_path = path.resolve()
+    selected_profiles = profile or ["soc2-software"]
+
+    try:
+        reports = analyze_compliance(
+            repo_path,
+            profile_ids=selected_profiles,
+            compliance_file=compliance_file.resolve() if compliance_file is not None else None,
+            requested_tier=tier_target,  # type: ignore[arg-type]
+            collect_provider_evidence=provider_evidence,
+            provider_timeout_seconds=provider_timeout,
+        )
+    except ComplianceConfigError as e:
+        console.print(error_panel(str(e), console=console))
+        raise Exit(2) from e
+    except Exception as e:
+        logger.exception("Compliance evidence report generation failed")
+        console.print(error_panel(str(e), console=console))
+        raise Exit(2) from e
+
+    if output_format == "markdown":
+        if output is None:
+            echo(reports_to_evidence_markdown(reports))
+        else:
+            target = write_evidence_reports(reports, "markdown", output)
+            console.print(f"Evidence report written to {target}")
+    elif output_format == "json":
+        if output is None:
+            echo(reports_to_json(reports))
+        else:
+            target = write_evidence_reports(reports, "json", output)
+            console.print(f"Evidence report written to {target}")
+    elif output_format == "html":
+        target_dir = output or Path("soc2_evidence_report")
+        target = write_evidence_reports(reports, "html", target_dir)
+        console.print(f"Evidence report written to {target}")
+    else:
+        console.print(error_panel(f"Unsupported format: {output_format}", console=console))
+        raise Exit(2) from None
+
+
 @app.command("init")
 def init_(
     path: Annotated[
@@ -160,7 +261,7 @@ def init_(
         Option("--force", "-f", help="Overwrite an existing file"),
     ] = False,
 ) -> None:
-    """Write a starter compliance.yml with manual controls."""
+    """Write a starter compliance.yml with manual and hybrid controls."""
     _logger, console = get_logger_console()
     repo_path = path.resolve()
     selected_profiles = profile or list(BUILTIN_PROFILES)
@@ -174,7 +275,7 @@ def init_(
         console.print(error_panel(f"File already exists: {destination}", console=console))
         raise Exit(2) from None
 
-    content = build_starter_config(selected_profiles, manual_controls_for_profiles(selected_profiles))
+    content = build_starter_config(selected_profiles, controls_for_profiles(selected_profiles))
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(content, encoding="utf-8")
     console.print(
@@ -198,6 +299,7 @@ def _print_table(console: Console, reports: list[ComplianceReport], *, show_head
         summary.add_column("Target")
         summary.add_column("Met", justify="right")
         summary.add_column("Waived", justify="right")
+        summary.add_column("N/A", justify="right")
         summary.add_column("Unknown", justify="right")
         summary.add_column("Unmet", justify="right")
         summary.add_column("Gate")
@@ -207,6 +309,7 @@ def _print_table(console: Console, reports: list[ComplianceReport], *, show_head
             report.requested_tier or "n/a",
             str(report.summary_counts["met"]),
             str(report.summary_counts["waived"]),
+            str(report.summary_counts.get("not_applicable", 0)),
             str(report.summary_counts["unknown"]),
             str(report.summary_counts["unmet"]),
             "pass" if report.gate.passed else "fail",

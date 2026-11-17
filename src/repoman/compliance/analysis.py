@@ -6,7 +6,11 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from repoman.compliance.config import load_compliance_config
-from repoman.compliance.detectors import detector_applies, enrich_result_with_override, evaluate_detector
+from repoman.compliance.detectors import (
+    detector_applies,
+    enrich_result_with_override,
+    evaluate_detector,
+)
 from repoman.compliance.models import (
     TIER_ORDER,
     ComplianceConfigError,
@@ -20,11 +24,19 @@ from repoman.compliance.models import (
     utc_now_iso,
 )
 from repoman.compliance.profiles import BUILTIN_PROFILES
+from repoman.compliance.providers import (
+    collect_provider_evidence as collect_provider_evidence_for_repo,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from repoman.compliance.models import ComplianceConfig, ControlDefinition, ControlOverride
+    from repoman.compliance.models import (
+        ComplianceConfig,
+        ControlDefinition,
+        ControlOverride,
+        ProviderEvidence,
+    )
 
 
 def analyze_compliance(
@@ -35,6 +47,8 @@ def analyze_compliance(
     requested_tier: Tier | None = None,
     fail_on: FailOn = "tier",
     strict: bool = False,
+    collect_provider_evidence: bool = True,
+    provider_timeout_seconds: int = 10,
 ) -> list[ComplianceReport]:
     """Analyze a repository against one or more built-in compliance profiles."""
     repo_path = repo_path.resolve()
@@ -47,6 +61,11 @@ def analyze_compliance(
     config = load_compliance_config(config_path if config_path.exists() else None)
     selected_ids = profile_ids or list(BUILTIN_PROFILES)
     _validate_config_ids(config, selected_ids)
+    provider_evidence = collect_provider_evidence_for_repo(
+        str(repo_path),
+        enabled=collect_provider_evidence,
+        timeout_seconds=provider_timeout_seconds,
+    )
 
     reports: list[ComplianceReport] = []
     for profile_id in selected_ids:
@@ -65,6 +84,7 @@ def analyze_compliance(
                 requested_tier=tier_target,
                 fail_on=fail_on,
                 strict=strict,
+                provider_evidence=provider_evidence,
             )
         )
     return reports
@@ -78,6 +98,7 @@ def _analyze_profile(
     requested_tier: Tier | None,
     fail_on: FailOn,
     strict: bool,
+    provider_evidence: ProviderEvidence,
 ) -> ComplianceReport:
     profile_settings = config.profiles.get(profile.profile_id)
     include = set(profile_settings.include if profile_settings else [])
@@ -89,9 +110,16 @@ def _analyze_profile(
             continue
         if control.control_id in exclude:
             continue
-        control_results.append(_evaluate_control(repo_path, control, config.controls.get(control.control_id)))
+        control_results.append(
+            _evaluate_control(
+                repo_path,
+                control,
+                config.controls.get(control.control_id),
+                provider_evidence,
+            )
+        )
 
-    counts = {"met": 0, "unmet": 0, "unknown": 0, "waived": 0}
+    counts = {"met": 0, "unmet": 0, "unknown": 0, "waived": 0, "not_applicable": 0}
     sections_by_name: dict[str, SectionSummary] = {}
     for result in control_results:
         counts[result.status] += 1
@@ -138,6 +166,8 @@ def _analyze_profile(
         sections=list(sections_by_name.values()),
         controls=control_results,
         gate=gate,
+        report_metadata=config.report,
+        provider_evidence=provider_evidence,
     )
 
 
@@ -165,7 +195,12 @@ def _validate_config_ids(config: ComplianceConfig, selected_ids: list[str]) -> N
             raise ComplianceConfigError(f"Unknown control ids for profile '{profile_id}': {invalid}")
 
 
-def _evaluate_control(repo_path: Path, control: ControlDefinition, override: ControlOverride | None) -> ControlResult:
+def _evaluate_control(
+    repo_path: Path,
+    control: ControlDefinition,
+    override: ControlOverride | None,
+    provider_evidence: ProviderEvidence | None = None,
+) -> ControlResult:
     if control.applies_when and not detector_applies(repo_path, control.applies_when):
         result = ControlResult(
             control_id=control.control_id,
@@ -177,9 +212,10 @@ def _evaluate_control(repo_path: Path, control: ControlDefinition, override: Con
             detection_kind=control.detection.kind,
             evidence=["Applicability conditions were not met by repository contents."],
             required_evidence=control.required_evidence,
+            criteria_refs=control.criteria_refs,
         )
     else:
-        status, evidence = evaluate_detector(repo_path, control.detection)
+        status, evidence = evaluate_detector(repo_path, control.detection, provider_evidence)
         result = ControlResult(
             control_id=control.control_id,
             section=control.section,
@@ -190,7 +226,9 @@ def _evaluate_control(repo_path: Path, control: ControlDefinition, override: Con
             detection_kind=control.detection.kind,
             evidence=evidence,
             required_evidence=control.required_evidence,
+            criteria_refs=control.criteria_refs,
         )
+    _append_provider_context(result, provider_evidence)
 
     if override is None:
         return result
@@ -205,23 +243,51 @@ def _evaluate_control(repo_path: Path, control: ControlDefinition, override: Con
     if override.status is None:
         return result
 
-    if override.status == "waived":
+    if override.status in {"waived", "not_applicable"}:
         if not override.justification:
-            raise ComplianceConfigError(f"control '{control.control_id}' waiver requires a justification")
-        result.status = "waived"
+            raise ComplianceConfigError(
+                f"control '{control.control_id}' {override.status} status requires a justification"
+            )
+        result.status = override.status
         return result
 
     if control.detection.kind == "manual_only":
         result.status = override.status
         return result
 
-    if result.status == "unmet" and override.status == "met":
-        raise ComplianceConfigError(
-            f"control '{control.control_id}' cannot be overridden from unmet to met; use evidence or a waiver"
-        )
+    if override.status == "met":
+        if result.status != "met" and not override.evidence:
+            raise ComplianceConfigError(
+                f"control '{control.control_id}' requires evidence to override detector result to met"
+            )
+        result.status = "met"
+        return result
     if override.status in {"unmet", "unknown"}:
         result.status = override.status
     return result
+
+
+def _append_provider_context(result: ControlResult, provider_evidence: ProviderEvidence | None) -> None:
+    if provider_evidence is None or not provider_evidence.available:
+        return
+
+    if result.control_id == "soc2.repo.access-review":
+        inventory = []
+        for key in ("collaborators", "members", "deploy_keys"):
+            value = provider_evidence.facts.get(key)
+            if isinstance(value, dict) and "count" in value:
+                qualifier = "at least " if value.get("partial") else ""
+                inventory.append(f"{key}: {qualifier}{value['count']}")
+        if inventory:
+            result.evidence.append(
+                f"Provider access inventory collected from {provider_evidence.provider}: " + ", ".join(inventory)
+            )
+    elif result.control_id == "soc2.repo.audit-log-retention":
+        available = provider_evidence.facts.get("audit_log_available")
+        if isinstance(available, bool):
+            result.evidence.append(
+                f"Provider audit log API availability from {provider_evidence.provider}: {available}"
+            )
 
 
 def _compute_achieved_tier(control_results: list[ControlResult], *, strict: bool) -> Tier | None:
@@ -321,11 +387,24 @@ def _build_gate_result(
     )
 
 
-def manual_controls_for_profiles(profile_ids: list[str] | None = None) -> dict[str, list[ControlDefinition]]:
+def manual_controls_for_profiles(
+    profile_ids: list[str] | None = None,
+) -> dict[str, list[ControlDefinition]]:
     """Return manual-only controls grouped by profile."""
     selected = profile_ids or list(BUILTIN_PROFILES)
     grouped: dict[str, list[ControlDefinition]] = defaultdict(list)
     for profile_id in selected:
         profile = BUILTIN_PROFILES[profile_id]
         grouped[profile_id] = [control for control in profile.controls if control.detection.kind == "manual_only"]
+    return dict(grouped)
+
+
+def controls_for_profiles(
+    profile_ids: list[str] | None = None,
+) -> dict[str, list[ControlDefinition]]:
+    """Return all controls grouped by profile."""
+    selected = profile_ids or list(BUILTIN_PROFILES)
+    grouped: dict[str, list[ControlDefinition]] = defaultdict(list)
+    for profile_id in selected:
+        grouped[profile_id] = list(BUILTIN_PROFILES[profile_id].controls)
     return dict(grouped)
