@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -66,12 +67,17 @@ def test_generated_documentation_builds(tmp_path: Path, template: str, answers: 
         timeout=300,
     )
     assert sync.returncode == 0, sync.stdout + sync.stderr
+    with (project / "uv.lock").open("rb") as lock_file:
+        packages = {package["name"] for package in tomllib.load(lock_file)["package"]}
+    assert "mkdocs-materialx" in packages
+    assert "mkdocs-material" not in packages
     env = {"UV_NO_SYNC": "1", "DEPLOY": "false", "MATERIAL_INSIDERS": "false", "PYTHONPATH": str(project / "src")}
     result = run_make_command(project, "docs-check", env=env, timeout=120)
     assert result.returncode == 0, result.stdout + result.stderr
     homepage = (project / "site" / "index.html").read_text()
     assert "<html" in homepage
     assert "ProperDocs" in homepage
+    assert "mkdocs-materialx-" in homepage
     assert '{% extends "base.html" %}' not in homepage
     assert config.read_text() == original_config
     assert not (project / "config" / "index.html").exists()

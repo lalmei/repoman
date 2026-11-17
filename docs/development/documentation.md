@@ -1,6 +1,6 @@
 # Documentation
 
-The project uses **ProperDocs** with the **Material for MkDocs theme** for documentation. This provides a modern, responsive documentation site with excellent features like search, navigation, and code highlighting.
+The project uses **ProperDocs** with the **MaterialX theme** for documentation. This provides a modern, responsive documentation site with excellent features like search, navigation, and code highlighting.
 
 ## Documentation Structure
 
@@ -108,7 +108,7 @@ flowchart LR
 
 The documentation is configured in `config/properdocs.yml` with the following features:
 
-- **Material theme** with dark/light mode support
+- **MaterialX theme** with dark/light mode support
 - **Search functionality** with highlighting
 - **Navigation tabs** and sections
 - **Code annotation** and copying
@@ -145,7 +145,7 @@ uv run pytest -c=config/pytest.ini tests/test_template/test_documentation.py
 
 ## Documentation Features
 
-### Material Theme Features
+### MaterialX Theme Features
 
 - **Dark/Light Mode**: Automatic theme switching based on system preference
 - **Search**: Full-text search with highlighting and suggestions
@@ -155,7 +155,7 @@ uv run pytest -c=config/pytest.ini tests/test_template/test_documentation.py
 
 ### Writing Documentation
 
-Use Material theme features in your markdown:
+Use MaterialX theme features in your markdown:
 
 ````markdown
 # Admonitions
@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 ### Theme Overrides
 
-Customize the Material theme in `docs/.overrides/`:
+Customize the MaterialX theme in `docs/.overrides/`:
 
 - Override template files
 - Add custom components

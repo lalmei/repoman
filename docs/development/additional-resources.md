@@ -11,7 +11,7 @@
 - **[Pytest Documentation](https://docs.pytest.org/)**: Testing framework guide
 - **[Ruff Documentation](https://docs.astral.sh/ruff/)**: Linting and formatting guide
 - **[ProperDocs Documentation](https://properdocs.org/)**: Static site generator guide
-- **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)**: Theme documentation
+- **[MaterialX](https://jaywhj.github.io/mkdocs-materialx/)**: Theme documentation
 - **[mkdocstrings Documentation](https://mkdocstrings.github.io/)**: API documentation generator
 
 ## Getting Help
