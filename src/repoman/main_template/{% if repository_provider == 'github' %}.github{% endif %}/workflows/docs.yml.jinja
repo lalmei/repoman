@@ -62,7 +62,7 @@ jobs:
 
 {% endif %}
     - name: Check docs in strict mode
-      run: uv run properdocs build --config-file=config/mkdocs.yml --strict
+      run: uv run properdocs build --config-file=config/properdocs.yml --strict
 
     - name: Upload Pages artifact
       if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}

@@ -90,7 +90,7 @@ repoman
 │   │       ├── layering.mdc
 │   │       ├── plan-todos.mdc
 │   │       └── ruff.mdc
-│   ├── mkdocs.yml
+│   ├── properdocs.yml
 │   ├── mypy.ini
 │   ├── pytest.ini
 │   ├── ruff.toml

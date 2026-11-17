@@ -312,7 +312,7 @@ def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
 
     readme = _read_text(project_dir / "README.md")
     pyproject = _read_text(project_dir / "pyproject.toml")
-    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    properdocs = _read_text(project_dir / "config" / "properdocs.yml")
     docs_url = _expected_docs_url("github", "testuser", "test-project")
     repo_url = _expected_repo_url("github", "testuser", "test-project")
 
@@ -336,11 +336,11 @@ def test_template_badges_and_urls_render_for_github(tmp_path: Path) -> None:
     assert f'Discussions = "{repo_url}/discussions"' in pyproject
     assert 'Funding = "https://github.com/sponsors/testuser"' in pyproject
 
-    assert f'site_url: "{docs_url}"' in mkdocs
-    assert f'repo_url: "{repo_url}"' in mkdocs
-    assert "site_dir: ../site" in mkdocs
-    assert "icon: fontawesome/brands/github" in mkdocs
-    assert "link: https://github.com/testuser" in mkdocs
+    assert f'site_url: "{docs_url}"' in properdocs
+    assert f'repo_url: "{repo_url}"' in properdocs
+    assert "site_dir: ../site" in properdocs
+    assert "icon: fontawesome/brands/github" in properdocs
+    assert "link: https://github.com/testuser" in properdocs
 
 
 def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
@@ -355,7 +355,7 @@ def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
 
     readme = _read_text(project_dir / "README.md")
     pyproject = _read_text(project_dir / "pyproject.toml")
-    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    properdocs = _read_text(project_dir / "config" / "properdocs.yml")
     docs_url = _expected_docs_url("gitlab", "testuser", "test-project")
     repo_url = _expected_repo_url("gitlab", "testuser", "test-project")
 
@@ -376,11 +376,11 @@ def test_template_badges_and_urls_render_for_gitlab(tmp_path: Path) -> None:
     assert "Discussions =" not in pyproject
     assert "Funding =" not in pyproject
 
-    assert f'site_url: "{docs_url}"' in mkdocs
-    assert f'repo_url: "{repo_url}"' in mkdocs
-    assert "site_dir: ../site" in mkdocs
-    assert "icon: fontawesome/brands/gitlab" in mkdocs
-    assert "link: https://gitlab.com/testuser" in mkdocs
+    assert f'site_url: "{docs_url}"' in properdocs
+    assert f'repo_url: "{repo_url}"' in properdocs
+    assert "site_dir: ../site" in properdocs
+    assert "icon: fontawesome/brands/gitlab" in properdocs
+    assert "link: https://gitlab.com/testuser" in properdocs
 
 
 def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
@@ -400,7 +400,7 @@ def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
 
     readme = _read_text(project_dir / "README.md")
     pyproject = _read_text(project_dir / "pyproject.toml")
-    mkdocs = _read_text(project_dir / "config" / "mkdocs.yml")
+    properdocs = _read_text(project_dir / "config" / "properdocs.yml")
     docs_url = _expected_docs_url("azure", "testuser", "test-project")
     repo_url = _expected_repo_url("azure", "testuser", "test-project")
 
@@ -421,11 +421,11 @@ def test_template_badges_and_urls_render_for_azure(tmp_path: Path) -> None:
     assert "Discussions =" not in pyproject
     assert "Funding =" not in pyproject
 
-    assert f'site_url: "{docs_url}"' in mkdocs
-    assert f'repo_url: "{repo_url}"' in mkdocs
-    assert "site_dir: ../site" in mkdocs
-    assert "icon: fontawesome/brands/azure" in mkdocs
-    assert "link: https://azure.com/testuser" in mkdocs
+    assert f'site_url: "{docs_url}"' in properdocs
+    assert f'repo_url: "{repo_url}"' in properdocs
+    assert "site_dir: ../site" in properdocs
+    assert "icon: fontawesome/brands/microsoft" in properdocs
+    assert "link: https://azure.com/testuser" in properdocs
 
 
 def test_docs_only_template_omits_python_and_coverage_badges(tmp_path: Path) -> None:

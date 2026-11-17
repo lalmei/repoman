@@ -12,7 +12,7 @@ site_url: "{{ site_url_value }}"
 repo_url: "{{ repo_url }}"
 repo_name: "{{ repository_namespace }}/{{ repository_name }}"
 docs_dir: "../docs"
-site_dir: "{% if repository_provider == 'github' %}../site{% endif %}"
+site_dir: "../site"
 watch: [../README.md, ../CONTRIBUTING.md, ../CHANGELOG.md, ../AI_POLICY.md, ../include, ../src, ../docs]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
 edit_uri: edit/main/docs/

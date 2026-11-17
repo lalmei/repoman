@@ -59,7 +59,7 @@ docs
 ```
 <!-- TREE_END -->
 
-ProperDocs is configured in `config/mkdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
+ProperDocs is configured in `config/properdocs.yml` (in the repo root). The `docs_dir` points to this `docs/` folder.
 
 ## Documentation map
 
@@ -106,7 +106,7 @@ flowchart LR
 
 ## ProperDocs Configuration
 
-The documentation is configured in `config/mkdocs.yml` with the following features:
+The documentation is configured in `config/properdocs.yml` with the following features:
 
 - **Material theme** with dark/light mode support
 - **Search functionality** with highlighting
@@ -133,6 +133,14 @@ make docs-serve
 
 # Check documentation for issues
 make docs-check
+```
+
+Generated Python projects use the same `config/properdocs.yml` path. Their documentation targets create a placeholder in `htmlcov/` when no coverage report exists; `make test-coverage-report` replaces it with test results. Existing reports are preserved, and docs-only projects do not need coverage data. C++ projects build their site into `site/` for both GitHub and GitLab.
+
+To verify the generated sites, run:
+
+```bash
+uv run pytest -c=config/pytest.ini tests/test_template/test_documentation.py
 ```
 
 ## Documentation Features
