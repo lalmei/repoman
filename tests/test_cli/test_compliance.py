@@ -30,6 +30,7 @@ def test_compliance_command_help(cli_runner: CliRunner) -> None:
     assert "compliance" in result.output.lower()
     assert "check" in result.output.lower()
     assert "init" in result.output.lower()
+    assert "report" in result.output.lower()
 
 
 def test_compliance_not_a_git_repo(tmp_path: Path, cli_runner: CliRunner) -> None:
@@ -47,7 +48,14 @@ def test_compliance_init_writes_starter_file(tmp_path: Path, cli_runner: CliRunn
 
     assert result.exit_code == 0
     assert target.exists()
-    assert "soc2-software" in target.read_text(encoding="utf-8")
+    content = target.read_text(encoding="utf-8")
+    assert "soc2-software" in content
+    assert "soc2.access.mfa" in content
+    assert "soc2.repo.branch-protection" in content
+    assert "soc2.repo.access-review" in content
+    assert "report:" in content
+    assert "# detection: provider_branch_protection" in content
+    assert "# status: met | unmet | unknown | waived | not_applicable" in content
 
 
 def test_compliance_check_json_output(cli_runner: CliRunner, tmp_path: Path) -> None:
@@ -55,7 +63,16 @@ def test_compliance_check_json_output(cli_runner: CliRunner, tmp_path: Path) -> 
     repo = _make_repo(tmp_path)
     result = cli_runner.invoke(
         cli,
-        ["compliance", "check", "--path", str(repo), "--profile", "oss-best-practices", "--format", "json"],
+        [
+            "compliance",
+            "check",
+            "--path",
+            str(repo),
+            "--profile",
+            "oss-best-practices",
+            "--format",
+            "json",
+        ],
         input="",
     )
 
@@ -116,6 +133,33 @@ def test_compliance_check_html_output_file(cli_runner: CliRunner, tmp_path: Path
 
     assert result.exit_code == 0
     assert (output_dir / "index.html").exists()
+
+
+def test_compliance_report_writes_evidence_report(cli_runner: CliRunner, tmp_path: Path) -> None:
+    """Write a SOC 2 evidence report without failing on unmet controls."""
+    repo = _make_repo(tmp_path)
+    output = tmp_path / "soc2-evidence.md"
+
+    result = cli_runner.invoke(
+        cli,
+        [
+            "compliance",
+            "report",
+            "--path",
+            str(repo),
+            "--no-provider-evidence",
+            "--format",
+            "markdown",
+            "--output",
+            str(output),
+        ],
+        input="",
+    )
+
+    assert result.exit_code == 0
+    content = output.read_text(encoding="utf-8")
+    assert "SOC 2 Repository Audit Evidence Report" in content
+    assert "Manual Completion Required" in content
 
 
 def test_compliance_check_tier_target_exit_code(cli_runner: CliRunner, tmp_path: Path) -> None:

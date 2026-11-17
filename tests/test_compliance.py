@@ -1,14 +1,21 @@
 """Unit tests for repoman.compliance."""
 
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from repoman.compliance import BUILTIN_PROFILES, ComplianceConfigError, analyze_compliance
+from repoman.compliance import (
+    BUILTIN_PROFILES,
+    ComplianceConfigError,
+    analyze_compliance,
+)
 from repoman.compliance.analysis import (
     _build_gate_result,
     _evaluate_control,
     _next_tier,
+    controls_for_profiles,
     manual_controls_for_profiles,
 )
 from repoman.compliance.config import load_compliance_config
@@ -20,9 +27,17 @@ from repoman.compliance.models import (
     ControlResult,
     DetectorSpec,
     GateResult,
+    ProviderEvidence,
     SectionSummary,
 )
-from repoman.compliance.report import build_starter_config, reports_to_markdown, write_reports
+from repoman.compliance.providers import collect_provider_evidence
+from repoman.compliance.report import (
+    build_starter_config,
+    reports_to_evidence_html,
+    reports_to_evidence_markdown,
+    reports_to_markdown,
+    write_reports,
+)
 
 
 def _make_repo(tmp_path: Path) -> Path:
@@ -52,7 +67,10 @@ def test_detector_yaml_path_exists(tmp_path: Path) -> None:
 
     status, _evidence = evaluate_detector(
         repo,
-        DetectorSpec("yaml_path_exists", {"path": ".github/workflows/ci.yml", "yaml_path": ["jobs", "test"]}),
+        DetectorSpec(
+            "yaml_path_exists",
+            {"path": ".github/workflows/ci.yml", "yaml_path": ["jobs", "test"]},
+        ),
     )
 
     assert status == "met"
@@ -74,6 +92,429 @@ def test_detector_github_actions_rule(tmp_path: Path) -> None:
     assert "ci.yml" in evidence[0]
 
 
+def test_detector_github_actions_permissions_declared_passes_for_top_level_and_jobs(
+    tmp_path: Path,
+) -> None:
+    """Accept workflows with top-level permissions or all job-level permissions."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "top.yml").write_text(
+        "permissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+        encoding="utf-8",
+    )
+    (workflows / "jobs.yml").write_text(
+        "\n".join(
+            [
+                "jobs:",
+                "  test:",
+                "    permissions:",
+                "      contents: read",
+                "    runs-on: ubuntu-latest",
+                "  lint:",
+                "    permissions:",
+                "      contents: read",
+                "    runs-on: ubuntu-latest",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("github_actions_permissions_declared"))
+
+    assert status == "met"
+    assert any("top-level permissions" in item for item in evidence)
+    assert any("every job" in item for item in evidence)
+
+
+def test_detector_github_actions_permissions_declared_fails_for_missing_permissions(
+    tmp_path: Path,
+) -> None:
+    """Reject workflows where neither the workflow nor every job declares permissions."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "ci.yml").write_text(
+        "jobs:\n  test:\n    runs-on: ubuntu-latest\n  lint:\n    permissions:\n      contents: read\n",
+        encoding="utf-8",
+    )
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("github_actions_permissions_declared"))
+
+    assert status == "unmet"
+    assert evidence == ["Missing permissions in .github/workflows/ci.yml jobs: test"]
+
+
+def test_detector_github_actions_permissions_declared_fails_for_invalid_yaml(
+    tmp_path: Path,
+) -> None:
+    """Reject invalid workflow YAML instead of silently skipping it."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "broken.yml").write_text("jobs: [", encoding="utf-8")
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("github_actions_permissions_declared"))
+
+    assert status == "unmet"
+    assert evidence == ["Invalid YAML in .github/workflows/broken.yml"]
+
+
+def test_detector_github_actions_uses_pinned_accepts_sha_and_local_actions(
+    tmp_path: Path,
+) -> None:
+    """Accept external actions pinned to full SHAs and local action paths."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    pinned_sha = "1234567890abcdef1234567890abcdef12345678"
+    (workflows / "ci.yml").write_text(
+        "\n".join(
+            [
+                "jobs:",
+                "  test:",
+                "    runs-on: ubuntu-latest",
+                "    steps:",
+                f"      - uses: actions/checkout@{pinned_sha}",
+                "      - uses: ./github/actions/local-test",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("github_actions_uses_pinned"))
+
+    assert status == "met"
+    assert "1 external, 1 local" in evidence[0]
+
+
+def test_detector_github_actions_uses_pinned_rejects_mutable_refs(
+    tmp_path: Path,
+) -> None:
+    """Reject external actions pinned to tags or branches instead of full SHAs."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "ci.yml").write_text(
+        "jobs:\n  test:\n    steps:\n      - uses: actions/checkout@v4\n      - uses: owner/action@main\n",
+        encoding="utf-8",
+    )
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("github_actions_uses_pinned"))
+
+    assert status == "unmet"
+    assert "Unpinned action in .github/workflows/ci.yml: actions/checkout@v4" in evidence
+    assert "Unpinned action in .github/workflows/ci.yml: owner/action@main" in evidence
+
+
+def test_github_actions_detectors_are_not_applicable_for_gitlab_ci(
+    tmp_path: Path,
+) -> None:
+    """Avoid failing GitLab-only repositories for GitHub Actions-only controls."""
+    repo = _make_repo(tmp_path)
+    (repo / ".gitlab-ci.yml").write_text("test:\n  script: make test\n", encoding="utf-8")
+
+    permissions_status, permissions_evidence = evaluate_detector(
+        repo, DetectorSpec("github_actions_permissions_declared")
+    )
+    pinning_status, pinning_evidence = evaluate_detector(repo, DetectorSpec("github_actions_uses_pinned"))
+
+    assert permissions_status == "not_applicable"
+    assert pinning_status == "not_applicable"
+    assert "GitLab CI detected" in permissions_evidence[0]
+    assert "GitLab CI detected" in pinning_evidence[0]
+
+
+def test_detector_ci_tool_usage_inspects_workflow_contents(
+    tmp_path: Path,
+) -> None:
+    """Find security tools in generic CI filenames and ignore filename-only hints."""
+    repo = _make_repo(tmp_path)
+    workflows = repo / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "security.yml").write_text(
+        "jobs:\n  scan:\n    steps:\n      - uses: github/codeql-action/init@v3\n",
+        encoding="utf-8",
+    )
+    (workflows / "codeql.yml").write_text(
+        "jobs:\n  placeholder:\n    steps:\n      - run: echo nothing\n",
+        encoding="utf-8",
+    )
+
+    (workflows / "labels.yml").write_text(
+        "name: CodeQL\njobs:\n  codeql:\n    name: CodeQL\n    steps:\n      - name: CodeQL\n        run: echo codeql\n",
+        encoding="utf-8",
+    )
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("ci_tool_usage", {"tools": ["codeql"]}))
+
+    assert status == "met"
+    assert evidence == ["Found codeql in .github/workflows/security.yml"]
+
+
+def test_detector_ci_tool_usage_supports_gitlab_ci(tmp_path: Path) -> None:
+    """Find GitLab CI security templates and jobs."""
+    repo = _make_repo(tmp_path)
+    (repo / ".gitlab-ci.yml").write_text(
+        "include:\n  - template: Security/SAST.gitlab-ci.yml\n",
+        encoding="utf-8",
+    )
+
+    status, evidence = evaluate_detector(repo, DetectorSpec("ci_tool_usage", {"tools": ["sast"]}))
+
+    assert status == "met"
+    assert evidence == ["Found sast in .gitlab-ci.yml"]
+
+
+@pytest.mark.parametrize(
+    ("script", "expected"),
+    [
+        ("pip install pip-audit", "unmet"),
+        ("uv run pip-audit", "met"),
+        ("uv run --no-sync pip-audit", "met"),
+        ("uv run --group security pip-audit", "met"),
+        ("uv run --group=security -- pip-audit", "met"),
+        ("python -m pip_audit", "met"),
+        ("pip install pip-audit && pip-audit", "met"),
+        ('echo "&&" pip-audit', "unmet"),
+        ("echo example # comment; pip-audit", "unmet"),
+    ],
+)
+def test_scanner_check_requires_invocation(tmp_path: Path, script: str, expected: str) -> None:
+    """Recognize scanner commands while ignoring installation-only steps."""
+    repo = _make_repo(tmp_path)
+    (repo / ".gitlab-ci.yml").write_text(f"audit:\n  script:\n    - {script}\n", encoding="utf-8")
+    assert evaluate_detector(repo, DetectorSpec("ci_tool_usage", {"tools": ["pip-audit"]}))[0] == expected
+
+
+@pytest.mark.parametrize(
+    ("control_id", "template"),
+    [
+        ("dependency-scanning", "Jobs/Dependency-Scanning.v2.gitlab-ci.yml"),
+        ("secret-scanning", "Jobs/Secret-Detection.gitlab-ci.yml"),
+    ],
+)
+def test_soc2_scanner_checks_accept_official_gitlab_templates(tmp_path: Path, control_id: str, template: str) -> None:
+    """Recognize GitLab's default scanner template names in the built-in controls."""
+    repo = _make_repo(tmp_path)
+    (repo / ".gitlab-ci.yml").write_text(f"include:\n  - template: {template}\n", encoding="utf-8")
+    controls = controls_for_profiles(["soc2-software"])["soc2-software"]
+    control = next(control for control in controls if control.control_id == f"soc2.repo.{control_id}")
+    assert evaluate_detector(repo, control.detection)[0] == "met"
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({}, "met"),
+        ({"required_pull_request_reviews": {}}, "unmet"),
+        ({"required_status_checks": {"contexts": []}}, "unmet"),
+        ({"enforce_admins": {"enabled": False}}, "unmet"),
+        (
+            {
+                "required_pull_request_reviews": {
+                    "required_approving_review_count": 1,
+                    "bypass_pull_request_allowances": {"users": [{"login": "maintainer"}]},
+                }
+            },
+            "unmet",
+        ),
+        ({"enforce_admins": None}, "unknown"),
+    ],
+)
+def test_detector_github_branch_protection(tmp_path: Path, overrides: dict[str, object], expected: str) -> None:
+    """Require reviews, status checks, and direct-push restrictions together."""
+    provider = ProviderEvidence(
+        provider="github",
+        available=True,
+        facts={
+            "repo": {"default_branch": "main"},
+            "branch_protection": {
+                "required_pull_request_reviews": {"required_approving_review_count": 1},
+                "required_status_checks": {"contexts": ["ci"]},
+                "allow_force_pushes": {"enabled": False},
+                "enforce_admins": {"enabled": True},
+            }
+            | overrides,
+        },
+    )
+
+    status, evidence = evaluate_detector(_make_repo(tmp_path), DetectorSpec("provider_branch_protection"), provider)
+
+    assert status == expected
+    assert "GitHub default branch main" in evidence[0]
+
+
+@pytest.mark.parametrize("provider_name", ["github", "gitlab"])
+def test_detector_branch_protection_endpoint_unavailable(tmp_path: Path, provider_name: str) -> None:
+    """Treat a failed protection lookup as unknown even when metadata was readable."""
+    provider = ProviderEvidence(provider=provider_name, available=True, facts={"repo": {"default_branch": "main"}})
+    status, _ = evaluate_detector(_make_repo(tmp_path), DetectorSpec("provider_branch_protection"), provider)
+    assert status == "unknown"
+
+
+@pytest.mark.parametrize(
+    ("push_level", "pipeline", "eligible", "expected"),
+    [
+        (0, True, 2, "met"),
+        (40, True, 2, "unmet"),
+        (0, False, 2, "unmet"),
+        (0, True, None, "unknown"),
+        (0, True, 0, "unknown"),
+        (0, True, 1, "unknown"),
+    ],
+)
+def test_detector_gitlab_branch_protection(
+    tmp_path: Path, push_level: int, pipeline: bool, eligible: int | None, expected: str
+) -> None:
+    """Check matched push restrictions along with merge and approval settings."""
+    provider = ProviderEvidence(
+        provider="gitlab",
+        available=True,
+        facts={
+            "repo": {
+                "default_branch": "release/main",
+                "only_allow_merge_if_pipeline_succeeds": pipeline,
+                "allow_merge_on_skipped_pipeline": False,
+            },
+            "protected_branches": [
+                {"name": "release/*", "allow_force_push": False, "push_access_levels": [{"access_level": push_level}]},
+            ],
+            "approval_overrides_disabled": True,
+            "committers_excluded_from_approval": False,
+            "approval_rules": [
+                {
+                    "rule_type": "regular",
+                    "approvals_required": 1,
+                    "protected_branch_names": ["release/*"],
+                    "eligible_approver_count": eligible,
+                },
+            ],
+        },
+    )
+    status, _ = evaluate_detector(_make_repo(tmp_path), DetectorSpec("provider_branch_protection"), provider)
+    assert status == expected
+
+
+@pytest.mark.parametrize(
+    ("origin", "canonical"),
+    [
+        (
+            "https://alice:git-secret@github.com/acme/demo.git?token=query-secret#fragment-secret",
+            "https://github.com/acme/demo",
+        ),
+        ("https://alice:git-secret@example.com/acme/demo.git?token=query-secret#fragment-secret", None),
+        ("ssh://git@gitlab.com/group/subgroup/demo.git", "https://gitlab.com/group/subgroup/demo"),
+    ],
+)
+def test_provider_evidence_sanitizes_origin(
+    monkeypatch: pytest.MonkeyPatch, origin: str, canonical: str | None
+) -> None:
+    """Keep credentials, query values, and fragments out of report evidence."""
+    monkeypatch.setattr("repoman.compliance.providers._git_origin_url", lambda *_: origin)
+    monkeypatch.setattr("repoman.compliance.providers.shutil.which", lambda _: None)
+    evidence = collect_provider_evidence(".")
+    assert evidence.remote_url == canonical
+    assert all(secret not in repr(evidence) for secret in ("git-secret", "query-secret", "fragment-secret"))
+
+
+def test_collect_provider_evidence_reads_github_with_gh(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Collect GitHub provider facts through mocked gh calls."""
+    repo = _make_repo(tmp_path)
+
+    def fake_which(command: str) -> str | None:
+        return f"/bin/{command}" if command == "gh" else None
+
+    def fake_run(command: list[str], **_kwargs: object) -> SimpleNamespace:
+        if command[:4] == ["git", "config", "--get", "remote.origin.url"]:
+            return SimpleNamespace(returncode=0, stdout="https://github.com/acme/demo.git\n")
+        assert command[:4] == ["gh", "api", "--hostname", "github.com"]
+        api_path = command[4]
+        if api_path == "orgs/acme/audit-log":
+            assert command[5:] == ["--method", "GET", "-f", "phrase=repo:acme/demo", "-f", "per_page=1"]
+        payloads = {
+            "repos/acme/demo": '{"default_branch":"main","private":false,"archived":false,"visibility":"public"}',
+            "repos/acme/demo/branches/main/protection": '{"required_pull_request_reviews":{},"allow_force_pushes":{"enabled":false}}',
+            "repos/acme/demo/collaborators?per_page=100": json.dumps([{"login": f"user-{i}"} for i in range(100)]),
+            "repos/acme/demo/keys?per_page=100": "[]",
+            "repos/acme/demo/actions/permissions": '{"enabled":true}',
+            "orgs/acme/audit-log": "[]",
+        }
+        return SimpleNamespace(returncode=0, stdout=payloads[api_path])
+
+    monkeypatch.setattr("repoman.compliance.providers.shutil.which", fake_which)
+    monkeypatch.setattr("repoman.compliance.providers.subprocess.run", fake_run)
+
+    evidence = collect_provider_evidence(str(repo))
+
+    assert evidence.provider == "github"
+    assert evidence.repository == "acme/demo"
+    assert evidence.available is True
+    assert evidence.facts["collaborators"] == {"count": 100, "partial": True}
+    assert evidence.facts["audit_log_available"] is True
+
+
+def test_collect_provider_evidence_reads_gitlab_with_glab(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Collect GitLab provider facts through mocked glab calls."""
+    repo = _make_repo(tmp_path)
+
+    def fake_which(command: str) -> str | None:
+        return f"/bin/{command}" if command == "glab" else None
+
+    def fake_run(command: list[str], **_kwargs: object) -> SimpleNamespace:
+        if command[:4] == ["git", "config", "--get", "remote.origin.url"]:
+            return SimpleNamespace(returncode=0, stdout="git@gitlab.com:acme/demo.git\n")
+        assert command[:4] == ["glab", "api", "--hostname", "gitlab.com"]
+        api_path = command[4]
+        payloads = {
+            "projects/acme%2Fdemo": '{"default_branch":"main","visibility":"private","archived":false}',
+            "projects/acme%2Fdemo/protected_branches?per_page=100": '[{"name":"main","allow_force_push":false}]',
+            "projects/acme%2Fdemo/approvals": '{"disable_overriding_approvers_per_merge_request":true}',
+            "projects/acme%2Fdemo/approval_rules?per_page=100": '[{"rule_type":"regular","approvals_required":1,"protected_branches":[{"name":"main"}],"eligible_approvers":[{"id":1,"state":"active"},{"id":2,"state":"active"}]}]',
+            "projects/acme%2Fdemo/members/all?per_page=100": '[{"username":"owner"}]',
+            "projects/acme%2Fdemo/deploy_keys?per_page=100": "[]",
+            "projects/acme%2Fdemo/audit_events": "[]",
+        }
+        return SimpleNamespace(returncode=0, stdout=payloads[api_path])
+
+    monkeypatch.setattr("repoman.compliance.providers.shutil.which", fake_which)
+    monkeypatch.setattr("repoman.compliance.providers.subprocess.run", fake_run)
+
+    evidence = collect_provider_evidence(str(repo))
+
+    assert evidence.provider == "gitlab"
+    assert evidence.repository == "acme/demo"
+    assert evidence.available is True
+    assert evidence.facts["members"] == {"count": 1}
+    assert evidence.facts["approval_overrides_disabled"] is True
+    rule = evidence.facts["approval_rules"][0]
+    assert rule["protected_branch_names"] == ["main"]
+    assert rule["eligible_approver_count"] == 2
+    assert "eligible_approvers" not in rule
+
+
+def test_collect_provider_evidence_warns_when_provider_cli_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Leave provider facts unavailable when the provider CLI is missing."""
+    repo = _make_repo(tmp_path)
+
+    def fake_run(command: list[str], **_kwargs: object) -> SimpleNamespace:
+        assert command[:4] == ["git", "config", "--get", "remote.origin.url"]
+        return SimpleNamespace(returncode=0, stdout="https://github.com/acme/demo.git\n")
+
+    monkeypatch.setattr("repoman.compliance.providers.shutil.which", lambda _command: None)
+    monkeypatch.setattr("repoman.compliance.providers.subprocess.run", fake_run)
+
+    evidence = collect_provider_evidence(str(repo))
+
+    assert evidence.provider == "github"
+    assert evidence.available is False
+    assert "gh" in evidence.warnings[0]
+
+
 def test_detector_text_match_regex_and_manual_only(tmp_path: Path) -> None:
     """Support regex text matching and manual-only detector prompts."""
     repo = _make_repo(tmp_path)
@@ -81,7 +522,10 @@ def test_detector_text_match_regex_and_manual_only(tmp_path: Path) -> None:
 
     regex_status, regex_evidence = evaluate_detector(
         repo,
-        DetectorSpec("text_match", {"path": "README.md", "pattern": r"security@\w+\.com", "regex": True}),
+        DetectorSpec(
+            "text_match",
+            {"path": "README.md", "pattern": r"security@\w+\.com", "regex": True},
+        ),
     )
     manual_status, manual_evidence = evaluate_detector(
         repo,
@@ -104,12 +548,16 @@ def test_detector_yaml_invalid_and_missing_workflow_rule(tmp_path: Path) -> None
 
     yaml_status, yaml_evidence = evaluate_detector(
         repo,
-        DetectorSpec("yaml_path_exists", {"path": ".github/workflows/ci.yml", "yaml_path": ["jobs"]}),
+        DetectorSpec(
+            "yaml_path_exists",
+            {"path": ".github/workflows/ci.yml", "yaml_path": ["jobs"]},
+        ),
     )
     rule_status, rule_evidence = evaluate_detector(
         repo,
         DetectorSpec(
-            "github_actions_rule", {"workflow_glob": ".github/workflows/*.yml", "yaml_path": ["jobs", "test"]}
+            "github_actions_rule",
+            {"workflow_glob": ".github/workflows/*.yml", "yaml_path": ["jobs", "test"]},
         ),
     )
 
@@ -157,7 +605,9 @@ def test_load_compliance_config_requires_waiver_justification(tmp_path: Path) ->
         load_compliance_config(config)
 
 
-def test_load_compliance_config_rejects_invalid_defaults_mapping(tmp_path: Path) -> None:
+def test_load_compliance_config_rejects_invalid_defaults_mapping(
+    tmp_path: Path,
+) -> None:
     """Reject defaults blocks that are not mappings."""
     config = tmp_path / "compliance.yml"
     config.write_text("defaults: []\n", encoding="utf-8")
@@ -194,7 +644,9 @@ def test_load_compliance_config_rejects_invalid_yaml_top_level_and_version(
         load_compliance_config(config)
 
 
-def test_load_compliance_config_accepts_null_sections_and_null_string_lists(tmp_path: Path) -> None:
+def test_load_compliance_config_accepts_null_sections_and_null_string_lists(
+    tmp_path: Path,
+) -> None:
     """Treat null sections and null list-like fields as empty values."""
     config = tmp_path / "compliance.yml"
     config.write_text(
@@ -239,16 +691,59 @@ def test_load_compliance_config_accepts_null_sections_and_null_string_lists(tmp_
     assert parsed.controls["oss.docs.readme"].evidence == []
 
 
+def test_load_compliance_config_parses_report_metadata_and_not_applicable(
+    tmp_path: Path,
+) -> None:
+    """Parse evidence-report metadata and not-applicable control statuses."""
+    config = tmp_path / "compliance.yml"
+    config.write_text(
+        "\n".join(
+            [
+                "version: 1",
+                "report:",
+                "  organization: Acme",
+                "  system_name: Payments",
+                "  audit_period_start: '2026-01-01'",
+                "  audit_period_end: '2026-06-30'",
+                "controls:",
+                "  soc2.repo.actions-pinning:",
+                "    status: not_applicable",
+                "    justification: GitLab-only repository",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    parsed = load_compliance_config(config)
+
+    assert parsed.report.organization == "Acme"
+    assert parsed.report.system_name == "Payments"
+    assert parsed.controls["soc2.repo.actions-pinning"].status == "not_applicable"
+
+
 @pytest.mark.parametrize(
     ("content", "match"),
     [
         ("profiles: []\n", "field 'profiles' must be a mapping"),
-        ("profiles:\n  oss-best-practices:\n    tier_target: platinum\n", "invalid tier_target"),
-        ("profiles:\n  oss-best-practices:\n    include: [ok, 3]\n", "include must be a list of strings"),
+        (
+            "profiles:\n  oss-best-practices:\n    tier_target: platinum\n",
+            "invalid tier_target",
+        ),
+        (
+            "profiles:\n  oss-best-practices:\n    include: [ok, 3]\n",
+            "include must be a list of strings",
+        ),
         ("controls: []\n", "field 'controls' must be a mapping"),
-        ("controls:\n  oss.docs.readme: []\n", "control 'oss.docs.readme' must be a mapping"),
+        (
+            "controls:\n  oss.docs.readme: []\n",
+            "control 'oss.docs.readme' must be a mapping",
+        ),
         ("controls:\n  oss.docs.readme:\n    status: maybe\n", "invalid status"),
-        ("controls:\n  oss.docs.readme:\n    evidence: [ok, 3]\n", "evidence must be a list of strings"),
+        (
+            "controls:\n  oss.docs.readme:\n    evidence: [ok, 3]\n",
+            "evidence must be a list of strings",
+        ),
     ],
 )
 def test_load_compliance_config_rejects_invalid_profile_and_control_fields(
@@ -325,8 +820,10 @@ def test_unknown_blocks_requested_tier(tmp_path: Path) -> None:
     assert any("silver" in reason for reason in report.gate.reasons)
 
 
-def test_invalid_override_cannot_force_unmet_to_met(tmp_path: Path) -> None:
-    """Reject overrides that force an unmet detected control to met."""
+def test_detected_control_can_be_manually_completed_with_evidence(
+    tmp_path: Path,
+) -> None:
+    """Allow detector-backed controls to be completed manually with evidence."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
     (repo / "compliance.yml").write_text(
@@ -344,11 +841,39 @@ def test_invalid_override_cannot_force_unmet_to_met(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    with pytest.raises(ComplianceConfigError):
+    report = analyze_compliance(repo, profile_ids=["oss-best-practices"])[0]
+    control = next(item for item in report.controls if item.control_id == "oss.docs.contributing")
+
+    assert control.status == "met"
+    assert "Manual note" in control.evidence
+
+
+def test_detected_control_requires_evidence_for_manual_completion(
+    tmp_path: Path,
+) -> None:
+    """Reject detector-backed met overrides that do not provide evidence."""
+    repo = _make_repo(tmp_path)
+    (repo / "README.md").write_text("# Project\n", encoding="utf-8")
+    (repo / "compliance.yml").write_text(
+        "\n".join(
+            [
+                "version: 1",
+                "controls:",
+                "  oss.docs.contributing:",
+                "    status: met",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ComplianceConfigError, match="requires evidence"):
         analyze_compliance(repo, profile_ids=["oss-best-practices"])
 
 
-def test_analyze_compliance_rejects_invalid_paths_and_unknown_selected_profile(tmp_path: Path) -> None:
+def test_analyze_compliance_rejects_invalid_paths_and_unknown_selected_profile(
+    tmp_path: Path,
+) -> None:
     """Reject missing paths, non-git directories, and unknown selected profiles."""
     missing = tmp_path / "missing"
     non_git = tmp_path / "non_git"
@@ -365,7 +890,9 @@ def test_analyze_compliance_rejects_invalid_paths_and_unknown_selected_profile(t
         analyze_compliance(repo, profile_ids=["missing-profile"])
 
 
-def test_analyze_compliance_skips_disabled_profiles_and_respects_include_exclude(tmp_path: Path) -> None:
+def test_analyze_compliance_skips_disabled_profiles_and_respects_include_exclude(
+    tmp_path: Path,
+) -> None:
     """Skip disabled profiles and only evaluate included controls that are not excluded."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
@@ -441,7 +968,9 @@ def test_analyze_compliance_rejects_invalid_profile_configuration(tmp_path: Path
         analyze_compliance(repo, profile_ids=["oss-best-practices"])
 
 
-def test_evaluate_control_handles_applicability_and_override_metadata(tmp_path: Path) -> None:
+def test_evaluate_control_handles_applicability_and_override_metadata(
+    tmp_path: Path,
+) -> None:
     """Preserve metadata-only overrides and mark non-applicable controls unknown."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
@@ -491,7 +1020,9 @@ def test_evaluate_control_handles_applicability_and_override_metadata(tmp_path: 
     assert result.evidence == ["Found README.md", "Linked from project homepage"]
 
 
-def test_evaluate_control_handles_waivers_manual_controls_and_status_downgrades(tmp_path: Path) -> None:
+def test_evaluate_control_handles_waivers_manual_controls_and_status_downgrades(
+    tmp_path: Path,
+) -> None:
     """Support manual overrides and reject unjustified waivers."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
@@ -518,8 +1049,11 @@ def test_evaluate_control_handles_waivers_manual_controls_and_status_downgrades(
     manual_result = _evaluate_control(repo, manual_control, ControlOverride(status="met"))
     assert manual_result.status == "met"
 
-    with pytest.raises(ComplianceConfigError, match="waiver requires a justification"):
+    with pytest.raises(ComplianceConfigError, match="requires a justification"):
         _evaluate_control(repo, manual_control, ControlOverride(status="waived"))
+
+    with pytest.raises(ComplianceConfigError, match="requires a justification"):
+        _evaluate_control(repo, manual_control, ControlOverride(status="not_applicable"))
 
 
 def test_gate_helpers_cover_unmet_unknown_strict_and_requested_tier_outcomes() -> None:
@@ -590,6 +1124,81 @@ def test_manual_controls_for_profiles_returns_only_manual_controls() -> None:
     assert list(grouped) == ["oss-best-practices"]
     assert grouped["oss-best-practices"]
     assert all(control.detection.kind == "manual_only" for control in grouped["oss-best-practices"])
+
+
+def test_controls_for_profiles_returns_all_controls() -> None:
+    """Group every control for starter evidence templates."""
+    grouped = controls_for_profiles(["soc2-software"])
+
+    control_ids = {control.control_id for control in grouped["soc2-software"]}
+    assert "soc2.repo.branch-protection" in control_ids
+    assert "soc2.repo.actions-pinning" in control_ids
+
+
+def test_soc2_profile_includes_manual_evidence_heavy_requirements() -> None:
+    """Keep SOC 2 readiness broad enough to cover manual evidence requirements."""
+    controls_by_id = {control.control_id: control for control in BUILTIN_PROFILES["soc2-software"].controls}
+    expected_manual_controls = {
+        "soc2.governance.control-owner",
+        "soc2.data.classification",
+        "soc2.access.mfa",
+        "soc2.access.least-privilege",
+        "soc2.cicd.secrets-rotation",
+        "soc2.change.approval-records",
+        "soc2.dependencies.vuln-monitoring",
+        "soc2.data.encryption",
+        "soc2.data.retention",
+        "soc2.availability.backup-restore",
+        "soc2.third-party.service-inventory",
+        "soc2.logging.retention",
+        "soc2.monitoring.alerts",
+        "soc2.governance.risk-assessment",
+        "soc2.access.periodic-review",
+        "soc2.incident.tabletop",
+        "soc2.security.review",
+        "soc2.availability.disaster-recovery",
+        "soc2.evidence.audit-trail",
+        "soc2.privacy.requests",
+    }
+
+    assert expected_manual_controls <= set(controls_by_id)
+    assert all(controls_by_id[control_id].detection.kind == "manual_only" for control_id in expected_manual_controls)
+    assert controls_by_id["soc2.access.mfa"].tier == "silver"
+    assert controls_by_id["soc2.incident.tabletop"].tier == "gold"
+
+
+def test_soc2_profile_includes_repo_specific_requirements() -> None:
+    """Cover software-repository governance and supply-chain controls."""
+    controls_by_id = {control.control_id: control for control in BUILTIN_PROFILES["soc2-software"].controls}
+    expected_manual_controls = {
+        "soc2.repo.access-review",
+        "soc2.repo.ci-evidence-retention",
+        "soc2.repo.vuln-disclosure-log",
+        "soc2.repo.emergency-change",
+        "soc2.repo.release-signing",
+        "soc2.repo.release-provenance",
+        "soc2.repo.audit-log-retention",
+    }
+    expected_detector_kinds = {
+        "soc2.repo.branch-protection": "provider_branch_protection",
+        "soc2.repo.codeowners": "glob_exists",
+        "soc2.repo.pr-template": "glob_exists",
+        "soc2.repo.security-policy": "glob_exists",
+        "soc2.repo.dependency-scanning": "ci_tool_usage",
+        "soc2.repo.static-analysis": "ci_tool_usage",
+        "soc2.repo.secret-scanning": "ci_tool_usage",
+        "soc2.repo.workflow-permissions": "github_actions_permissions_declared",
+        "soc2.repo.actions-pinning": "github_actions_uses_pinned",
+        "soc2.repo.sbom": "ci_tool_usage",
+    }
+
+    assert expected_manual_controls | set(expected_detector_kinds) <= set(controls_by_id)
+    assert all(controls_by_id[control_id].detection.kind == "manual_only" for control_id in expected_manual_controls)
+    for control_id, detection_kind in expected_detector_kinds.items():
+        assert controls_by_id[control_id].detection.kind == detection_kind
+    assert controls_by_id["soc2.repo.branch-protection"].tier == "silver"
+    assert controls_by_id["soc2.repo.actions-pinning"].tier == "gold"
+    assert all(control.criteria_refs for control in controls_by_id.values())
 
 
 def test_manual_control_can_be_met_via_compliance_file(tmp_path: Path) -> None:
@@ -686,7 +1295,9 @@ def test_requested_tier_uses_strict_rules_for_achieved_tier(tmp_path: Path) -> N
     assert "soc2.environments.separation" in report.blocking_controls
 
 
-def test_report_rendering_handles_optional_sections_and_invalid_output(tmp_path: Path) -> None:
+def test_report_rendering_handles_optional_sections_and_invalid_output(
+    tmp_path: Path,
+) -> None:
     """Render optional report sections and reject unsupported output formats."""
     report = ComplianceReport(
         repo_path="/example/repo",
@@ -700,7 +1311,13 @@ def test_report_rendering_handles_optional_sections_and_invalid_output(tmp_path:
         requested_tier=None,
         blocking_controls=[],
         advisory_controls=[],
-        summary_counts={"met": 1, "waived": 0, "unknown": 0, "unmet": 0},
+        summary_counts={
+            "met": 1,
+            "waived": 0,
+            "not_applicable": 0,
+            "unknown": 0,
+            "unmet": 0,
+        },
         sections=[SectionSummary(name="basics", met=1)],
         controls=[
             ControlResult(
@@ -713,6 +1330,7 @@ def test_report_rendering_handles_optional_sections_and_invalid_output(tmp_path:
                 detection_kind="file_exists",
                 evidence=["Found README.md"],
                 justification="Manually reviewed",
+                criteria_refs=("CC5.1",),
             )
         ],
         gate=GateResult(
@@ -725,17 +1343,27 @@ def test_report_rendering_handles_optional_sections_and_invalid_output(tmp_path:
     )
 
     markdown = reports_to_markdown([report])
+    evidence_markdown = reports_to_evidence_markdown([report])
+    evidence_html = reports_to_evidence_html([report])
+    for evidence_format in (evidence_markdown, evidence_html):
+        assert f"Requested tier: `{report.requested_tier or 'n/a'}`" in evidence_format
+        assert f"Achieved tier: `{report.achieved_tier or 'none'}`" in evidence_format
+        assert f"Gate passed: `{report.gate.passed}`" in evidence_format
     starter = build_starter_config(["oss-best-practices"], {})
 
     assert "- None" in markdown
     assert "Justification: Manually reviewed" in markdown
+    assert "SOC 2 Repository Audit Evidence Report" in evidence_markdown
+    assert "CC5.1" in evidence_markdown
     assert "controls:\n  {}\n" in starter
 
     with pytest.raises(ValueError, match="Unsupported output format"):
         write_reports([report], "text", tmp_path / "report.txt")
 
 
-def test_readme_does_not_satisfy_architecture_or_rollback_controls(tmp_path: Path) -> None:
+def test_readme_does_not_satisfy_architecture_or_rollback_controls(
+    tmp_path: Path,
+) -> None:
     """Keep README-only repositories from satisfying architecture or rollback controls."""
     repo = _make_repo(tmp_path)
     (repo / "README.md").write_text("# Project\n", encoding="utf-8")
@@ -757,5 +1385,8 @@ def test_repo_self_compliance_baseline_passes() -> None:
         compliance_file=repo / "compliance.yml",
     )
 
-    assert {report.profile_id for report in reports} == {"soc2-software", "oss-best-practices"}
+    assert {report.profile_id for report in reports} == {
+        "soc2-software",
+        "oss-best-practices",
+    }
     assert all(report.gate.passed for report in reports)

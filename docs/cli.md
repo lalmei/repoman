@@ -347,10 +347,14 @@ repoman hotspots -n 5 -f json
 
 Analyze a git repository against built-in readiness profiles. v0 supports:
 
-- `soc2-software` — software-only SOC 2 style engineering controls
+- `soc2-software` — software-only SOC 2 style engineering controls, including repository governance,
+  workflow security, supply-chain, release integrity, and manual evidence requirements
 - `oss-best-practices` — OSS badge-style repo best practices inspired by OpenSSF criteria
 
-This feature is a readiness/alignment check, not a certification claim.
+This feature is a readiness/evidence collection tool, not a certification claim or audit opinion.
+Profiles use badge-style tiers. Controls that cannot be verified from repository contents or read-only
+GitHub/GitLab provider checks stay `unknown` until `compliance.yml` records evidence, ownership, review dates,
+a justified waiver, or a justified `not_applicable` status.
 
 ```bash
 repoman compliance [COMMAND] [OPTIONS]
@@ -361,7 +365,8 @@ repoman compliance [COMMAND] [OPTIONS]
 | Subcommand | Description |
 | ---------- | ----------- |
 | `check`    | Evaluate a repository and emit terminal or report output |
-| `init`     | Generate a starter `compliance.yml` for manual evidence |
+| `report`   | Generate a SOC 2 repository audit evidence report |
+| `init`     | Generate a starter `compliance.yml` for manual and hybrid evidence |
 
 #### compliance check
 
@@ -381,6 +386,8 @@ repoman compliance check [OPTIONS]
 | `--tier-target`     |       | Optional target tier: `bronze`, `silver`, or `gold` |
 | `--fail-on`         |       | Gate mode: `unmet`, `unknown`, or `tier` (default: `tier`) |
 | `--strict`          |       | Treat `unknown` controls as failures even without a requested tier |
+| `--provider-evidence` / `--no-provider-evidence` | | Collect read-only GitHub/GitLab provider evidence when available |
+| `--provider-timeout`|       | Timeout in seconds for provider CLI calls |
 | `--no-header`       |       | Hide terminal table headers |
 
 **Examples**
@@ -400,6 +407,43 @@ repoman compliance check --format html --output compliance_report
 | `0`  | Requested gate passed |
 | `1`  | Requested gate or tier target failed |
 | `2`  | Invalid config, unsupported repo state, or analysis error |
+
+#### compliance report
+
+```bash
+repoman compliance report [OPTIONS]
+```
+
+Generates a SOC 2 repository audit evidence report. The report lists `unmet` and `unknown` controls in the
+manual completion section.
+
+**Options**
+
+| Option              | Short | Description |
+| ------------------- | ----- | ----------- |
+| `--path`            | `-p`  | Path to the git repository (default: current directory) |
+| `--profile`         |       | Profile id to include; defaults to `soc2-software` |
+| `--format`          | `-f`  | Output format: `markdown` (default), `json`, or `html` |
+| `--output`          | `-o`  | Output file or directory |
+| `--compliance-file` |       | Override path to `compliance.yml` |
+| `--tier-target`     |       | Optional target tier: `bronze`, `silver`, or `gold` |
+| `--provider-evidence` / `--no-provider-evidence` | | Collect read-only GitHub/GitLab provider evidence when available |
+| `--provider-timeout`|       | Timeout in seconds for provider CLI calls |
+
+**Examples**
+
+```bash
+repoman compliance report --output soc2-evidence.md
+repoman compliance report --format html --output soc2_evidence_report
+repoman compliance report --no-provider-evidence --format json
+```
+
+**Exit codes**
+
+| Code | Meaning |
+| ---- | ------- |
+| `0`  | Report generated, including when a requested tier is unmet |
+| `2`  | Invalid options, unsupported repository state, or analysis error |
 
 #### compliance init
 
@@ -423,6 +467,10 @@ repoman compliance init
 repoman compliance init --profile soc2-software
 repoman compliance init --path /path/to/repo --output compliance.yml --force
 ```
+
+The starter file includes a `report:` metadata block and all selected controls. Detector-backed controls can be
+manually marked `met` when valid evidence is provided, which covers cases where local/provider automation cannot
+verify a valid repository setting.
 
 ### generator add
 

@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-Status = Literal["met", "unmet", "unknown", "waived"]
+Status = Literal["met", "unmet", "unknown", "waived", "not_applicable"]
 Tier = Literal["bronze", "silver", "gold"]
 FailOn = Literal["unmet", "unknown", "tier"]
 DetectionKind = Literal[
@@ -15,13 +15,23 @@ DetectionKind = Literal[
     "yaml_path_exists",
     "text_match",
     "github_actions_rule",
+    "github_actions_permissions_declared",
+    "github_actions_uses_pinned",
+    "ci_tool_usage",
+    "provider_branch_protection",
     "make_target_exists",
     "pyproject_field_exists",
     "manual_only",
 ]
 
 TIER_ORDER: tuple[Tier, ...] = ("bronze", "silver", "gold")
-STATUS_ORDER: tuple[Status, ...] = ("met", "waived", "unknown", "unmet")
+STATUS_ORDER: tuple[Status, ...] = (
+    "met",
+    "waived",
+    "not_applicable",
+    "unknown",
+    "unmet",
+)
 
 
 class ComplianceConfigError(ValueError):
@@ -49,6 +59,7 @@ class ControlDefinition:
     required_evidence: str | None = None
     weight: int = 1
     applies_when: tuple[DetectorSpec, ...] = ()
+    criteria_refs: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -80,6 +91,7 @@ class ControlResult:
     last_reviewed: str | None = None
     notes: str | None = None
     required_evidence: str | None = None
+    criteria_refs: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize result to a JSON-friendly dict."""
@@ -95,6 +107,7 @@ class SectionSummary:
     unmet: int = 0
     unknown: int = 0
     waived: int = 0
+    not_applicable: int = 0
     blocking_controls: list[str] = field(default_factory=list)
     unknown_controls: list[str] = field(default_factory=list)
 
@@ -119,6 +132,40 @@ class GateResult:
 
 
 @dataclass
+class ReportMetadata:
+    """User-supplied metadata for an evidence report."""
+
+    organization: str | None = None
+    system_name: str | None = None
+    audit_period_start: str | None = None
+    audit_period_end: str | None = None
+    prepared_by: str | None = None
+    repository_url: str | None = None
+    scope_summary: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize metadata."""
+        return asdict(self)
+
+
+@dataclass
+class ProviderEvidence:
+    """Read-only provider evidence collected from a repository host."""
+
+    provider: str | None = None
+    remote_url: str | None = None
+    repository: str | None = None
+    available: bool = False
+    collected_at: str | None = None
+    facts: dict[str, Any] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize provider evidence."""
+        return asdict(self)
+
+
+@dataclass
 class ComplianceReport:
     """Full report for a single profile against a repository."""
 
@@ -137,6 +184,8 @@ class ComplianceReport:
     sections: list[SectionSummary]
     controls: list[ControlResult]
     gate: GateResult
+    report_metadata: ReportMetadata = field(default_factory=ReportMetadata)
+    provider_evidence: ProviderEvidence | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the report."""
@@ -156,6 +205,8 @@ class ComplianceReport:
             "sections": [section.to_dict() for section in self.sections],
             "controls": [control.to_dict() for control in self.controls],
             "gate": self.gate.to_dict(),
+            "report_metadata": self.report_metadata.to_dict(),
+            "provider_evidence": self.provider_evidence.to_dict() if self.provider_evidence is not None else None,
         }
 
 
@@ -189,6 +240,7 @@ class ComplianceConfig:
     profiles: dict[str, ProfileSettings] = field(default_factory=dict)
     controls: dict[str, ControlOverride] = field(default_factory=dict)
     defaults: dict[str, Any] = field(default_factory=dict)
+    report: ReportMetadata = field(default_factory=ReportMetadata)
 
 
 def utc_now_iso() -> str:
