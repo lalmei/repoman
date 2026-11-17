@@ -166,6 +166,7 @@ def test_instantiated_template_without_fastapi(tmp_path: Path) -> None:
     answers_file = Path(__file__).parent.parent / "fixtures" / "default_copier_answers.yml"
     project_dir = instantiate_template(
         output_dir=tmp_path,
+        template_path=Path(__file__).resolve().parents[2] / "src" / "repoman",
         project_name="test-project",
         answers_file=answers_file,
         copier_data={"fastapi_enabled": False},
