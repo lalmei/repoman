@@ -1,7 +1,15 @@
 # Git entry point for the Repoman templates.
 !include src/repoman/copier.yml
 ---
-_subdirectory: "{% if repoman_command_extension %}src/repoman/extentions/command_template/{{ '{{command_name}}' }}{% else %}src/repoman/main_template{% endif %}"
+_subdirectory: "{% if repoman_command_extension %}src/repoman/extentions/command_template/{{ '{{command_name}}' }}{% elif repoman_astro %}src/repoman/astro_template/template{% else %}src/repoman/main_template{% endif %}"
+
+_skip_if_exists:
+  - /src/content/profile.json
+  - /src/styles/custom.css
+
+repoman_astro:
+  type: bool
+  default: false
 
 repoman_command_extension:
   type: bool

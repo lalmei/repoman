@@ -117,9 +117,17 @@ repoman create docs docs-only docs-project --output /path/to/parent
 repoman create fastapi fastapi my-api
 ```
 
+**Astro personal site**
+
+`repoman create astro PROJECT_NAME` creates a static portfolio with a profile,
+Markdown projects, custom CSS, and CI. It accepts `--output`, `--force`, and
+`--dry-run`. Use a release wheel to generate a site with portable template
+metadata. Run `npm ci` and `npm run dev` in the generated site with Node.js
+22.23.4 or newer.
+
 ### update
 
-Update an existing Python project using the repoman template (re-run Copier on a project that was created with repoman).
+Update a project from its recorded Copier template. If the update leaves conflicts, the command lists affected paths and exits with status 1 so you can resolve them before committing.
 
 ```bash
 repoman update PROJECT_DIR [OPTIONS]

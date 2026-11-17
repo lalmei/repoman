@@ -31,11 +31,13 @@ from repoman.cli.messages import (
     repair_requires_template_source,
     template_path_does_not_exist,
     update_modes_mutually_exclusive,
+    warning_panel,
 )
 from repoman.config import load_answers
 from repoman.copier.extension_lifecycle import MIRROR_KEY
 from repoman.copier.sources import UPSTREAM_TEMPLATE
 from repoman.inspection import InspectionError, InspectionReport, inspect_repository
+from repoman.inspection.analysis import update_conflict_files
 from repoman.utils.logging import get_logger_console
 
 
@@ -238,17 +240,10 @@ def update(
                     "# Changes here will be overwritten by Copier.\n" + serialized, encoding="utf-8"
                 )
 
-            progress.update(task, description="Project updated successfully!")
+            conflicts = update_conflict_files(project_dir_obj, mode=conflict)
+            description = "Project updated with conflicts." if conflicts else "Project updated successfully!"
+            progress.update(task, description=description)
 
-        copier_options_serializable = {k: v for k, v in copier_options.items() if v is not None}
-        console.print(
-            project_updated(
-                project_dir_obj,
-                copier_options_serializable,
-                steps_text,
-                console=console,
-            )
-        )
     except CopierError as exc:
         message = str(exc)
         if is_cannot_obtain_old_template_references_message(message):
@@ -263,6 +258,21 @@ def update(
     except (OSError, ValueError, RuntimeError) as exc:
         console.print(error_panel(str(exc), console=console))
         raise Exit(1) from exc
+
+    if conflicts:
+        paths = "\n".join(f"• {path}" for path in conflicts)
+        console.print(warning_panel(f"Resolve template update conflicts before committing.\n{paths}", console=console))
+        raise Exit(1)
+
+    copier_options_serializable = {k: v for k, v in copier_options.items() if v is not None}
+    console.print(
+        project_updated(
+            project_dir_obj,
+            copier_options_serializable,
+            steps_text,
+            console=console,
+        )
+    )
 
 
 def _resolve_answers_path(project_dir: Path, answers_file: str | None) -> Path:

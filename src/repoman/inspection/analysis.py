@@ -202,12 +202,28 @@ def _status_for(readiness: UpdateReadiness, *, fatal: bool) -> InspectionStatus:
 
 def git_worktree_dirty(repo_path: Path) -> bool | None:
     """Read Git status without refreshing the index on disk."""
+    status = _git_output(repo_path, "status", "--porcelain")
+    return None if status is None else bool(status)
+
+
+def update_conflict_files(repo_path: Path, *, mode: str) -> list[str]:
+    """List unmerged paths or untracked patch rejects produced by Copier."""
+    args = (
+        ("ls-files", "--others", "--exclude-standard", "-z", "--", "*.rej")
+        if mode == "rej"
+        else ("diff", "--name-only", "--diff-filter=U", "-z")
+    )
+    output = _git_output(repo_path, *args)
+    return output.decode(errors="replace").rstrip("\0").split("\0") if output else []
+
+
+def _git_output(repo_path: Path, *args: str) -> bytes | None:
     git = shutil.which("git")
     if git is None:
         return None
     try:
         result = subprocess.run(  # noqa: S603 - resolved Git executable with fixed arguments
-            [git, "--no-optional-locks", "status", "--porcelain"],
+            [git, "--no-optional-locks", *args],
             cwd=repo_path,
             capture_output=True,
             timeout=15,
@@ -215,4 +231,4 @@ def git_worktree_dirty(repo_path: Path) -> bool | None:
         )
     except (OSError, subprocess.SubprocessError):
         return None
-    return bool(result.stdout)
+    return result.stdout

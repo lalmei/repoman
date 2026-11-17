@@ -8,6 +8,7 @@ from pathlib import Path
 import yaml
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+ASTRO_TEMPLATE = PACKAGE_ROOT / "astro_template"
 UPSTREAM_TEMPLATE = "https://github.com/lalmei/repoman.git"
 
 
@@ -17,9 +18,9 @@ def is_bundled_template(path: Path) -> bool:
 
 
 def record_release_source(answers_file: Path, template_path: Path) -> None:
-    """Associate the bundled Python template with the commit that built the wheel."""
+    """Associate a bundled template with the commit that built the wheel."""
     revision_file = PACKAGE_ROOT / "resources" / "template_revision.txt"
-    if template_path.resolve() != PACKAGE_ROOT or not revision_file.is_file():
+    if template_path.resolve() not in {PACKAGE_ROOT, ASTRO_TEMPLATE} or not revision_file.is_file():
         return
 
     revision = revision_file.read_text(encoding="utf-8").strip()

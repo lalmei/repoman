@@ -27,7 +27,7 @@ uv run python -m repoman create --project_name my-new-project
 
 ## Features
 
-- **Project Generation**: Create new Python projects from templates
+- **Project Generation**: Create Python projects, C++ libraries, and Astro personal sites
 - **Template Management**: Customize and manage project templates
 - **CLI Interface**: Easy-to-use command-line interface
 - **Rich Output**: Beautiful terminal output with themes
@@ -44,6 +44,22 @@ Repoman provides three main commands:
 - **`generator add`** — Add a new CLI command to a repoman-generated project
 
 Run `uv run repoman --help` for global options. See [CLI reference](docs/cli.md) for full options and examples.
+
+### Astro personal site
+
+```sh
+repoman create astro my-site
+cd my-site
+npm ci
+npm run dev
+```
+
+Use Node.js 22.23.4 or newer. Edit your profile in `src/content/profile.json`,
+add Markdown projects under `src/content/projects/`, and put CSS overrides in
+`src/styles/custom.css`. Initialize Git and commit your changes before running
+`repoman update . --plan`. Use a release wheel for generation so Repoman can
+record the tagged template revision for future updates. See the generated
+README for the update and preview commands.
 
 ## Development
 

@@ -7,6 +7,7 @@ import yaml
 from typer import Context, Exit, Option, Typer
 
 from repoman.cli.commands.create._shared import run_create
+from repoman.cli.commands.create.astro import create_astro
 from repoman.cli.commands.create.cli_only import app as cli_only_app
 from repoman.cli.commands.create.cpp import app as cpp_app
 from repoman.cli.commands.create.docs_only import app as docs_only_app
@@ -18,6 +19,7 @@ from repoman.utils.logging import get_logger_console
 
 app = Typer(add_completion=True)
 
+app.command("astro")(create_astro)
 app.add_typer(cli_only_app, name="cli")
 app.add_typer(cpp_app, name="cpp")
 app.add_typer(docs_only_app, name="docs")
@@ -71,11 +73,12 @@ def create(
         Option("--dry-run", help="Show what would be created without actually creating"),
     ] = False,
 ) -> None:
-    """Create a new Python project using the repoman template.
+    """Create a project from a Repoman template.
 
-    Use a preset, a typed subcommand (cli, cpp, docs, library, fastapi), or an answers file.
+    Use a preset, a typed subcommand (astro, cli, cpp, docs, library, fastapi), or an answers file.
 
     Examples:
+        repoman create astro my-site
         repoman create -pn my-app --preset cli
         repoman create -pn my-lib --preset cpp
         repoman create -pn my-app --preset fastapi -o ~/projects

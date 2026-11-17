@@ -594,3 +594,23 @@ def test_create_command_runtime_error(cli_runner: CliRunner, cli_app: Typer) -> 
         # Rich Panel output may not be captured
         if result.output:
             assert "error" in result.output.lower() or "unexpected" in result.output.lower()
+
+
+def test_create_astro_personal_site(tmp_path: Path, cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Generate the Astro scaffold through the public command."""
+    result = cli_runner.invoke(cli_app, ["create", "astro", "personal-site", "-o", str(tmp_path)])
+
+    assert result.exit_code == 0, result.output
+    site = tmp_path / "personal-site"
+    assert (site / "src" / "pages" / "index.astro").is_file()
+    assert (site / "package-lock.json").is_file()
+    assert "repoman_astro: true" in (site / ".copier-answers.yml").read_text()
+
+
+@pytest.mark.parametrize("project_name", ["My Site", "../escape", "a.b"])
+def test_create_astro_rejects_invalid_names(project_name: str, cli_runner: CliRunner, cli_app: Typer) -> None:
+    """Report invalid Astro project names through Typer."""
+    result = cli_runner.invoke(cli_app, ["create", "astro", project_name])
+
+    assert result.exit_code == 2
+    assert "lowercase letters" in result.output

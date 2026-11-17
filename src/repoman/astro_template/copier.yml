@@ -1,0 +1,14 @@
+_min_copier_version: "9.11"
+_subdirectory: template
+_envops:
+  keep_trailing_newline: true
+_skip_if_exists:
+  - /src/content/profile.json
+  - /src/styles/custom.css
+
+project_name:
+  type: str
+
+repoman_astro:
+  type: bool
+  default: true
