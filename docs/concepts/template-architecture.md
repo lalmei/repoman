@@ -13,7 +13,8 @@ When `fastapi_enabled` is true, the template generates an `app/` package with a 
 
 ## Configuration
 
-Shared configuration is loaded through `Config()` in `config/main_config.py`.
+Import `Config` from `<package>.config` and edit its settings in `config/main_config.py`.
+Older scaffolds also contained a sibling `config.py` that Python shadowed with the package. Updating removes an untouched copy. If you customized it, the update preserves the file so you can move the settings you need into `config/main_config.py`.
 
 - **`FastAPIConfig`** is included when FastAPI support is enabled.
 - **`DatasetConfig`** is included when dataset support is enabled.

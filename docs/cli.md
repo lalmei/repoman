@@ -86,6 +86,18 @@ uv run review-demo document_review summarize-document document-review-example/co
 The generated `document-review-example/README.md` explains the results and
 the executable adapter interface for comparing both modes with a real model.
 
+**Research pipeline**
+
+Generate a one-stage CLI that counts lines and words in a local file. Each run
+prints its attempt directory. Inspect `summary.json` for the counts and
+`manifest.json` for the stage timing and outcome.
+
+```sh
+repoman create cli cli research-demo --research-pipeline
+cd research-demo
+uv run research-demo run -c research-pipeline-example/run.json
+```
+
 **Options (default create)**
 
 | Option          | Short | Description                                                                 |

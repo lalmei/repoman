@@ -1,5 +1,5 @@
 # CONFIGURATION -------------------------
-_min_copier_version: "9"
+_min_copier_version: "9.11"
 _envops:
   autoescape: false
   keep_trailing_newline: true
@@ -16,6 +16,9 @@ _skip_if_exists:
 - AGENTS.md
 - CHANGELOG.md
 _exclude:
+  # Copier also applies new exclusions to its old render during an update.
+  # Keep downstream edits to the retired module out of its deletion pass.
+  - "/src/{{ python_package_import_name }}/config.py"
   - "{% if docs_only %}docs/reference/architecture.md{% endif %}"
   - "{% if docs_only %}src/{% endif %}"
   - "{% if docs_only %}tests/{% endif %}"
@@ -26,6 +29,23 @@ _exclude:
   - "{% if docs_only %}config/dataset_config.json{% endif %}"
   - "{% if docs_only %}make_cmds/quality.mk{% endif %}"
   - "{% if docs_only %}make_cmds/tests.mk{% endif %}"
+_migrations:
+  - when: "{{ _stage == 'after' and not docs_only and not (repoman_astro | default(false)) and not (repoman_command_extension | default(false)) }}"
+    command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import sys
+        from pathlib import Path
+
+        package, original = sys.argv[1:]
+        root = Path("src") / package
+        path = root / "config.py"
+        if package.isidentifier() and not root.parent.is_symlink() and not root.is_symlink():
+            if not path.is_symlink() and path.is_file() and path.read_bytes().replace(b"\r\n", b"\n") == original.encode("utf-8"):
+                path.unlink()
+      - "{{ python_package_import_name }}"
+      - "{% include ['src/repoman/resources/legacy_config.py.jinja', 'resources/legacy_config.py.jinja'] %}"
 _tasks:
   - command: [git, init]
     when: "{{ not repoman_command_extension and not (repoman_astro | default(false)) }}"
@@ -260,5 +280,11 @@ docs_only:
 document_review:
   type: bool
   help: Include the document review pilot
+  default: false
+  when: "{{ not docs_only and python_package_command_line_name }}"
+
+research_pipeline:
+  type: bool
+  help: Include a CLI pipeline with an offline example and per-run manifests
   default: false
   when: "{{ not docs_only and python_package_command_line_name }}"

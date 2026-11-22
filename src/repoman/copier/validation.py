@@ -62,7 +62,9 @@ def _schema_to_model(schema: dict, *, strict: bool) -> type[BaseModel]:
         else:
             field_type = str
 
-        fields[key] = (field_type, ...)
+        # Copier can omit conditional prompts from a saved answers file.
+        default = meta.get("default", ...) if "when" in meta else ...
+        fields[key] = (field_type, default)
 
     return create_model("AnswersModel", __config__=config, **fields)
 

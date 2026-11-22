@@ -1,0 +1,11 @@
+# Offline text analysis
+
+From the project root, run the sample with the generated CLI.
+
+```sh
+uv run {{ python_package_command_line_name }} run -c research-pipeline-example/run.json
+```
+
+The command counts the lines and whitespace-separated words in `sample.txt`. Open `summary.json` in the printed directory to see three lines and six words. Each run creates an `attempt-*` directory under `runs/` with the resolved config and a timed stage record in `manifest.json`. A failed stage records its name and error there.
+
+Input and output paths are relative to `run.json`. To inspect the resolved paths before executing, use the root flag `--dry-run` before `run`.

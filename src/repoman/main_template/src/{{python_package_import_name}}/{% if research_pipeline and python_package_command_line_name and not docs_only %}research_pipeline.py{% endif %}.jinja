@@ -1,0 +1,71 @@
+"""Run one offline text analysis and retain the evidence for each attempt."""
+
+import json
+from pathlib import Path
+from tempfile import mkdtemp
+from time import perf_counter
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict
+
+
+class RunConfig(BaseModel):
+    """Inputs and output directory for a version 1 text analysis."""
+
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    schema_version: Literal[1]
+    input: Path
+    output: Path
+
+    @classmethod
+    def load(cls, path: Path) -> "RunConfig":
+        """Read JSON and resolve both paths against the configuration directory."""
+        config = cls.model_validate_json(path.read_bytes())
+        base = path.resolve().parent
+        config.input = (base / config.input).resolve()
+        config.output = (base / config.output).resolve()
+        return config
+
+
+class RunFailedError(RuntimeError):
+    """The analysis failed after creating an attempt directory."""
+
+
+def _write_json(path: Path, data: dict[str, object]) -> None:
+    # Each attempt has a single writer. Readers see a complete document on replacement.
+    pending = path.with_suffix(".tmp")
+    pending.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    pending.replace(path)
+
+
+def _summarize_text(path: Path) -> dict[str, object]:
+    lines = words = 0
+    with path.open(encoding="utf-8") as stream:
+        for line in stream:
+            lines += 1
+            words += len(line.split())
+    return {"lines": lines, "words": words}
+
+
+def execute(config: RunConfig) -> Path:
+    """Create a fresh attempt and record its outcome, including stage failures."""
+    config.output.mkdir(parents=True, exist_ok=True)
+    attempt = Path(mkdtemp(prefix="attempt-", dir=config.output))
+    _write_json(attempt / "resolved-config.json", config.model_dump(mode="json"))
+
+    stage: dict[str, object] = {}
+    manifest: dict[str, object] = {"schema_version": 1, "status": "running", "stages": {"summarize_text": stage}}
+    manifest_path = attempt / "manifest.json"
+    _write_json(manifest_path, manifest)
+    start = perf_counter()
+    try:
+        _write_json(attempt / "summary.json", _summarize_text(config.input))
+    except Exception as exc:
+        manifest.update(status="failed", failed_stage="summarize_text", error=str(exc))
+        raise RunFailedError(f"Text analysis failed: {exc}. See {manifest_path}") from exc
+    else:
+        manifest["status"] = "completed"
+    finally:
+        stage["elapsed_s"] = perf_counter() - start
+        _write_json(manifest_path, manifest)
+    return attempt

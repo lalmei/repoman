@@ -1,0 +1,73 @@
+"""Exercise the documented research example through the public CLI."""
+
+import json
+import shutil
+from pathlib import Path
+
+import pytest
+from typer.testing import CliRunner
+
+from {{python_package_import_name}}.cli import cli
+
+
+@pytest.fixture
+def example(tmp_path: Path) -> Path:
+    """Copy the documented input and config into a fresh directory."""
+    source = Path(__file__).resolve().parents[1] / "research-pipeline-example"
+    directory = tmp_path / "example"
+    directory.mkdir()
+    for name in ("sample.txt", "run.json"):
+        shutil.copyfile(source / name, directory / name)
+    return directory / "run.json"
+
+
+def test_run_and_retry(example: Path) -> None:
+    """Two successful invocations save separate, inspectable attempts."""
+    runner = CliRunner()
+    args = ["run", "-c", str(example)]
+    first = runner.invoke(cli, args)
+    assert first.exit_code == 0, first.output
+    attempt = Path(first.stdout.strip())
+    assert attempt.parent == example.parent / "runs"
+    assert json.loads((attempt / "summary.json").read_text()) == {"lines": 3, "words": 6}
+    manifest = json.loads((attempt / "manifest.json").read_text())
+    assert manifest["status"] == "completed"
+    assert manifest["stages"]["summarize_text"]["elapsed_s"] >= 0
+    resolved = json.loads((attempt / "resolved-config.json").read_text())
+    assert resolved["input"] == str(example.parent / "sample.txt")
+    second = runner.invoke(cli, args)
+    assert second.exit_code == 0, second.output
+    assert Path(second.stdout.strip()) != attempt
+    assert (attempt / "summary.json").is_file()
+
+
+def test_failed_stage_preserves_manifest(example: Path) -> None:
+    """A missing input leaves a failed attempt and a diagnostic."""
+    example.with_name("sample.txt").unlink()
+    result = CliRunner().invoke(cli, ["run", "-c", str(example)])
+    assert result.exit_code == 1, result.output
+    (path,) = (example.parent / "runs").glob("attempt-*/manifest.json")
+    assert str(path) in result.output
+    manifest = json.loads(path.read_text())
+    assert manifest["status"] == "failed"
+    assert manifest["failed_stage"] == "summarize_text"
+    assert "sample.txt" in manifest["error"]
+
+
+def test_dry_run_creates_no_attempt(example: Path) -> None:
+    """A dry run prints resolved options before creating output."""
+    result = CliRunner().invoke(cli, ["--dry-run", "run", "-c", str(example)])
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.stdout)["output"] == str(example.parent / "runs")
+    assert not (example.parent / "runs").exists()
+
+
+def test_unsupported_config_version(example: Path) -> None:
+    """Reject incompatible run configs before creating directories."""
+    config = json.loads(example.read_text())
+    config["schema_version"] = 2
+    example.write_text(json.dumps(config))
+    result = CliRunner().invoke(cli, ["run", "-c", str(example)])
+    assert result.exit_code == 2, result.output
+    assert "schema_version" in result.output
+    assert not (example.parent / "runs").exists()
