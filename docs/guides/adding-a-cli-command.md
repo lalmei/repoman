@@ -40,3 +40,29 @@ repoman generator add report             # create
 ```
 
 For more on the template and the command template location, see [The template — Adding new CLI commands](../template.md). For all repoman CLI options, see the [CLI reference](../cli.md).
+
+## Example project diagnostic
+
+Run `repoman generator add doctor` in a generated project to scaffold a
+project-specific diagnostic. For a CLI that can read Parquet through an
+optional PyArrow install, replace the generated command module with:
+
+```python
+import json
+from importlib.util import find_spec
+
+from typer import Typer, echo
+
+app = Typer(invoke_without_command=True)
+
+
+@app.callback()
+def run() -> None:
+    """Report whether the optional Parquet reader is installed."""
+    echo(json.dumps({"pyarrow_installed": find_spec("pyarrow") is not None}))
+```
+
+Run `uv run <cli-name> doctor` and update the generated command test to
+parse stdout as JSON and check the field. The probe works with PyArrow
+present or absent and leaves the optional package unloaded. Use the built-in
+`--debug-info` flag for Python and package version information.
