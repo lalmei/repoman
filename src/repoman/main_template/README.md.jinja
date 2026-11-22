@@ -81,3 +81,14 @@ make paper
 
 This target requires Tectonic.
 {% endif %}
+{% if research_pipeline and python_package_command_line_name and not docs_only %}
+
+## Run the example pipeline
+
+```sh
+uv run {{ python_package_command_line_name }} run -c research-pipeline-example/run.json
+```
+
+Open `summary.json` in the printed attempt directory to see the line and word
+counts. [Example files and expected results](research-pipeline-example/README.md)
+{% endif %}

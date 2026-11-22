@@ -134,6 +134,17 @@ def test_validate_answers_real_schema_and_fixture() -> None:
     assert report.valid is True, f"Validation failed: {report}"
 
 
+def test_existing_answers_can_omit_research_pipeline() -> None:
+    """Answers saved before the pilot still validate, and supplied values are checked."""
+    schema = load_prompt_schema()
+    fixture = Path(__file__).parents[1] / "fixtures" / "default_copier_answers.yml"
+    answers = load_answers(fixture)
+    del answers["research_pipeline"]
+    assert validate_answers(schema, answers).valid
+    answers["research_pipeline"] = "typo"
+    assert validate_answers(schema, answers).type_errors
+
+
 def test_validate_answers_schema_value_not_dict_skipped() -> None:
     """Schema key with non-dict value is skipped (line 63-64)."""
     schema = {"name": {"type": "str"}, "bad": "not a dict"}

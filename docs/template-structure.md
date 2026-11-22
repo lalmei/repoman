@@ -5,6 +5,7 @@
 - **CI:** GitHub projects get CI and docs workflows under `.github/workflows/`. Package projects also get a tag-triggered release workflow. GitLab projects get a root `.gitlab-ci.yml` that checks docs, runs the Python test matrix on Linux, and builds distribution artifacts on tags. Docs-only GitLab projects run the docs check. Azure projects get pipeline files under `.azuredevops/`.
 - **CLI:** If `python_package_command_line_name` is set, the template generates `src/{{ python_package_import_name }}/cli/`, `__main__.py`, and a `[project.scripts]` entry in `pyproject.toml`.
 - **FastAPI:** If `fastapi_enabled` is true, the template generates `src/{{ python_package_import_name }}/app/` with the ASGI entry point, router, controllers, views, state, exceptions, and utilities.
+- **Research pipeline** projects include a `run` command, the reusable `research_pipeline.py` module, an offline example in `research-pipeline-example/`, and a CLI regression test. Enable it with `--research-pipeline` when creating a Python CLI.
 - **Datasets:** If `dataset_enabled` is true, the template generates `config/dataset_config.json`, `src/{{ python_package_import_name }}/config/dataset_config.py`, and the selected dataset loaders/adapters under `src/{{ python_package_import_name }}/datasets/`.
 - **Docs-only:** If `docs_only` is true, source package and test files are omitted.
 - **Notebooks:** If `python_notebooks` is true, the template generates a `notebooks/` folder.

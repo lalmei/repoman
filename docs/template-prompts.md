@@ -39,6 +39,13 @@ Repoman prompts for:
 | ------------- | -------------------------------------------- | ------- |
 | `latex_paper` | Include a LaTeX paper scaffold under `paper/` | `false` |
 
+### Research pipeline
+
+For projects with a Python CLI, set `research_pipeline: true` to generate
+a versioned JSON run config, a local text fixture, and a test of the public
+`run` command. The option defaults to `false`. Paths in the run config
+resolve relative to that file.
+
 ### Datasets
 
 | Prompt                     | Description                                                | Default |

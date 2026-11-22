@@ -1,0 +1,32 @@
+"""Run the offline text analysis with a versioned configuration file."""
+
+from pathlib import Path
+from typing import Annotated
+
+from typer import BadParameter, Context, Exit, Option, Typer, echo
+
+from {{python_package_import_name}}.research_pipeline import RunConfig, RunFailedError, execute
+
+app = Typer(invoke_without_command=True)
+
+
+@app.callback()
+def run(
+    ctx: Context,
+    config: Annotated[Path, Option("--config", "-c", exists=True, dir_okay=False, readable=True)],
+) -> None:
+    """Write the text summary and print its attempt directory."""
+    try:
+        options = RunConfig.load(config)
+    except (ValueError, OSError) as exc:
+        raise BadParameter(str(exc), param_hint="--config") from exc
+    if (ctx.find_root().obj or {}).get("dry_run"):
+        echo(options.model_dump_json(indent=2))
+        return
+
+    try:
+        attempt = execute(options)
+    except (OSError, RunFailedError) as exc:
+        echo(str(exc), err=True)
+        raise Exit(1) from exc
+    echo(str(attempt))

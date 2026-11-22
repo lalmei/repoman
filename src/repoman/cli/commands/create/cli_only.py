@@ -36,6 +36,9 @@ def cli(
         Option("--output", "-o", help="Output directory (defaults to current directory)"),
     ] = None,
     document_review: Annotated[bool, Option("--document-review", help="Include the document review pilot")] = False,
+    research_pipeline: Annotated[
+        bool, Option("--research-pipeline", help="Include a reproducible offline run example")
+    ] = False,
     force: bool = Option(False, "--force", "-f", help="Overwrite existing files"),
     dry_run: bool = Option(False, "--dry-run", help="Show what would be created without creating"),
 ) -> None:
@@ -51,6 +54,8 @@ def cli(
     data = build_preset_data("cli", project_name)
     if document_review:
         data["document_review"] = True
+    if research_pipeline:
+        data["research_pipeline"] = True
     run_create(
         project_name=project_name,
         output_dir=output_dir_base,

@@ -262,3 +262,9 @@ document_review:
   help: Include the document review pilot
   default: false
   when: "{{ not docs_only and python_package_command_line_name }}"
+
+research_pipeline:
+  type: bool
+  help: Include a CLI pipeline with an offline example and per-run manifests
+  default: false
+  when: "{{ not docs_only and python_package_command_line_name }}"
